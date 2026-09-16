@@ -1,120 +1,123 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator, Alert } from 'react-native';
-import * as Location from 'expo-location';
+import React, { useState } from 'react';
+import { StyleSheet, View, useWindowDimensions, Platform, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// ✅ Импортируем наш кастомный компонент карты и интерфейс данных
-import MapComponent, { GroundItem } from '@/components/MapComponent';
+import SearchGrounds from '@/components/ui/SearchGrounds';
+import CategorySport from '@/components/ui/CategorySport';
+import ListGrounds from '@/components/ui/ListGrounds';
+import MapComponent from '@/components/ui/MapComponent';
+import { ExtendedGroundItem } from '@/components/ui/CardGround';
+
+const MOCK_GROUNDS_DATA: ExtendedGroundItem[] = [
+  {
+    id: '1',
+    title: 'Riverside Court',
+    address: '12 Embankment Walk',
+    category: 'Basketball',
+    rating: 4.8,
+    reviewsCount: 132,
+    distance: '0.6 km',
+    imageUrl: 'https://unsplash.com',
+    latitude: 55.7578,
+    longitude: 37.6193,
+    isLive: true,
+  },
+  {
+    id: '2',
+    title: 'Greenfield Pitch',
+    address: '48 Meadow Lane',
+    category: 'Football',
+    rating: 4.6,
+    reviewsCount: 98,
+    distance: '1.2 km',
+    imageUrl: 'https://unsplash.com',
+    latitude: 55.7538,
+    longitude: 37.6153,
+    isLive: true,
+  },
+];
 
 export default function GroundsScreen() {
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  
-  // Массив спортивных площадок (сюда вы вставите данные из v0)
-  const [mockGrounds, setMockGrounds] = useState<GroundItem[]>([]);
+  const { height: windowHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets(); 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const [region, setRegion] = useState({
+  const mapRegion = {
     latitude: 55.7558,
     longitude: 37.6173,
-    latitudeDelta: 0.015,
-    longitudeDelta: 0.015,
-  });
-
-  useEffect(() => {
-    async function initScreen() {
-      // 1. Запрашиваем геопозицию
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      
-      if (status !== 'granted') {
-        setIsLoading(false);
-        Alert.alert('Внимание', 'Разрешите доступ к GPS в настройках телефона.');
-        return;
-      }
-
-      try {
-        let currentLocation = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        });
-        
-        const userLat = currentLocation.coords.latitude;
-        const userLng = currentLocation.coords.longitude;
-
-        // Центрируем карту на пользователе
-        setRegion({
-          latitude: userLat,
-          longitude: userLng,
-          latitudeDelta: 0.015,
-          longitudeDelta: 0.015,
-        });
-
-        // 2. Генерируем тестовые площадки вокруг пользователя для примера
-        setMockGrounds([
-          {
-            id: '1',
-            title: 'PlayG Arena (Футбол)',
-            description: 'Открытое поле с искусственным газоном',
-            latitude: userLat + 0.002,
-            longitude: userLng + 0.002,
-          },
-          {
-            id: '2',
-            title: 'Стритбольная площадка',
-            description: '2 кольца, резиновое покрытие',
-            latitude: userLat - 0.003,
-            longitude: userLng + 0.004,
-          }
-        ]);
-
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    initScreen();
-  }, []);
-
-  // Функция обработки нажатия на маркер
-  const handleGroundSelect = (ground: GroundItem) => {
-    console.log('Выбрана площадка:', ground.title);
-    // Сюда можно добавить открытие карточки с деталями площадки
+    latitudeDelta: 0.02,
+    longitudeDelta: 0.02,
   };
 
-  if (isLoading) {
+  const filteredGrounds = MOCK_GROUNDS_DATA.filter((ground) => {
+    const matchesCategory = selectedCategory === 'all' || ground.category.toLowerCase() === selectedCategory;
+    const matchesSearch = ground.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          ground.address.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  const isWeb = Platform.OS === 'web';
+
+  if (isWeb) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#208AEF" />
-        <Text style={styles.loadingText}>Загрузка данных...</Text>
-      </View>
+      <ScrollView style={styles.webScrollContainer} showsVerticalScrollIndicator={false}>
+        <View style={styles.webSearchWrapper}>
+          <SearchGrounds value={searchQuery} onChangeText={setSearchQuery} />
+        </View>
+        
+        <View style={styles.webMapWrapper}>
+          <MapComponent region={mapRegion} grounds={filteredGrounds} />
+        </View>
+
+        <CategorySport 
+          selectedCategory={selectedCategory} 
+          onSelectCategory={setSelectedCategory} 
+        />
+
+        <ListGrounds 
+          data={filteredGrounds} 
+          onItemPress={(item) => console.log('Selected:', item.title)} 
+        />
+      </ScrollView>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* ✅ Используем карту как чистый изолированный компонент */}
-      <MapComponent 
-        region={region} 
-        grounds={mockGrounds} 
-        onMarkerPress={handleGroundSelect}
+      <View style={[styles.topSection, { height: windowHeight * 0.4 }]}>
+        <MapComponent region={mapRegion} grounds={filteredGrounds} />
+        <View style={[styles.searchOverlayMobile, { top: insets.top + 12 }]}>
+          <SearchGrounds value={searchQuery} onChangeText={setSearchQuery} />
+        </View>
+      </View>
+
+      <CategorySport 
+        selectedCategory={selectedCategory} 
+        onSelectCategory={setSelectedCategory} 
       />
+
+      <View style={styles.bottomSection}>
+        <ListGrounds 
+          data={filteredGrounds} 
+          onItemPress={(item) => console.log('Selected:', item.title)} 
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  topSection: { width: '100%', position: 'relative' },
+  searchOverlayMobile: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 99, 
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#EEF7F5',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#334A77',
-    fontWeight: '500',
-  },
+  bottomSection: { flex: 1 },
+  webScrollContainer: { flex: 1, backgroundColor: '#FFFFFF' },
+  webSearchWrapper: { paddingTop: 16, marginBottom: 8 },
+  webMapWrapper: { paddingHorizontal: 16, marginBottom: 8 }
 });

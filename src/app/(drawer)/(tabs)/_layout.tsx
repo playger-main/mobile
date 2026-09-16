@@ -1,22 +1,55 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { Tabs, useNavigation } from 'expo-router';
+import { Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// ✅ Импортируем Ionicons из встроенного пакета Expo
 import { Ionicons } from '@expo/vector-icons';
+// @ts-ignore
+import { DrawerActions } from 'expo-router/react-navigation';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
+
+  const renderDrawerButton = () => (
+    <Pressable 
+      onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+      style={({ pressed }) => [
+        styles.tabMenuButton,
+        { opacity: pressed ? 0.7 : 1 }
+      ]}
+    >
+      <Ionicons name="menu-outline" size={24} color="#334A77" />
+    </Pressable>
+  );
 
   return (
     <Tabs
       screenOptions={{
-        headerShown: false, // Хедер управляется на уровне Drawer
-        tabBarActiveTintColor: '#208AEF',   // Цвет иконки и текста активной вкладки
-        tabBarInactiveTintColor: '#6080A8', // Цвет неактивной вкладки
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '500',
+        headerShown: true, 
+        headerTransparent: true,
+        headerTitle: '',
+        headerShadowVisible: false,
+        headerLeft: () => renderDrawerButton(), 
+        tabBarActiveTintColor: '#208AEF',   
+        tabBarInactiveTintColor: '#6080A8', 
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
+        
+        tabBarButton: (props: any) => {
+          const { children, onPress, style } = props;
+          return (
+            <Pressable
+              onPress={onPress}
+              style={({ pressed }) => [
+                { flex: 1, backgroundColor: pressed ? '#ffffff0d' : 'transparent' },
+                style,
+              ]}
+              android_ripple={null}
+            >
+              {children}
+            </Pressable>
+          );
         },
+        
         tabBarStyle: {
           height: 50 + insets.bottom,
           paddingBottom: insets.bottom,
@@ -28,53 +61,52 @@ export default function TabLayout() {
         },
       }}
     >
-      {/* 1. Вкладка Grounds */}
       <Tabs.Screen
         name="index"
         options={{
           title: 'Grounds',
+          headerShown: false, // На Grounds хедер выключен, так как кнопка встроена внутрь поиска
           tabBarIcon: ({ color, focused }) => (
-            // Используем иконку карты/стадиона. Залитая, если активна, контурная — если нет.
-            <Ionicons 
-              name={focused ? 'map' : 'map-outline'} 
-              size={22} 
-              color={color} 
-            />
+            <Ionicons name={focused ? 'map' : 'map-outline'} size={22} color={color} />
           ),
         }}
       />
-
-      {/* 2. Вкладка Events */}
       <Tabs.Screen
         name="events"
         options={{
           title: 'Events',
           tabBarIcon: ({ color, focused }) => (
-            // Иконка календаря для спортивных событий
-            <Ionicons 
-              name={focused ? 'calendar' : 'calendar-outline'} 
-              size={22} 
-              color={color} 
-            />
+            <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={22} color={color} />
           ),
         }}
       />
-
-      {/* 3. Вкладка Profile */}
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, focused }) => (
-            // Иконка пользователя для личного кабинета
-            <Ionicons 
-              name={focused ? 'person' : 'person-outline'} 
-              size={22} 
-              color={color} 
-            />
+            <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
           ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabMenuButton: {
+    width: 48,
+    height: 48,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 16, 
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    zIndex: 99,
+  },
+});
