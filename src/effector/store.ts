@@ -11,7 +11,7 @@ import {
 } from './events/sync';
 
 // Импорт асинхронных эффектов
-import { fetchGroundsFx } from './events/async/grounds';
+import { fetchGroundByIdFx, fetchGroundsFx, GroundDetailItem } from './events/async/grounds';
 
 // ==========================================
 // 1. ДОМЕН: ФИЛЬТРЫ И ПОИСК
@@ -49,3 +49,13 @@ export const $groundsError = data
   .createStore<string | null>(null)
   .on(fetchGroundsFx.failData, (_, error: any) => error.message || 'Ошибка сети')
   .on(fetchGroundsFx, () => null);
+  
+export const $currentGround = data
+  .createStore<GroundDetailItem | null>(null)
+  .on(fetchGroundByIdFx.doneData, (_, payload) => payload)
+  .on(fetchGroundByIdFx.failData, () => null);
+
+export const $isGroundDetailLoading = data
+  .createStore<boolean>(false)
+  .on(fetchGroundByIdFx, () => true)
+  .on(fetchGroundByIdFx.finally, () => false);

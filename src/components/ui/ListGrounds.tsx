@@ -1,16 +1,18 @@
 import React, { useEffect } from 'react';
-import { FlatList, View, Text, StyleSheet, Platform, ActivityIndicator, ScrollView } from 'react-native';
+import { FlatList, View, Text, StyleSheet, Platform, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
 
-import CardGround from './CardGround';
+// ✅ ИСПРАВЛЕНИЕ: Импортируем интерфейс ExtendedGroundItem для строгой типизации
+import CardGround, { ExtendedGroundItem } from './CardGround';
 
 // Импортируем сторы и эффекты из Effector
 import { fetchGroundsFx } from '@/effector/events/async/grounds';
 import { $grounds, $isGroundsLoading, $searchQuery, $selectedCategory } from '@/effector/store';
 
 interface ListGroundsProps {
-  onItemPress: (item: any) => void;
+  // ✅ ИСПРАВЛЕНИЕ: Заменили any на ExtendedGroundItem
+  onItemPress: (item: ExtendedGroundItem) => void; 
   onToggleFavorite: (id: string) => void;
 }
 
@@ -43,7 +45,6 @@ export default function ListGrounds({ onItemPress, onToggleFavorite }: ListGroun
   }
 
   return (
-    // ✅ ИСПРАВЛЕНИЕ: Для Web убираем flex:1 и скругления углов, чтобы блок не перекрывал контент
     <View style={[styles.container, isWeb && styles.containerWeb]}>
       {/* Шапка списка */}
       <View style={styles.header}>
@@ -53,7 +54,6 @@ export default function ListGrounds({ onItemPress, onToggleFavorite }: ListGroun
 
       {/* УСЛОВНЫЙ РЕНДЕРИНГ */}
       {isWeb ? (
-        // ✅ ИСПРАВЛЕНИЕ ДЛЯ WEB: Отрендерим элементы плоским списком без внутренних скроллов
         <View style={styles.webListContent}>
           {grounds.map((item) => (
             <CardGround 
@@ -87,7 +87,6 @@ export default function ListGrounds({ onItemPress, onToggleFavorite }: ListGroun
 }
 
 const styles = StyleSheet.create({
-  // Мобильные стили (работают как BottomSheet на телефоне)
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
@@ -96,8 +95,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
   },
-  // ✅ НАСТРОЙКА ДЛЯ ВЕБА: Сбрасываем flex и делаем фон прозрачным/чистым, 
-  // чтобы убрать накладывающийся белый оверлей поверх карточек
   containerWeb: {
     flex: 0,
     height: 'auto',

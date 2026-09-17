@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, View, useWindowDimensions, Platform, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
+import { useRouter } from 'expo-router'; 
 
 import SearchGrounds from '@/components/ui/SearchGrounds';
 import CategorySport from '@/components/ui/CategorySport';
@@ -14,6 +15,7 @@ import { setSearchQuery, setSelectedCategory, toggleFavoriteInStore } from '@/ef
 export default function GroundsScreen() {
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets(); 
+  const router = useRouter(); 
 
   const {
     grounds,
@@ -63,7 +65,7 @@ export default function GroundsScreen() {
 
           <View style={styles.webListWrapper}>
             <ListGrounds 
-              onItemPress={(item) => console.log('Selected:', item.name)} 
+              onItemPress={(item) => router.push(`/ground/${item.id}`)} 
               onToggleFavorite={toggleFavorite}
             />
           </View>
