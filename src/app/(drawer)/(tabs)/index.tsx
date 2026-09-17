@@ -13,7 +13,6 @@ import { $grounds, $searchQuery, $selectedCategory } from '@/effector/store';
 import { setSearchQuery, setSelectedCategory, toggleFavoriteInStore } from '@/effector/events/sync';
 
 export default function GroundsScreen() {
-  const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets(); 
   const router = useRouter(); 
 
@@ -33,7 +32,6 @@ export default function GroundsScreen() {
     toggleFavorite: toggleFavoriteInStore
   });
 
-  // Дефолтные координаты для Вильнюса (Pašilaičiai), чтобы сразу видеть маркеры
   const mapRegion = {
     latitude: 54.7284,
     longitude: 25.2273,
@@ -43,17 +41,15 @@ export default function GroundsScreen() {
 
   const isWeb = Platform.OS === 'web';
 
-  // 🌐 ВЕРСТКА СПЕЦИАЛЬНО ДЛЯ WEB (БРАУЗЕРА)
+  // 🌐 ВЕРСТКА ДЛЯ WEB (БРАУЗЕРА)
   if (isWeb) {
     return (
       <View style={styles.webRoot}>
         <ScrollView style={styles.webScrollContainer} showsVerticalScrollIndicator={false}>
-          {/* Поиск в вебе идет обычным потоком, а не абсолютным оверлеем */}
           <View style={styles.webSearchWrapper}>
             <SearchGrounds value={searchQuery} onChangeText={changeSearch} />
           </View>
           
-          {/* Карта в вебе получает фиксированную высоту */}
           <View style={styles.webMapWrapper}>
             <MapComponent region={mapRegion} grounds={grounds} />
           </View>
@@ -74,24 +70,29 @@ export default function GroundsScreen() {
     );
   }
 
-  // 📱 ВЕРСТКА ДЛЯ СМАРТФОНОВ (iOS / Android) — остается без изменений
+  // 📱 ВЕРСТКА ДЛЯ СМАРТФОНОВ (iOS / Android)
   return (
     <View style={styles.container}>
-      <View style={[styles.topSection, { height: windowHeight * 0.4 }]}>
+      {/* Карта занимает честные 40% экрана и не перекрывает нижний список */}
+      <View style={styles.topSectionMobile}>
         <MapComponent region={mapRegion} grounds={grounds} />
+        
+        {/* Поиск поверх карты с высоким zIndex */}
         <View style={[styles.searchOverlayMobile, { top: insets.top + 12 }]}>
           <SearchGrounds value={searchQuery} onChangeText={changeSearch} />
         </View>
       </View>
 
+      {/* Лента категорий */}
       <CategorySport 
         selectedKindofsport={selectedKindofsport} 
         onSelectKindofsport={changeKindofsport}   
       />
 
-      <View style={styles.bottomSection}>
+      {/* Список занимает оставшиеся 60% и гарантированно ловит нажатия пальцем */}
+      <View style={styles.bottomSectionMobile}>
         <ListGrounds 
-          onItemPress={(item) => console.log('Selected:', item.name)} 
+          onItemPress={(item) => router.push(`/ground/${item.id}`)} 
           onToggleFavorite={toggleFavorite}
         />
       </View>
@@ -100,9 +101,17 @@ export default function GroundsScreen() {
 }
 
 const styles = StyleSheet.create({
-  // Мобильные стили
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  topSection: { width: '100%', position: 'relative' },
+  // Новые жесткие мобильные стили без пересечения слоев
+  container: { 
+    flex: 1, 
+    backgroundColor: '#FFFFFF' 
+  },
+  topSectionMobile: { 
+    flex: 0.4, // Ровно 40% экрана отдаем карте
+    width: '100%', 
+    position: 'relative',
+    zIndex: 1,
+  },
   searchOverlayMobile: {
     position: 'absolute',
     left: 0,
@@ -110,7 +119,10 @@ const styles = StyleSheet.create({
     zIndex: 99, 
     paddingBottom: 8,
   },
-  bottomSection: { flex: 1 },
+  bottomSectionMobile: { 
+    flex: 0.6, // Ровно 60% экрана отдаем списку
+    zIndex: 10, // Принудительно поднимаем список выше слоя карты, чтобы кликалось
+  },
 
   // Стили для Web-версии
   webRoot: {
@@ -127,12 +139,11 @@ const styles = StyleSheet.create({
   },
   webMapWrapper: {
     width: '100%',
-    height: 250, // Фиксируем высоту карты в браузере, чтобы она не сжимала список
-    paddingHorizontal: 0,
+    height: 250, 
     marginBottom: 4,
   },
   webListWrapper: {
     flex: 1,
-    minHeight: 400, // Даем списку гарантированную высоту для раскрытия карточек
+    minHeight: 400, 
   }
 });
