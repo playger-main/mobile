@@ -1,15 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-
-// Описываем структуру данных для спортивной площадки
-export interface GroundItem {
-  id: string;
-  title: string;
-  description?: string;
-  latitude: number;
-  longitude: number;
-}
+import { ExtendedGroundItem } from './CardGround';
 
 interface MapComponentProps {
   region: {
@@ -18,8 +10,8 @@ interface MapComponentProps {
     latitudeDelta: number;
     longitudeDelta: number;
   };
-  grounds: GroundItem[];
-  onMarkerPress?: (ground: GroundItem) => void;
+  grounds: ExtendedGroundItem[];
+  onMarkerPress?: (ground: ExtendedGroundItem) => void;
 }
 
 export default function MapComponent({ region, grounds, onMarkerPress }: MapComponentProps) {
@@ -28,21 +20,29 @@ export default function MapComponent({ region, grounds, onMarkerPress }: MapComp
       <MapView
         provider={PROVIDER_GOOGLE}
         style={styles.map}
-        region={region}
+        initialRegion={region} // Используем initialRegion во избежание сброса камеры при вводе в поиск
         showsUserLocation={true}
         showsMyLocationButton={true}
         toolbarEnabled={false}
       >
-        {/* Рендерим переданный массив спортивных площадок в виде маркеров */}
-        {grounds.map((ground) => (
-          <Marker
-            key={ground.id}
-            coordinate={{ latitude: ground.latitude, longitude: ground.longitude }}
-            title={ground.title}
-            description={ground.description}
-            onPress={() => onMarkerPress?.(ground)}
-          />
-        ))}
+        {grounds.map((ground) => {
+          // Защитная проверка: если на сервере кривые координаты или null — не рендерим маркер
+          if (!ground.geolocation?.lat || !ground.geolocation?.lng) return null;
+
+          return (
+            <Marker
+              key={ground.id}
+              // Безопасно парсим строковые координаты из JSON NestJS в числа для карт
+              coordinate={{ 
+                latitude: Number(ground.geolocation.lat), 
+                longitude: Number(ground.geolocation.lng) 
+              }}
+              title={ground.name}
+              description={ground.description || undefined}
+              onPress={() => onMarkerPress?.(ground)}
+            />
+          );
+        })}
       </MapView>
     </View>
   );

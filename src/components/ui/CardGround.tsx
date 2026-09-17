@@ -1,32 +1,76 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { GroundItem } from './MapComponent';
 
-// Расширяем интерфейс GroundItem дополнительными полями из макета
-export interface ExtendedGroundItem extends GroundItem {
-  imageUrl: string;
-  address: string;
-  category: string;
-  rating: number;
-  reviewsCount: number;
-  distance: string;
+// Полный интерфейс на основе реального JSON ответа NestJS
+export interface ExtendedGroundItem {
+  id: string;
+  name: string;
+  kindofsport: string[];
+  coverage: string[];
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+  address: string | null;
+  geolocation: {
+    lat: string; // Строка от сервера
+    lng: string; // Строка от сервера
+  } | null;
+  avatar: string; // Поле ссылки на изображение с сервера
+  eventsCount: number;
+  isFavorite: boolean;
+  avgRating: number;
+  distanceMeters?: number;
   isLive?: boolean;
 }
 
 interface CardGroundProps {
   item: ExtendedGroundItem;
   onPress: () => void;
+  onToggleFavorite: (id: string) => void;
 }
 
-export default function CardGround({ item, onPress }: CardGroundProps) {
-  const [isFavorite, setIsFavorite] = useState(false);
+export default function CardGround({ item, onPress, onToggleFavorite }: CardGroundProps) {
+  // Извлекаем основной вид спорта
+  const primarySport = item.kindofsport && item.kindofsport.length > 0 
+    ? item.kindofsport[0] 
+    : 'Sport';
+
+  // Динамические цвета для спортивных баджей под новые виды спорта
+  const getBadgeStyle = (sport: string) => {
+    switch (sport.toLowerCase()) {
+      case 'basketball':
+        return { bg: '#FFF0E6', text: '#FF8000' };
+      case 'football':
+        return { bg: '#EAF9F5', text: '#27AE60' };
+      case 'tennis':
+        return { bg: '#EBF3FF', text: '#208AEF' };
+      case 'pickleball':
+        return { bg: '#F2E8FF', text: '#9B51E0' }; // Фиолетовый для пиклбола
+      case 'skateboarding':
+        return { bg: '#F1F3F5', text: '#495057' }; // Серый для скейтпарка
+      default:
+        return { bg: '#F0F4F8', text: '#6080A8' };
+    }
+  };
+
+  const currentBadgeStyle = getBadgeStyle(primarySport);
+
+  // Красивое форматирование расстояния
+  const displayDistance = item.distanceMeters !== undefined
+    ? item.distanceMeters > 999 
+      ? `${(item.distanceMeters / 1000).toFixed(1)} km` 
+      : `${item.distanceMeters} m`
+    : 'Nearby';
 
   return (
     <Pressable style={styles.card} onPress={onPress}>
       {/* Изображение площадки */}
       <View style={styles.imageContainer}>
-        <Image source={{ uri: item.imageUrl }} style={styles.image} />
+        <Image 
+          source={{ uri: item.avatar || 'https://unsplash.com' }} 
+          style={styles.image} 
+        />
         {item.isLive && (
           <View style={styles.liveBadge}>
             <Text style={styles.liveText}>LIVE</Text>
@@ -37,22 +81,29 @@ export default function CardGround({ item, onPress }: CardGroundProps) {
       {/* Информация о площадке */}
       <View style={styles.infoContainer}>
         <View style={styles.headerRow}>
-          <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
-          {/* Кнопка Лайка/Избранного */}
-          <Pressable onPress={() => setIsFavorite(!isFavorite)} style={styles.favoriteButton}>
+          <Text style={styles.title} numberOfLines={1}>{item.name}</Text>
+          <Pressable 
+            onPress={() => onToggleFavorite(item.id)} 
+            style={styles.favoriteButton}
+            hitSlop={8}
+          >
             <Ionicons
-              name={isFavorite ? 'heart' : 'heart-outline'}
+              name={item.isFavorite ? 'heart' : 'heart-outline'}
               size={20}
-              color={isFavorite ? '#FF3B30' : '#6080A8'}
+              color={item.isFavorite ? '#FF3B30' : '#BACAD6'}
             />
           </Pressable>
         </View>
 
-        <Text style={styles.address} numberOfLines={1}>{item.address}</Text>
+        <Text style={styles.address} numberOfLines={1}>
+          {item.address || 'No address provided'}
+        </Text>
 
         {/* Тег категории спорта */}
-        <View style={styles.categoryBadge}>
-          <Text style={styles.categoryText}>{item.category}</Text>
+        <View style={[styles.categoryBadge, { backgroundColor: currentBadgeStyle.bg }]}>
+          <Text style={[styles.categoryText, { color: currentBadgeStyle.text }]}>
+            {primarySport.toUpperCase()}
+          </Text>
         </View>
 
         {/* Рейтинг и Дистанция */}
@@ -60,14 +111,14 @@ export default function CardGround({ item, onPress }: CardGroundProps) {
           <View style={styles.ratingBlock}>
             <Ionicons name="star" size={14} color="#FFCC00" />
             <Text style={styles.ratingText}>
-              {item.rating.toFixed(1)}{' '}
-              <Text style={styles.reviewsText}>({item.reviewsCount})</Text>
+              {item.avgRating ? item.avgRating.toFixed(1) : '0.0'}{' '}
+              <Text style={styles.reviewsText}>({item.eventsCount || 0} events)</Text>
             </Text>
           </View>
           
           <View style={styles.distanceBlock}>
             <Ionicons name="location-outline" size={14} color="#6080A8" />
-            <Text style={styles.distanceText}>{item.distance}</Text>
+            <Text style={styles.distanceText}>{displayDistance}</Text>
           </View>
         </View>
       </View>
@@ -84,10 +135,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#E6F4FE',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
+    shadowColor: '#334A77',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
     elevation: 2,
   },
   imageContainer: {
@@ -111,6 +162,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
+    zIndex: 1,
   },
   liveText: {
     color: '#FFFFFF',
@@ -128,7 +180,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#334A77',
     flex: 1,
@@ -140,20 +192,18 @@ const styles = StyleSheet.create({
   address: {
     fontSize: 13,
     color: '#6080A8',
-    marginTop: 2,
+    marginTop: -2,
   },
   categoryBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#FFF0E6', // Можно менять цвет в зависимости от спорта
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
     marginTop: 4,
   },
   categoryText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#FF8000',
+    fontSize: 10,
+    fontWeight: '700',
   },
   footerRow: {
     flexDirection: 'row',
@@ -172,7 +222,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   reviewsText: {
-    color: '#6080A8',
+    color: '#BACAD6',
     fontWeight: '400',
   },
   distanceBlock: {

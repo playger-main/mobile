@@ -6,6 +6,9 @@
     "@expo/ui": "~57.0.18",
     "@expo/vector-icons": "^15.1.1",
     "@react-navigation/drawer": "^7.14.1",
+    "axios": "^1.20.0",
+    "effector": "^23.4.4",
+    "effector-react": "^23.3.0",
     "expo": "~57.0.23",
     "expo-build-properties": "^57.0.20",
     "expo-constants": "~57.0.18",
@@ -39,7 +42,7 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start",    
+    "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",

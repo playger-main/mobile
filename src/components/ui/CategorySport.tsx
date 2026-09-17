@@ -2,35 +2,37 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export const SPORTS_CATEGORIES = [
+// Переименовали константу для соответствия сущности бэкенда
+export const KINDOFSPORT_CATEGORIES = [
   { id: 'all', title: 'All sports', icon: 'grid-outline' },
   { id: 'basketball', title: 'Basketball', icon: 'basketball-outline' },
+  { id: 'pickleball', title: 'Pickleball', icon: 'trophy-outline' },       // ✅ ДОБАВЛЕНО
+  { id: 'skateboarding', title: 'Skatepark', icon: 'bicycle-outline' },    // ✅ ДОБАВЛЕНО
   { id: 'football', title: 'Football', icon: 'football-outline' },
   { id: 'tennis', title: 'Tennis', icon: 'tennisball-outline' },
 ];
 
 interface CategorySportProps {
-  selectedCategory: string;
-  onSelectCategory: (id: string) => void;
+  // ✅ ИСПРАВЛЕНИЕ: переименовали пропсы под бизнес-логику сервера
+  selectedKindofsport: string;
+  onSelectKindofsport: (id: string) => void;
 }
 
-export default function CategorySport({ selectedCategory, onSelectCategory }: CategorySportProps) {
+export default function CategorySport({ selectedKindofsport, onSelectKindofsport }: CategorySportProps) {
   return (
-    // ✅ ИСПРАВЛЕНИЕ: Обернули ScrollView в легкий View с фиксированной высотой,
-    // чтобы горизонтальная лента не выдавливала контент вниз и не создавала дыру!
     <View style={styles.wrapper}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.container}
       >
-        {SPORTS_CATEGORIES.map((category) => {
-          const isActive = selectedCategory === category.id;
+        {KINDOFSPORT_CATEGORIES.map((category) => {
+          const isActive = selectedKindofsport === category.id;
 
           return (
             <Pressable
               key={category.id}
-              onPress={() => onSelectCategory(category.id)}
+              onPress={() => onSelectKindofsport(category.id)}
               style={[styles.chip, isActive && styles.chipActive]}
             >
               {category.id !== 'all' && (
@@ -53,15 +55,14 @@ export default function CategorySport({ selectedCategory, onSelectCategory }: Ca
 }
 
 const styles = StyleSheet.create({
-  // ✅ НАСТРОЙКА ВЫСОТЫ: ограничиваем высоту всей ленты под размер маленьких кнопок
   wrapper: {
-    height: 44, // Идеальная высота: 28px кнопка + по 8px внешние отступы сверху и снизу
+    height: 44, 
     width: '100%',
     backgroundColor: '#FFFFFF',
   },
   container: {
     paddingHorizontal: 16,
-    alignItems: 'center', // Центрируем кнопки по вертикали внутри полосы
+    alignItems: 'center', 
     gap: 8,
   },
   chip: {
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
     borderColor: '#E6F4FE',
     borderRadius: 16,
     paddingHorizontal: 12,
-    height: 28, // Наша аккуратная тонкая кнопка
+    height: 28, 
   },
   chipActive: {
     backgroundColor: '#208AEF',

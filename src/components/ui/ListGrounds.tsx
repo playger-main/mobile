@@ -1,39 +1,79 @@
-import React from 'react';
-import { FlatList, View, Text, StyleSheet, Platform } from 'react-native';
+import React, { useEffect } from 'react';
+import { FlatList, View, Text, StyleSheet, Platform, ActivityIndicator, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import CardGround, { ExtendedGroundItem } from './CardGround';
+import { useUnit } from 'effector-react';
+
+import CardGround from './CardGround';
+
+// Импортируем сторы и эффекты из Effector
+import { fetchGroundsFx } from '@/effector/events/async/grounds';
+import { $grounds, $isGroundsLoading, $searchQuery, $selectedCategory } from '@/effector/store';
 
 interface ListGroundsProps {
-  data: ExtendedGroundItem[];
-  onItemPress: (item: ExtendedGroundItem) => void;
+  onItemPress: (item: any) => void;
+  onToggleFavorite: (id: string) => void;
 }
 
-export default function ListGrounds({ data, onItemPress }: ListGroundsProps) {
+export default function ListGrounds({ onItemPress, onToggleFavorite }: ListGroundsProps) {
   const isWeb = Platform.OS === 'web';
   const insets = useSafeAreaInsets(); 
 
+  // Подписываемся на данные из глобального стора Effector
+  const { grounds, isLoading, searchQuery, selectedCategory } = useUnit({
+    grounds: $grounds,
+    isLoading: $isGroundsLoading,
+    searchQuery: $searchQuery,
+    selectedCategory: $selectedCategory,
+  });
+
+  // Автоматический перезапрос при смене фильтров
+  useEffect(() => {
+    fetchGroundsFx({
+      kindofsport: selectedCategory === 'all' ? undefined : selectedCategory,
+      search: searchQuery || undefined,
+    });
+  }, [selectedCategory, searchQuery]);
+
+  if (isLoading && grounds.length === 0) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#208AEF" />
+      </View>
+    );
+  }
+
   return (
-    // ✅ ИСПРАВЛЕНИЕ: В Вебе убираем flex: 1, чтобы блок не улетал вниз от категорий
+    // ✅ ИСПРАВЛЕНИЕ: Для Web убираем flex:1 и скругления углов, чтобы блок не перекрывал контент
     <View style={[styles.container, isWeb && styles.containerWeb]}>
       {/* Шапка списка */}
       <View style={styles.header}>
-        <Text style={styles.countText}>{data.length} grounds nearby</Text>
+        <Text style={styles.countText}>{grounds.length} grounds nearby</Text>
         <Text style={styles.sortText}>By distance</Text>
       </View>
 
       {/* УСЛОВНЫЙ РЕНДЕРИНГ */}
       {isWeb ? (
+        // ✅ ИСПРАВЛЕНИЕ ДЛЯ WEB: Отрендерим элементы плоским списком без внутренних скроллов
         <View style={styles.webListContent}>
-          {data.map((item) => (
-            <CardGround key={item.id} item={item} onPress={() => onItemPress(item)} />
+          {grounds.map((item) => (
+            <CardGround 
+              key={item.id} 
+              item={item} 
+              onPress={() => onItemPress(item)} 
+              onToggleFavorite={onToggleFavorite}
+            />
           ))}
         </View>
       ) : (
         <FlatList
-          data={data}
+          data={grounds}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <CardGround item={item} onPress={() => onItemPress(item)} />
+            <CardGround 
+              item={item} 
+              onPress={() => onItemPress(item)} 
+              onToggleFavorite={onToggleFavorite}
+            />
           )}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
@@ -47,24 +87,35 @@ export default function ListGrounds({ data, onItemPress }: ListGroundsProps) {
 }
 
 const styles = StyleSheet.create({
+  // Мобильные стили (работают как BottomSheet на телефоне)
   container: {
-    flex: 1, // Оставляем растяжение для мобильных телефонов
+    flex: 1,
     backgroundColor: '#F8FAFC',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 16,
     paddingTop: 16,
   },
-  // ✅ НАСТРОЙКА ДЛЯ ВЕБА: отключаем принудительное выдавливание вниз
+  // ✅ НАСТРОЙКА ДЛЯ ВЕБА: Сбрасываем flex и делаем фон прозрачным/чистым, 
+  // чтобы убрать накладывающийся белый оверлей поверх карточек
   containerWeb: {
     flex: 0,
     height: 'auto',
+    backgroundColor: 'transparent', 
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   countText: {
     fontSize: 16,
@@ -80,7 +131,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   webListContent: {
-    paddingBottom: 16,
     width: '100%',
+    paddingBottom: 32,
   },
 });
