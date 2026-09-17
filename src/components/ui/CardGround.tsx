@@ -1,8 +1,9 @@
+// src/components/ui/CardGround.tsx
 import React from 'react';
 import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-// Полный интерфейс на основе реального JSON ответа NestJS
+// Полный интерфейс на основе реального ответа NestJS
 export interface ExtendedGroundItem {
   id: string;
   name: string;
@@ -13,15 +14,14 @@ export interface ExtendedGroundItem {
   updatedAt: string;
   address: string | null;
   geolocation: {
-    lat: string; // Строка от сервера
-    lng: string; // Строка от сервера
+    lat: string;
+    lng: string;
   } | null;
-  avatar: string; // Поле ссылки на изображение с сервера
-  eventsCount: number;
+  avatar: string;
+  eventsCount: number; // Счетчик событий с бэкенда
   isFavorite: boolean;
   avgRating: number;
   distanceMeters?: number;
-  isLive?: boolean;
 }
 
 interface CardGroundProps {
@@ -31,12 +31,12 @@ interface CardGroundProps {
 }
 
 export default function CardGround({ item, onPress, onToggleFavorite }: CardGroundProps) {
-  // Извлекаем основной вид спорта
+  // Извлекаем основной вид спорта из массива (или "Sport" по умолчанию)
   const primarySport = item.kindofsport && item.kindofsport.length > 0 
     ? item.kindofsport[0] 
     : 'Sport';
 
-  // Динамические цвета для спортивных баджей под новые виды спорта
+  // Функция для динамической смены стилей баджа в зависимости от вида спорта
   const getBadgeStyle = (sport: string) => {
     switch (sport.toLowerCase()) {
       case 'basketball':
@@ -46,9 +46,9 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
       case 'tennis':
         return { bg: '#EBF3FF', text: '#208AEF' };
       case 'pickleball':
-        return { bg: '#F2E8FF', text: '#9B51E0' }; // Фиолетовый для пиклбола
+        return { bg: '#F2E8FF', text: '#9B51E0' };
       case 'skateboarding':
-        return { bg: '#F1F3F5', text: '#495057' }; // Серый для скейтпарка
+        return { bg: '#F1F3F5', text: '#495057' };
       default:
         return { bg: '#F0F4F8', text: '#6080A8' };
     }
@@ -56,7 +56,7 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
 
   const currentBadgeStyle = getBadgeStyle(primarySport);
 
-  // Красивое форматирование расстояния
+  // Форматируем отображение дистанции (переводим метры в км)
   const displayDistance = item.distanceMeters !== undefined
     ? item.distanceMeters > 999 
       ? `${(item.distanceMeters / 1000).toFixed(1)} km` 
@@ -71,9 +71,12 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
           source={{ uri: item.avatar || 'https://unsplash.com' }} 
           style={styles.image} 
         />
-        {item.isLive && (
-          <View style={styles.liveBadge}>
-            <Text style={styles.liveText}>LIVE</Text>
+        
+        {/* ✅ ИСПРАВЛЕНИЕ: Компактный бадж. Только иконка календаря и число! */}
+        {item.eventsCount > 0 && (
+          <View style={styles.compactEventBadge}>
+            <Ionicons name="calendar" size={11} color="#FFFFFF" style={styles.badgeIcon} />
+            <Text style={styles.compactEventText}>{item.eventsCount}</Text>
           </View>
         )}
       </View>
@@ -99,7 +102,7 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
           {item.address || 'No address provided'}
         </Text>
 
-        {/* Тег категории спорта */}
+        {/* Тег категории спорта с динамическим цветом */}
         <View style={[styles.categoryBadge, { backgroundColor: currentBadgeStyle.bg }]}>
           <Text style={[styles.categoryText, { color: currentBadgeStyle.text }]}>
             {primarySport.toUpperCase()}
@@ -112,7 +115,7 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
             <Ionicons name="star" size={14} color="#FFCC00" />
             <Text style={styles.ratingText}>
               {item.avgRating ? item.avgRating.toFixed(1) : '0.0'}{' '}
-              <Text style={styles.reviewsText}>({item.eventsCount || 0} events)</Text>
+              <Text style={styles.reviewsText}>({item.eventsCount || 0})</Text>
             </Text>
           </View>
           
@@ -154,20 +157,27 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
   },
-  liveBadge: {
+  // ✅ НОВЫЕ АККУРАТНЫЕ СТИЛИ ДЛЯ МИНИ-БАДЖА
+  compactEventBadge: {
     position: 'absolute',
     top: 6,
     left: 6,
-    backgroundColor: '#34C759',
+    backgroundColor: '#34C759', // Оставляем ваш сочный зеленый цвет
     paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingVertical: 3,
+    borderRadius: 6, // Аккуратное скругление плашки
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 1,
   },
-  liveText: {
+  badgeIcon: {
+    marginRight: 3,
+  },
+  compactEventText: {
     color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: 'bold',
+    fontSize: 10,
+    fontWeight: '800',
   },
   infoContainer: {
     flex: 1,

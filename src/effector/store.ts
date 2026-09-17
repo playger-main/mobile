@@ -12,6 +12,7 @@ import {
 
 // Импорт асинхронных эффектов
 import { fetchGroundByIdFx, fetchGroundsFx, GroundDetailItem } from './events/async/grounds';
+import { fetchEventsByGroundIdFx, RealEventItem } from './events/async/events';
 
 // ==========================================
 // 1. ДОМЕН: ФИЛЬТРЫ И ПОИСК
@@ -59,3 +60,8 @@ export const $isGroundDetailLoading = data
   .createStore<boolean>(false)
   .on(fetchGroundByIdFx, () => true)
   .on(fetchGroundByIdFx.finally, () => false);
+
+export const $currentGroundEvents = data
+  .createStore<RealEventItem[]>([])
+  .on(fetchEventsByGroundIdFx.doneData, (_, payload) => payload)
+  .on(fetchEventsByGroundIdFx.failData, () => []);
