@@ -10,12 +10,16 @@ import {
   toggleFavoriteInStore, 
   setSearchQuery, 
   setSelectedCategory,
-  setSelectedDate
+  setSelectedDate,
+  setAuthStep,
+  logout
 } from './events/sync';
 
 // Импорт асинхронных эффектов
 import { fetchGroundByIdFx, fetchGroundsFx, GroundDetailItem } from './events/async/grounds';
 import { fetchAllEventsFx, fetchEventsByGroundIdFx, fetchEventByIdFx, RealEventItem, ServerEventItem,  DetailedEventItem } from './events/async/events';
+import { signUpFx, signInFx, AuthResponse } from './events/async/auth';
+
 import { getTodayString } from '@/utils/getTodayString';
 
 // ==========================================
@@ -104,3 +108,32 @@ export const $isEventDetailLoading = data
   .createStore<boolean>(false)
   .on(fetchEventByIdFx, () => true)
   .on(fetchEventByIdFx.finally, () => false);
+
+const auth = createDomain('auth');
+
+// Стор текущего шага интерфейса
+export const $authStep = auth
+  .createStore<'welcome' | 'signin' | 'signup'>('welcome')
+  .on(setAuthStep, (_, step) => step)
+  // После успешной регистрации автоматически переводим на экран входа
+  .on(signUpFx.done, () => 'signin');
+
+// Стор авторизованного пользователя
+export const $userSession = auth
+  .createStore<AuthResponse['user'] | null>(null)
+  .on(signInFx.doneData, (_, payload) => payload.user)
+  .on(logout, () => null);
+
+// Токен доступа (Access Token)
+export const $accessToken = auth
+  .createStore<string | null>(null)
+  .on(signInFx.doneData, (_, payload) => payload.accessToken)
+  .on(logout, () => null);
+
+// Общий лоадер для блокировки кнопок при отправке запросов
+export const $isAuthSubmitting = auth
+  .createStore<boolean>(false)
+  .on(signUpFx, () => true)
+  .on(signUpFx.finally, () => false)
+  .on(signInFx, () => true)
+  .on(signInFx.finally, () => false);

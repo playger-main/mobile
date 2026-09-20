@@ -12,19 +12,34 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": false,
+      "env": {
+        "APP_ENV": "production",
+        "DB_NAME": "playg_local_db",
+        "GOOGLE_MAPS_API_KEY": "AIzaSyA1..."
+      }
     },
     "android-dev-apk": {
+      "extends": "production",
+      "developmentClient": false,
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "android-prod-apk": {
+      "extends": "production",
       "android": {
         "buildType": "apk"
       }
     },
     "android-prod-aab": {
+      "extends": "production",
       "android": {
         "buildType": "app-bundle"
       }
     },
     "ios-prod": {
+      "extends": "production",
       "ios": {
         "simulator": false
       }

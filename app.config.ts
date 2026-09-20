@@ -1,3 +1,4 @@
+// app.config.ts
 import 'dotenv/config';
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
@@ -85,7 +86,7 @@ export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
 
     // Динамические переменные окружения
     extra: {
-      DB: process.env.DB_NAME ?? 'playg_db',
+      DB: process.env.DB_NAME ?? 'playg_local_db',
       ENV: process.env.APP_ENV ?? 'dev',
       GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
       eas: {
