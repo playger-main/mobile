@@ -85,9 +85,8 @@ export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
     ],
 
     // Динамические переменные окружения
-    extra: {
-      DB: process.env.DB_NAME ?? 'playg_local_db',
-      ENV: process.env.APP_ENV ?? 'dev',
+    extra: {      
+      APP_ENV: process.env.APP_ENV ?? 'dev',
       GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
       eas: {
         projectId: '2ef31943-3815-43fd-bf34-534f068c8018', 
