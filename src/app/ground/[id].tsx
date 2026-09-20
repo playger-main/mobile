@@ -35,6 +35,15 @@ export default function GroundDetailScreen() {
     }
   }, [id]);
 
+  // Безопасный возврат назад без падения навигатора на Web-платформе
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(drawer)/(tabs)');
+    }
+  };
+
   if (isLoading || !ground) {
     return (
       <View style={styles.loaderContainer}>
@@ -75,12 +84,13 @@ export default function GroundDetailScreen() {
         <View style={styles.imageContainer}>
           <Image 
             source={{ uri: ground.avatar || 'https://unsplash.com' }} 
-            style={styles.image} 
+            style={styles.image}
+            resizeMode="cover" // Перенесено из стилей в пропсы для совместимости с Web
           />
           
           {/* Плавающие кнопки навигации поверх картинки */}
           <View style={[styles.headerOverlay, { top: insets.top + 12 }]}>
-            <Pressable onPress={() => router.back()} style={styles.iconButton} hitSlop={8}>
+            <Pressable onPress={handleBack} style={styles.iconButton} hitSlop={8}>
               <Ionicons name="chevron-back" size={22} color="#334A77" />
             </Pressable>
             <Pressable onPress={() => toggleFavorite(ground.id)} style={styles.iconButton} hitSlop={8}>
@@ -152,7 +162,12 @@ export default function GroundDetailScreen() {
             events.map((event) => {
               const dateInfo = formatEventDate(event.date);
               return (
-                <View key={event.id} style={styles.eventCard}>
+                // ✅ ИСПРАВЛЕНИЕ: View заменен на Pressable для перехода на экран события
+                <Pressable 
+                  key={event.id} 
+                  style={styles.eventCard}
+                  onPress={() => router.push(`/event/${event.id}`)}
+                >
                   {/* Календарный бадж */}
                   <View style={styles.eventDateBadge}>
                     <Text style={styles.eventDateText}>{dateInfo.day}</Text>
@@ -169,7 +184,10 @@ export default function GroundDetailScreen() {
                       <Text style={styles.eventMetaText}>by {event.creator?.name || 'User'}</Text>
                     </View>
                   </View>
-                </View>
+                  
+                  {/* Аккуратная стрелочка-указатель для улучшения UX */}
+                  <Ionicons name="chevron-forward" size={16} color="#BACAD6" style={{ marginLeft: 4 }} />
+                </Pressable>
               );
             })
           ) : (

@@ -2,6 +2,7 @@
 import React from 'react';
 import { FlatList, View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router'; // ✅ ДОБАВИЛИ ИМПОРТ РОУТЕРА
 import { ServerEventItem } from '@/effector/events/async/events';
 
 interface ListEventsProps {
@@ -10,26 +11,26 @@ interface ListEventsProps {
 }
 
 export default function ListEvents({ events, selectedDate }: ListEventsProps) {
+  const router = useRouter(); // ✅ ИНИЦИАЛИЗИРОВАЛИ РОУТЕР
   
-  // Красивое форматирование даты заголовка под макет, например: "Today • Sep 20"
   const getHeaderDateTitle = (dateStr: string) => {
     const eventDate = new Date(dateStr);
     const today = new Date();
-    
     const isToday = eventDate.toDateString() === today.toDateString();
     const month = eventDate.toLocaleString('en-US', { month: 'short' });
     const day = eventDate.getDate();
-    
     return `${isToday ? 'Today' : eventDate.toLocaleString('en-US', { weekday: 'short' })} • ${month} ${day}`;
   };
 
   const renderEventCard = ({ item }: { item: ServerEventItem }) => {
-    // Извлекаем вид спорта из площадки, если бэк не прислал прямую строку
     const sportTag = item.ground?.kindofsport?.[0] || 'Sport';
 
     return (
-      <View style={styles.card}>
-        {/* Верхняя строка: Бадж вида спорта и Время */}
+      // ✅ ИСПРАВЛЕНИЕ: Обернули карточку в Pressable для перехода по ID события
+      <Pressable 
+        style={styles.card} 
+        onPress={() => router.push(`/event/${item.id}`)}
+      >
         <View style={styles.cardHeader}>
           <View style={styles.sportBadge}>
             <View style={styles.sportDot} />
@@ -38,7 +39,6 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
           <Text style={styles.timeText}>{item.startTime}</Text>
         </View>
 
-        {/* Название события и площадка */}
         <Text style={styles.eventName}>{item.name}</Text>
         
         <View style={styles.locationRow}>
@@ -48,7 +48,6 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
           </Text>
         </View>
 
-        {/* Футер карточки: Длительность, создатель и свободные места */}
         <View style={styles.cardFooter}>
           <View style={styles.metaInfoRow}>
             <View style={styles.metaItem}>
@@ -61,12 +60,11 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
             </View>
           </View>
 
-          {/* Зеленый бадж мест */}
           <View style={styles.spotsBadge}>
             <Text style={styles.spotsText}>Active</Text>
           </View>
         </View>
-      </View>
+      </Pressable>
     );
   };
 

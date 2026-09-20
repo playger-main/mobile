@@ -1,3 +1,4 @@
+// src/app/_layout.tsx
 import React, { useEffect } from 'react';
 import { useColorScheme, View, ActivityIndicator } from 'react-native';
 import { Stack, ThemeProvider, DarkTheme, DefaultTheme } from 'expo-router';
@@ -42,4 +43,3 @@ export default function RootLayout() {
   );
 }
 
-import 'react-native-reanimated';

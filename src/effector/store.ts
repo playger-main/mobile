@@ -15,7 +15,7 @@ import {
 
 // Импорт асинхронных эффектов
 import { fetchGroundByIdFx, fetchGroundsFx, GroundDetailItem } from './events/async/grounds';
-import { fetchAllEventsFx, fetchEventsByGroundIdFx, RealEventItem, ServerEventItem } from './events/async/events';
+import { fetchAllEventsFx, fetchEventsByGroundIdFx, fetchEventByIdFx, RealEventItem, ServerEventItem,  DetailedEventItem } from './events/async/events';
 import { getTodayString } from '@/utils/getTodayString';
 
 // ==========================================
@@ -94,3 +94,13 @@ export const $currentDayEvents = combine(
   $events, $selectedDate,
   (events, selectedDate) => events.filter(evt => evt.date === selectedDate)
 );
+
+export const $currentEvent = data
+  .createStore<DetailedEventItem | null>(null)
+  .on(fetchEventByIdFx.doneData, (_, payload) => payload)
+  .on(fetchEventByIdFx.failData, () => null);
+
+export const $isEventDetailLoading = data
+  .createStore<boolean>(false)
+  .on(fetchEventByIdFx, () => true)
+  .on(fetchEventByIdFx.finally, () => false);

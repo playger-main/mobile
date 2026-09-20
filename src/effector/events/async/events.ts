@@ -40,6 +40,29 @@ export interface RealEventItem {
   };
 }
 
+export interface DetailedEventItem {
+  id: string;
+  name: string;
+  description: string;
+  date: string;        // "2025-10-12"
+  startTime: string;   // "14:00"
+  duration: string;    // "1.5 hours" (или "60m")
+  level?: string;      // "Intermediate"
+  playersCount?: string; // "12/14"
+  maxPlayers?: number;  // 14
+  currentPlayers?: number; // 12
+  creator: {
+    id: string;
+    name: string;
+  };
+  ground: {
+    id: string;
+    name: string;
+    address: string;
+    kindofsport?: string[];
+  };
+}
+
 // Эффект для получения всех событий
 export const fetchAllEventsFx = createEffect(async (): Promise<ServerEventItem[]> => {
   const response = await apiInstance.get<ServerEventItem[]>('/event');
@@ -49,5 +72,10 @@ export const fetchAllEventsFx = createEffect(async (): Promise<ServerEventItem[]
 // Эффект запроса событий конкретной площадки
 export const fetchEventsByGroundIdFx = createEffect(async (groundId: string): Promise<RealEventItem[]> => {
   const response = await apiInstance.get<RealEventItem[]>(`/event/ground/${groundId}`);
+  return response.data;
+});
+
+export const fetchEventByIdFx = createEffect(async (id: string): Promise<DetailedEventItem> => {
+  const response = await apiInstance.get<DetailedEventItem>(`/event/${id}`);
   return response.data;
 });
