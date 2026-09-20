@@ -7,3 +7,4 @@ export const toggleFavoriteInStore = createEvent<string>();
 // Локальные триггеры фильтрации и интерфейса
 export const setSearchQuery = createEvent<string>();
 export const setSelectedCategory = createEvent<string>();
+export const setSelectedDate = createEvent<string>();
