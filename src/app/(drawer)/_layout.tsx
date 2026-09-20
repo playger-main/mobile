@@ -15,10 +15,8 @@ function CustomDrawerContent(props: any) {
     >
       <SafeAreaView style={[styles.drawerRoot, { paddingTop: insets.top }]} edges={[]}>      
         <View style={styles.appHeader}>
-          <Text style={styles.appName}>PlayG</Text>           
-          <Text style={styles.appSubtitle}>Sport app (v_1.0)</Text>
+          <Text style={styles.appName}>PlayG</Text>                     
         </View>
-
         <View style={styles.menuItemsContainer}>
           <DrawerItemList {...props} />
         </View>
@@ -96,11 +94,10 @@ const styles = StyleSheet.create({
   appHeader: { 
     marginBottom: 10, 
     paddingHorizontal: 20, 
-    paddingTop: 20,
-    paddingBottom: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E6F4FE', 
-    backgroundColor: '#EEF7F5'
+    borderBottomColor: '#E6F4FE',     
   },
   appName: { fontSize: 22, fontWeight: 'bold', color: '#334A77' },
   appSubtitle: { marginTop: 2, fontSize: 12, color: '#6080A8', fontWeight: '500' },
