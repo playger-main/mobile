@@ -10,5 +10,5 @@ export const setSelectedCategory = createEvent<string>();
 export const setSelectedDate = createEvent<string>();
 
 
-export const setAuthStep = createEvent<'welcome' | 'signin' | 'signup'>();
+export const setAuthStep = createEvent<'welcome' | 'signin' | 'signup' | 'verify'>();
 export const logout = createEvent();

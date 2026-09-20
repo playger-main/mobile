@@ -71,3 +71,8 @@ apiInstance.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
+// Эффект повторного запроса кода
+export const resendCodeFx = createEffect(async (email: string): Promise<void> => {
+  await apiInstance.post('/auth/resend-code', { email });
+});
