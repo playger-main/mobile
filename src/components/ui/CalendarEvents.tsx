@@ -42,6 +42,7 @@ export default function CalendarEvents({ selectedDate, allEvents, onDateChange }
           selectedDayBackgroundColor: '#208AEF',
           selectedDayTextColor: '#FFFFFF',
           todayTextColor: '#208AEF',
+          todayBackgroundColor: '#e1e6ead8',
           dayTextColor: '#334A77',
           textDisabledColor: '#BACAD6',
           dotColor: '#208AEF',
