@@ -2,6 +2,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { getBadgeStyle } from '@/constants/badgeStyle';
 
 // Полный интерфейс на основе реального ответа NestJS
 export interface ExtendedGroundItem {
@@ -35,24 +36,6 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
   const primarySport = item.kindofsport && item.kindofsport.length > 0 
     ? item.kindofsport[0] 
     : 'Sport';
-
-  // Функция для динамической смены стилей баджа в зависимости от вида спорта
-  const getBadgeStyle = (sport: string) => {
-    switch (sport.toLowerCase()) {
-      case 'basketball':
-        return { bg: '#FFF0E6', text: '#FF8000' };
-      case 'football':
-        return { bg: '#EAF9F5', text: '#27AE60' };
-      case 'tennis':
-        return { bg: '#EBF3FF', text: '#208AEF' };
-      case 'pickleball':
-        return { bg: '#F2E8FF', text: '#9B51E0' };
-      case 'skateboarding':
-        return { bg: '#F1F3F5', text: '#495057' };
-      default:
-        return { bg: '#F0F4F8', text: '#6080A8' };
-    }
-  };
 
   const currentBadgeStyle = getBadgeStyle(primarySport);
 
@@ -104,6 +87,7 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
 
         {/* Тег категории спорта с динамическим цветом */}
         <View style={[styles.categoryBadge, { backgroundColor: currentBadgeStyle.bg }]}>
+          <View style={[styles.categoryDot, {backgroundColor: currentBadgeStyle.text}]} />
           <Text style={[styles.categoryText, { color: currentBadgeStyle.text }]}>
             {primarySport.toUpperCase()}
           </Text>
@@ -205,11 +189,20 @@ const styles = StyleSheet.create({
     marginTop: -2,
   },
   categoryBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
     marginTop: 4,
+  },
+  categoryDot: { 
+    width: 6, 
+    height: 6, 
+    borderRadius: 3, 
+    backgroundColor: '#FF8000', 
+    marginRight: 6 
   },
   categoryText: {
     fontSize: 10,

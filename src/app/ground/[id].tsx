@@ -13,6 +13,7 @@ import { fetchEventsByGroundIdFx } from '@/effector/events/async/events';
 // Импортируем сторы и синхронные события из общей точки сборки
 import { $currentGround, $currentGroundEvents, $isGroundDetailLoading } from '@/effector/store';
 import { toggleFavoriteInStore } from '@/effector/events/sync';
+import { getBadgeStyle } from '@/constants/badgeStyle';
 
 export default function GroundDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -69,6 +70,8 @@ export default function GroundDetailScreen() {
   const primarySport = ground.kindofsport && ground.kindofsport.length > 0 
     ? ground.kindofsport[0] 
     : 'Sport';
+    
+  const currentBadgeStyle = getBadgeStyle(primarySport);
 
   const displayDistance = ground.distanceMeters 
     ? `${(ground.distanceMeters / 1000).toFixed(1)} km away` 
@@ -106,9 +109,9 @@ export default function GroundDetailScreen() {
         {/* 2. Основной блок информации */}
         <View style={styles.contentContainer}>
           <View style={styles.metaRow}>
-            <View style={styles.sportBadge}>
-              <Ionicons name="basketball-outline" size={14} color="#FF8000" style={{ marginRight: 4 }} />
-              <Text style={styles.sportText}>{primarySport.toUpperCase()}</Text>
+            <View style={[styles.sportBadge, {backgroundColor: currentBadgeStyle.bg}]}>
+              {/* <Ionicons name="basketball-outline" size={14} color="#FF8000" style={{ marginRight: 4 }} /> */}
+              <Text style={[styles.sportText, {color: currentBadgeStyle.text}]}>{primarySport.toUpperCase()}</Text>
             </View>
             <View style={styles.ratingBlock}>
               <Ionicons name="star" size={16} color="#FFCC00" />

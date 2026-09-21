@@ -4,6 +4,7 @@ import { FlatList, View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router'; // ✅ ДОБАВИЛИ ИМПОРТ РОУТЕРА
 import { ServerEventItem } from '@/effector/events/async/events';
+import { getBadgeStyle } from '@/constants/badgeStyle';
 
 interface ListEventsProps {
   events: ServerEventItem[];
@@ -24,6 +25,7 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
 
   const renderEventCard = ({ item }: { item: ServerEventItem }) => {
     const sportTag = item.ground?.kindofsport?.[0] || 'Sport';
+    const currentBadgeStyle = getBadgeStyle(sportTag);
 
     return (
       // ✅ ИСПРАВЛЕНИЕ: Обернули карточку в Pressable для перехода по ID события
@@ -32,9 +34,9 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
         onPress={() => router.push(`/event/${item.id}`)}
       >
         <View style={styles.cardHeader}>
-          <View style={styles.sportBadge}>
-            <View style={styles.sportDot} />
-            <Text style={styles.sportText}>{sportTag.toUpperCase()}</Text>
+          <View style={[styles.sportBadge, {backgroundColor: currentBadgeStyle.bg}]}>
+            <View style={[styles.sportDot, {backgroundColor: currentBadgeStyle.text}]} />
+            <Text style={[styles.sportText, {color: currentBadgeStyle.text}]}>{sportTag.toUpperCase()}</Text>
           </View>
           <Text style={styles.timeText}>{item.startTime}</Text>
         </View>

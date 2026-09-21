@@ -13,6 +13,7 @@ import { $currentEvent, $isEventDetailLoading } from '@/effector/store';
 import EventGridInfo from '@/components/ui/EventGridInfo';
 import EventProgressBar from '@/components/ui/EventProgressBar';
 import EventLocationCard from '@/components/ui/EventLocationCard';
+import { getBadgeStyle } from '@/constants/badgeStyle';
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -48,7 +49,8 @@ export default function EventDetailScreen() {
 
   const maxPlayers = event.maxPlayers || 14;
   const currentPlayers = event.currentPlayers || 12;
-  const sportTag = event.ground?.kindofsport?.[0] || 'Football';
+  const sportTag = event.ground?.kindofsport?.[0] || 'Sport';
+  const currentBadgeStyle = getBadgeStyle(sportTag);
 
   return (
     <View style={styles.container}>
@@ -66,9 +68,9 @@ export default function EventDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Тег вида спорта */}
-        <View style={styles.sportBadge}>
-          <View style={styles.sportDot} />
-          <Text style={styles.sportText}>{sportTag.toUpperCase()}</Text>
+        <View style={[styles.sportBadge, {backgroundColor: currentBadgeStyle.bg}]}>
+          <View style={[styles.sportDot, {backgroundColor: currentBadgeStyle.text}]} />
+          <Text style={[styles.sportText, {color: currentBadgeStyle.text}]}>{sportTag.toUpperCase()}</Text>
         </View>
 
         {/* Название и создатель */}
