@@ -12,7 +12,11 @@ export interface SessionUser {
   name: string;
   email: string;
   role: string[];
+  joinedCount?: number;  // Счетчик "Joined"
+  savedCount?: number;   // Счетчик "Saved"
+  gamesCount?: number;   // Счетчик "Games"
 }
+
 
 const ACCESS_TOKEN_KEY = 'pg_access_token';
 const REFRESH_TOKEN_KEY = 'pg_refresh_token';
