@@ -1,6 +1,6 @@
 // src/app/ground/[id].tsx
 import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, Image, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, Image, ScrollView, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
@@ -11,7 +11,7 @@ import { fetchGroundByIdFx } from '@/effector/events/async/grounds';
 import { fetchEventsByGroundIdFx } from '@/effector/events/async/events';
 
 // Импортируем сторы и синхронные события из общей точки сборки
-import { $currentGround, $currentGroundEvents, $isGroundDetailLoading } from '@/effector/store';
+import { $currentGround, $currentGroundEvents, $isGroundDetailLoading, $userSession } from '@/effector/store';
 import { toggleFavoriteInStore } from '@/effector/events/sync';
 import { getBadgeStyle } from '@/constants/badgeStyle';
 
@@ -21,11 +21,12 @@ export default function GroundDetailScreen() {
   const insets = useSafeAreaInsets();
 
   // Подписываемся на реактивные данные Effector
-  const { ground, events, isLoading, toggleFavorite } = useUnit({
+  const { ground, events, isLoading, toggleFavorite, user } = useUnit({
     ground: $currentGround,
     events: $currentGroundEvents,
     isLoading: $isGroundDetailLoading,
     toggleFavorite: toggleFavoriteInStore,
+    user: $userSession,
   });
 
   // Запрашиваем данные площадки и список её событий параллельно при монтировании экрана
@@ -202,11 +203,36 @@ export default function GroundDetailScreen() {
 
       {/* 7. Фиксированная нижняя панель с единственной кнопкой "Create event" */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
-        <Pressable style={styles.createEventButton} onPress={() => console.log('Create event clicked for:', ground.id)}>
-          <Ionicons name="calendar-outline" size={18} color="#208AEF" style={{ marginRight: 8 }} />
-          <Text style={styles.createEventButtonText}>Create event</Text>
-        </Pressable>
-      </View>
+        <Pressable 
+          style={styles.createEventButton} 
+          onPress={() => {
+            if (user) {
+              // ✅ Пользователь авторизован: Переходим на форму и прокидываем ID этой площадки
+              router.push({
+                pathname: '/event/create',
+                params: { groundId: ground.id }
+              });
+            } else {
+              // 🛑 Пользователь гость: Блокируем и отправляем авторизовываться
+              Alert.alert(
+                'Authentication Required',
+                'Please sign in or create an account to organize matches on this playground.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  { 
+                    text: 'Sign In', 
+                    onPress: () => router.push('/(drawer)/(tabs)/profile') // Перенаправление на Welcome
+                  }
+                ]
+              );
+            }
+          }}
+        >
+    <Ionicons name="calendar-outline" size={18} color="#208AEF" style={{ marginRight: 8 }} />
+    <Text style={styles.createEventButtonText}>Create event</Text>
+  </Pressable>
+</View>
+
     </View>
   );
 }

@@ -5,7 +5,7 @@ import { clearGrounds, toggleFavoriteInStore } from '../events/sync';
 import { $selectedDate } from './filter'; // Импортируем зависимый стор даты
 
 import { fetchGroundByIdFx, fetchGroundsFx, GroundDetailItem } from '../events/async/grounds';
-import { fetchAllEventsFx, fetchEventsByGroundIdFx, fetchEventByIdFx, RealEventItem, ServerEventItem, DetailedEventItem } from '../events/async/events';
+import { fetchAllEventsFx, fetchEventsByGroundIdFx, fetchEventByIdFx, RealEventItem, ServerEventItem, DetailedEventItem, toggleJoinEventFx } from '../events/async/events';
 
 const dataDomain = createDomain('data');
 
@@ -60,7 +60,8 @@ export const $filteredEvents = dataDomain.createStore<ServerEventItem[]>([]);
 export const $currentEvent = dataDomain
   .createStore<DetailedEventItem | null>(null)
   .on(fetchEventByIdFx.doneData, (_, payload) => payload)
-  .on(fetchEventByIdFx.failData, () => null);
+  .on(fetchEventByIdFx.failData, () => null)
+  .on(toggleJoinEventFx.doneData, (_, payload) => payload);
 
 export const $isEventDetailLoading = dataDomain
   .createStore<boolean>(false)

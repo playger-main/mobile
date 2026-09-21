@@ -79,3 +79,23 @@ export const fetchEventByIdFx = createEffect(async (id: string): Promise<Detaile
   const response = await apiInstance.get<DetailedEventItem>(`/event/${id}`);
   return response.data;
 });
+
+export interface CreateEventPayload {
+  name: string;
+  description: string;
+  date: string;         // "2026-09-21"
+  startTime: string;    // "18:00"
+  duration: string;     // "90 min"
+  level: string;        // "All levels" | "Beginner" | "Intermediate" | "Advanced"
+  maxPlayers: number;   // 10
+  groundId: string;     // ID выбранной площадки
+}
+
+export const createEventFx = createEffect(async (payload: CreateEventPayload): Promise<void> => {
+  await apiInstance.post('/event', payload);
+});
+
+export const toggleJoinEventFx = createEffect(async (eventId: string): Promise<DetailedEventItem> => {
+  const response = await apiInstance.post<DetailedEventItem>(`/event/${eventId}/join`);
+  return response.data;
+});
