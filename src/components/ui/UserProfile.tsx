@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router'; // ✅ ДОБАВИЛИ ИМПОРТ РОУТЕРА
 import { SessionUser } from '@/effector/domains/auth';
 
 interface UserProfileProps {
@@ -12,6 +13,7 @@ interface UserProfileProps {
 
 export default function UserProfile({ user, onLogout }: UserProfileProps) {
   const insets = useSafeAreaInsets();
+  const router = useRouter(); // ✅ ИНИЦИАЛИЗИРОВАЛИ РОУТЕР
 
   // Получаем первую букву имени для аватара
   const avatarLetter = user.name ? user.name.charAt(0).toUpperCase() : 'P';
@@ -25,7 +27,9 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* 1. Заголовок экрана */}
       <View style={styles.header}>
+        <View style={styles.headerSpacer} />
         <Text style={styles.headerTitle}>Profile</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -43,18 +47,18 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
         {/* 3. Сетка статистики (3 колонки) */}
         <View style={styles.statsGrid}>
           {/* Joined */}
-          <View style={styles.statsCard}>
+          <Pressable style={styles.statsCard} onPress={() => router.push('/(drawer)/(tabs)/events')}>
             <Ionicons name="calendar-outline" size={20} color="#208AEF" />
             <Text style={styles.statsNumber}>{joinedCount}</Text>
             <Text style={styles.statsLabel}>Joined</Text>
-          </View>
+          </Pressable>
 
           {/* Saved */}
-          <View style={styles.statsCard}>
+          <Pressable style={styles.statsCard} onPress={() => router.push('/(drawer)/(tabs)')}>
             <Ionicons name="heart-outline" size={20} color="#208AEF" />
             <Text style={styles.statsNumber}>{savedCount}</Text>
             <Text style={styles.statsLabel}>Saved</Text>
-          </View>
+          </Pressable>
 
           {/* Games */}
           <View style={styles.statsCard}>
@@ -67,7 +71,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
         {/* 4. Навигационное Меню-список */}
         <View style={styles.menuContainer}>
           {/* My events */}
-          <Pressable style={styles.menuItem} onPress={() => console.log('My events pressed')}>
+          <Pressable style={styles.menuItem} onPress={() => router.push('/(drawer)/(tabs)/events')}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="calendar-outline" size={20} color="#6080A8" style={styles.menuIcon} />
               <Text style={styles.menuItemText}>My events</Text>
@@ -79,7 +83,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           </Pressable>
 
           {/* Favourite grounds */}
-          <Pressable style={styles.menuItem} onPress={() => console.log('Favourite grounds pressed')}>
+          <Pressable style={styles.menuItem} onPress={() => router.push('/(drawer)/(tabs)')}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="heart-outline" size={20} color="#6080A8" style={styles.menuIcon} />
               <Text style={styles.menuItemText}>Favourite grounds</Text>
@@ -91,7 +95,8 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           </Pressable>
 
           {/* Settings */}
-          <Pressable style={styles.menuItem} onPress={() => console.log('Settings pressed')}>
+          {/* ✅ НАСТРОЕНО: Ведет строго на экран src/app/(drawer)/settings.tsx */}
+          <Pressable style={styles.menuItem} onPress={() => router.push('/(drawer)/settings')}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="settings-outline" size={20} color="#6080A8" style={styles.menuIcon} />
               <Text style={styles.menuItemText}>Settings</Text>
@@ -100,7 +105,8 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           </Pressable>
 
           {/* About PlayG */}
-          <Pressable style={[styles.menuItem, styles.noBorder]} onPress={() => console.log('About pressed')}>
+          {/* ✅ НАСТРОЕНО: Ведет строго на экран src/app/(drawer)/about.tsx */}
+          <Pressable style={[styles.menuItem, styles.noBorder]} onPress={() => router.push('/(drawer)/about')}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="information-circle-outline" size={20} color="#6080A8" style={styles.menuIcon} />
               <Text style={styles.menuItemText}>About PlayG</Text>
@@ -120,150 +126,30 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#FFFFFF' 
-  },
-  header: { 
-    paddingHorizontal: 16, 
-    paddingVertical: 12, 
-    borderBottomWidth: 1, 
-    borderColor: '#F0F6FC' 
-  },
-  headerTitle: { 
-    fontSize: 24, 
-    fontWeight: '800', 
-    color: '#000000' 
-  },
-  scrollContent: { 
-    paddingHorizontal: 16, 
-    paddingTop: 24,
-    paddingBottom: 40
-  },
-
-  // Карточка профиля
-  userCard: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginBottom: 24 
-  },
-  avatarBlock: { 
-    width: 64, 
-    height: 64, 
-    borderRadius: 32, 
-    backgroundColor: '#006EE6', // Точный синий цвет круга аватара из макета
-    alignItems: 'center', 
-    justifyContent: 'center' 
-  },
-  avatarText: { 
-    fontSize: 24, 
-    fontWeight: '800', 
-    color: '#FFFFFF' 
-  },
-  userInfo: { 
-    marginLeft: 16, 
-    flex: 1 
-  },
-  userName: { 
-    fontSize: 18, 
-    fontWeight: '700', 
-    color: '#334A77' 
-  },
-  userEmail: { 
-    fontSize: 14, 
-    color: '#BACAD6', 
-    marginTop: 2 
-  },
-
-  // Сетка счетчиков статистики
-  statsGrid: { 
-    flexDirection: 'row', 
-    gap: 12, 
-    marginBottom: 28 
-  },
-  statsCard: { 
-    flex: 1, 
-    backgroundColor: '#FFFFFF', 
-    borderWidth: 1, 
-    borderColor: '#E6F4FE', 
-    borderRadius: 12, 
-    paddingVertical: 14, 
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  statsNumber: { 
-    fontSize: 18, 
-    fontWeight: '800', 
-    color: '#334A77', 
-    marginTop: 4 
-  },
-  statsLabel: { 
-    fontSize: 12, 
-    color: '#BACAD6', 
-    fontWeight: '500', 
-    marginTop: 2 
-  },
-
-  // Контейнер пунктов меню списка
-  menuContainer: { 
-    backgroundColor: '#FFFFFF', 
-    borderWidth: 1, 
-    borderColor: '#E6F4FE', 
-    borderRadius: 12, 
-    paddingHorizontal: 16,
-    marginBottom: 28
-  },
-  menuItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
-    paddingVertical: 14, 
-    borderBottomWidth: 1, 
-    borderColor: '#F0F6FC' 
-  },
-  noBorder: { 
-    borderBottomWidth: 0 
-  },
-  menuItemLeft: { 
-    flexDirection: 'row', 
-    alignItems: 'center' 
-  },
-  menuIcon: { 
-    marginRight: 12 
-  },
-  menuItemText: { 
-    fontSize: 14, 
-    fontWeight: '600', 
-    color: '#334A77' 
-  },
-  menuItemRight: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    gap: 8 
-  },
-  menuCountText: { 
-    fontSize: 14, 
-    color: '#BACAD6', 
-    fontWeight: '500' 
-  },
-
-  // Кнопка логаута
-  logoutButton: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    height: 48, 
-    borderRadius: 12, 
-    borderWidth: 1, 
-    borderColor: '#E6F4FE', 
-    backgroundColor: '#FFFFFF' 
-  },
-  logoutIcon: { 
-    marginRight: 8 
-  },
-  logoutButtonText: { 
-    color: '#FF3B30', 
-    fontSize: 15, 
-    fontWeight: '700' 
-  }
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingBottom: 6, borderBottomWidth: 1, borderColor: '#F0F6FC', backgroundColor: '#FFFFFF' },
+  headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77', textAlign: 'center', lineHeight: 48 },
+  headerSpacer: { width: 32 },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 40 },
+  userCard: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
+  avatarBlock: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#006EE6', alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 24, fontWeight: '800', color: '#FFFFFF' },
+  userInfo: { marginLeft: 16, flex: 1 },
+  userName: { fontSize: 18, fontWeight: '700', color: '#334A77' },
+  userEmail: { fontSize: 14, color: '#BACAD6', marginTop: 2 },
+  statsGrid: { flexDirection: 'row', gap: 12, marginBottom: 28 },
+  statsCard: { flex: 1, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E6F4FE', borderRadius: 12, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
+  statsNumber: { fontSize: 18, fontWeight: '800', color: '#334A77', marginTop: 4 },
+  statsLabel: { fontSize: 12, color: '#BACAD6', fontWeight: '500', marginTop: 2 },
+  menuContainer: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E6F4FE', borderRadius: 12, paddingHorizontal: 16, marginBottom: 28 },
+  menuItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1, borderColor: '#F0F6FC' },
+  noBorder: { borderBottomWidth: 0 },
+  menuItemLeft: { flexDirection: 'row', alignItems: 'center' },
+  menuIcon: { marginRight: 12 },
+  menuItemText: { fontSize: 14, fontWeight: '600', color: '#334A77' },
+  menuItemRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  menuCountText: { fontSize: 14, color: '#BACAD6', fontWeight: '500' },
+  logoutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 48, borderRadius: 12, borderWidth: 1, borderColor: '#E6F4FE', backgroundColor: '#FFFFFF' },
+  logoutIcon: { marginRight: 8 },
+  logoutButtonText: { color: '#FF3B30', fontSize: 15, fontWeight: '700' }
 });

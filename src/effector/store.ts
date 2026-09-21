@@ -33,3 +33,14 @@ export {
 // ✅ ДОБАВЬТЕ ЭКСПОРТ ЭФФЕКТА ИЗ АСИНХРОННОГО ФАЙЛА
 export { verifyCodeFx } from './events/async/auth';
 export type { SessionUser } from './domains/auth';
+
+// Экспортируем сторы и экшены настроек
+export { 
+  $eventReminders, 
+  $useLocation, 
+  $appLanguage, 
+  toggleEventReminders, 
+  toggleUseLocation, 
+  changeLanguage,
+  hydrateSettingsFx 
+} from './domains/settings';

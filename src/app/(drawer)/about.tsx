@@ -21,7 +21,7 @@ export default function AboutScreen() {
   return (
     <View style={styles.container}>
       {/* 1. Кастомный Toolbar Шапки */}
-      <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <Pressable onPress={handleBack} style={styles.backButton} hitSlop={12}>
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
-    paddingBottom: 12,
+    paddingBottom: 6,
     borderBottomWidth: 1,
     borderColor: '#F0F6FC',
     backgroundColor: '#FFFFFF',
@@ -117,6 +117,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: { 
     fontSize: 17, 
+    lineHeight: 48,
     fontWeight: '700', 
     color: '#334A77',
     textAlign: 'center'

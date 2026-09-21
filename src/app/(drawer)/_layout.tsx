@@ -103,6 +103,8 @@ const styles = StyleSheet.create({
   appSubtitle: { marginTop: 2, fontSize: 12, color: '#6080A8', fontWeight: '500' },
   menuItemsContainer: { paddingTop: 12, paddingHorizontal: 8 },
   globalMenuButton: {
+    position: "absolute",
+    top: 0,
     width: 48,
     height: 48,
     backgroundColor: '#FFFFFF',

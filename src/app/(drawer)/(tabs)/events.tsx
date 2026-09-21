@@ -1,7 +1,7 @@
 // src/app/(drawer)/(tabs)/events.tsx
 import React, { useEffect } from 'react';
 import { StyleSheet, View, Text, Pressable, ActivityIndicator } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -31,10 +31,14 @@ export default function EventsScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]} edges={[]}>
-      {/* Шапка экрана */}
+    // ✅ ИСПРАВЛЕНО: Заменили SafeAreaView на View для точного контроля отступов шапки
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      
+      {/* 1. Шапка экрана (Стиль полностью идентичен About, Settings и Profile) */}
       <View style={styles.header}>
+        <View style={styles.headerSpacer} />
         <Text style={styles.headerTitle}>Events</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       {/* Интерактивный Календарь событий */}
@@ -65,14 +69,35 @@ export default function EventsScreen() {
       >
         <Ionicons name="add" size={24} color="#FFFFFF" />
       </Pressable>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { paddingHorizontal: 16, paddingVertical: 0, backgroundColor: '#FFFFFF', },
-  headerTitle: { fontSize: 24, paddingLeft: 60, fontWeight: '800', color: '#334A77', lineHeight: 48  },
+  
+  // ✅ ОБНОВЛЕНО: Стили приведены к общему корпоративному стандарту приложения
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderColor: '#F0F6FC',
+    backgroundColor: '#FFFFFF',
+  },
+  headerTitle: { 
+    fontSize: 17, 
+    lineHeight: 48,
+    fontWeight: '700', 
+    color: '#334A77',
+    textAlign: 'center'
+  },
+  headerSpacer: { 
+    width: 32 
+  },
+  
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   listWrapper: { flex: 1, backgroundColor: '#F8FAFC' },
   fabButton: {

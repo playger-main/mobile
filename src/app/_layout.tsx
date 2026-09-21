@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useUnit } from 'effector-react';
 
 // Импортируем механизмы инициализации сессии из Effector
-import { hydrateSessionFx, $isHydrating } from '@/effector/store';
+import { hydrateSessionFx, $isHydrating, hydrateSettingsFx } from '@/effector/store';
 
 // Удерживаем Splash Screen от автоматического скрытия
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -31,6 +31,7 @@ export default function RootLayout() {
   // 3. Запускаем нативную проверку защищенной памяти SecureStore при монтировании лейаута
   useEffect(() => {
     hydrateSessionFx();
+    hydrateSettingsFx();
   }, []);
 
   // 4. Умный триггер скрытия Сплеш Скрина:
