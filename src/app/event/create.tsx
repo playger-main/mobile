@@ -61,21 +61,43 @@ export default function CreateEventScreen() {
     setTempTime(time);
     setShowTimePicker(true);
   };
+  
+  // --- Safe compliant DATE Handlers ---
+  const handleDateValueChange = (event: any, selectedDate?: Date) => {
+    if (selectedDate) {
+      if (Platform.OS === 'ios') {
+        setTempDate(selectedDate); // Smoothly mutates ios spinner container
+      } else {
+        setDate(selectedDate); // Android instantly mutates core timestamp
+        setShowDatePicker(false);
+      }
+    } else if (Platform.OS === 'android') {
+      setShowDatePicker(false); // Closes on Android dismiss/outside press
+    }
+  };
 
-  // Safe Android interaction controllers
-  const onAndroidDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+  const handleDateDismiss = () => {
     setShowDatePicker(false);
-    if (selectedDate && event.type !== 'dismissed') {
-      setDate(selectedDate);
+  };
+
+  // --- Safe compliant TIME Handlers ---
+  const handleTimeValueChange = (event: any, selectedTime?: Date) => {
+    if (selectedTime) {
+      if (Platform.OS === 'ios') {
+        setTempTime(selectedTime);
+      } else {
+        setTime(selectedTime);
+        setShowTimePicker(false);
+      }
+    } else if (Platform.OS === 'android') {
+      setShowTimePicker(false);
     }
   };
 
-  const onAndroidTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
+  const handleTimeDismiss = () => {
     setShowTimePicker(false);
-    if (selectedTime && event.type !== 'dismissed') {
-      setTime(selectedTime);
-    }
   };
+
 
   const handlePublish = async () => {
     if (!title.trim()) {
@@ -259,7 +281,8 @@ export default function CreateEventScreen() {
                   mode="date"
                   display="spinner"
                   minimumDate={new Date()}
-                  onChange={(_, d) => d && setTempDate(d)}
+                  onValueChange={handleDateValueChange}
+                  onDismiss={handleDateDismiss}
                 />
               </View>
             </View>
@@ -282,7 +305,8 @@ export default function CreateEventScreen() {
                   mode="time"
                   is24Hour={true}
                   display="spinner"
-                  onChange={(_, t) => t && setTempTime(t)}
+                  onValueChange={handleTimeValueChange} // ✅ ИСПРАВЛЕНО
+                  onDismiss={handleTimeDismiss}         // ✅ ИСПРАВЛЕНО
                 />
               </View>
             </View>
@@ -297,7 +321,8 @@ export default function CreateEventScreen() {
           mode="date" 
           display="default" 
           minimumDate={new Date()} 
-          onChange={onAndroidDateChange} 
+          onValueChange={handleDateValueChange} // ✅ ИСПРАВЛЕНО
+          onDismiss={handleDateDismiss}         // ✅ ИСПРАВЛЕНО 
         />
       )}
       {Platform.OS === 'android' && showTimePicker && (
@@ -306,7 +331,8 @@ export default function CreateEventScreen() {
           mode="time" 
           is24Hour={true} 
           display="default" 
-          onChange={onAndroidTimeChange} 
+          onValueChange={handleTimeValueChange} // ✅ ИСПРАВЛЕНО
+          onDismiss={handleTimeDismiss}         // ✅ ИСПРАВЛЕНО 
         />
       )}
 
