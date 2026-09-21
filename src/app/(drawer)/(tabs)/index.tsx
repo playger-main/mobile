@@ -1,6 +1,6 @@
 // src/app/(drawer)/(tabs)/index.tsx
 import React, { useRef, useMemo } from 'react';
-import { StyleSheet, View, Platform, ScrollView } from 'react-native';
+import { StyleSheet, View, Platform, ScrollView, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
@@ -18,8 +18,10 @@ import { setSearchQuery, setSelectedCategory, toggleFavoriteInStore } from '@/ef
 export default function GroundsScreen() {
   const insets = useSafeAreaInsets(); 
   const router = useRouter(); 
-  const bottomSheetRef = useRef<BottomSheet>(null);
-
+  const bottomSheetRef = useRef<BottomSheet>(null);  
+  const { height, width } = useWindowDimensions();
+  const limit = 100 - (insets.top + 58) / height * 100; 
+  
   const {
     grounds,
     searchQuery,
@@ -43,7 +45,7 @@ export default function GroundsScreen() {
     longitudeDelta: 0.02,
   };
 
-  const snapPoints = useMemo(() => ['4%', '52%', '86%'], []);
+  const snapPoints = useMemo(() => ['4%', `${limit/2 + 5}%`, `${limit}%`], []);
   const isWeb = Platform.OS === 'web';
 
   const renderCustomHandle = () => (
