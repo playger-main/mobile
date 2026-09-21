@@ -111,6 +111,7 @@ export default function GroundDetailScreen() {
           <View style={styles.metaRow}>
             <View style={[styles.sportBadge, {backgroundColor: currentBadgeStyle.bg}]}>
               {/* <Ionicons name="basketball-outline" size={14} color="#FF8000" style={{ marginRight: 4 }} /> */}
+              <View style={[styles.sportDot, {backgroundColor: currentBadgeStyle.text}]} />
               <Text style={[styles.sportText, {color: currentBadgeStyle.text}]}>{primarySport.toUpperCase()}</Text>
             </View>
             <View style={styles.ratingBlock}>
@@ -266,6 +267,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, 
     paddingVertical: 4, 
     borderRadius: 12 
+  },
+  sportDot: { 
+    width: 6, 
+    height: 6, 
+    borderRadius: 3, 
+    backgroundColor: '#FF8000', 
+    marginRight: 6 
   },
   sportText: { 
     fontSize: 11, 
