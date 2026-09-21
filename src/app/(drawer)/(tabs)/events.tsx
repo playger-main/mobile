@@ -1,7 +1,7 @@
 // src/app/(drawer)/(tabs)/events.tsx
 import React, { useEffect } from 'react';
 import { StyleSheet, View, Text, Pressable, ActivityIndicator } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -31,7 +31,7 @@ export default function EventsScreen() {
   }, []);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]} edges={[]}>
       {/* Шапка экрана */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Events</Text>
@@ -65,14 +65,14 @@ export default function EventsScreen() {
       >
         <Ionicons name="add" size={24} color="#FFFFFF" />
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FFFFFF' },
-  headerTitle: { fontSize: 24, paddingLeft: 60, fontWeight: '800', color: '#334A77' },
+  header: { paddingHorizontal: 16, paddingVertical: 0, backgroundColor: '#FFFFFF', },
+  headerTitle: { fontSize: 24, paddingLeft: 60, fontWeight: '800', color: '#334A77', lineHeight: 48  },
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   listWrapper: { flex: 1, backgroundColor: '#F8FAFC' },
   fabButton: {

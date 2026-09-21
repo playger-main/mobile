@@ -1,5 +1,8 @@
 import React from 'react';
 import { View, TextInput, StyleSheet, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from 'expo-router';
 // @ts-ignore
@@ -14,7 +17,7 @@ export default function SearchGrounds({ value, onChangeText }: SearchGroundsProp
   const navigation = useNavigation();
 
   return (
-    <View style={styles.outerWrapper}>
+    <SafeAreaView style={styles.outerWrapper} edges={[]}>
       <Pressable 
         onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
         style={({ pressed }) => [
@@ -35,7 +38,7 @@ export default function SearchGrounds({ value, onChangeText }: SearchGroundsProp
           onChangeText={onChangeText}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

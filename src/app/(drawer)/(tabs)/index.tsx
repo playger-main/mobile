@@ -1,6 +1,7 @@
 // src/app/(drawer)/(tabs)/index.tsx
 import React, { useRef, useMemo } from 'react';
 import { StyleSheet, View, Platform, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
 import { useRouter } from 'expo-router'; 
@@ -42,7 +43,7 @@ export default function GroundsScreen() {
     longitudeDelta: 0.02,
   };
 
-  const snapPoints = useMemo(() => ['4%', '52%', '90%'], []);
+  const snapPoints = useMemo(() => ['4%', '52%', '86%'], []);
   const isWeb = Platform.OS === 'web';
 
   const renderCustomHandle = () => (
@@ -71,12 +72,12 @@ export default function GroundsScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={[]}>
       <View style={StyleSheet.absoluteFill}>
         <MapComponent region={mapRegion} grounds={grounds} />
       </View>
 
-      <View style={[styles.topOverlayMobile, { paddingTop: insets.top + 12 }]}>
+      <View style={[styles.topOverlayMobile, { paddingTop: insets.top }]}>
         <SearchGrounds value={searchQuery} onChangeText={changeSearch} />
       </View>
 
@@ -86,10 +87,10 @@ export default function GroundsScreen() {
         snapPoints={snapPoints}
         backgroundStyle={styles.bottomSheetBackground}
         handleComponent={renderCustomHandle}
-        enableDynamicSizing={false}
-        
+        enableDynamicSizing={false}        
         enableContentPanningGesture={true} 
-        enableHandlePanningGesture={true}   
+        enableHandlePanningGesture={true}  
+        
 
         // ✅ РЕШЕНИЕ: Задаем порог вертикального перехвата для шторки.
         // Движения пальцем по вертикали в пределах 20px шторка будет игнорировать,
@@ -103,7 +104,7 @@ export default function GroundsScreen() {
           />
         </BottomSheetView>
       </BottomSheet>
-    </View>
+    </SafeAreaView>
   );
 }
 

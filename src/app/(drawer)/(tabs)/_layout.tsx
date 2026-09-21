@@ -32,8 +32,7 @@ export default function TabLayout() {
         headerLeft: () => renderDrawerButton(), 
         tabBarActiveTintColor: '#208AEF',   
         tabBarInactiveTintColor: '#6080A8', 
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
-        
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },        
         tabBarButton: (props: any) => {
           const { children, onPress, style } = props;
           return (
@@ -95,13 +94,15 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabMenuButton: {
+    position: "absolute",
+    top: 0,
+    left: 16,
     width: 48,
     height: 48,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 12, 
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 16, 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
