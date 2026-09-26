@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE, PROVIDER_DEFAULT } from 'react-native-maps';
 import { ExtendedGroundItem } from './CardGround';
 
 interface MapComponentProps {
@@ -18,7 +18,7 @@ export default function MapComponent({ region, grounds, onMarkerPress }: MapComp
   return (
     <View style={styles.container}>
       <MapView
-        provider={PROVIDER_GOOGLE}
+        provider={PROVIDER_DEFAULT}
         style={styles.map}
         initialRegion={region} // Используем initialRegion во избежание сброса камеры при вводе в поиск
         showsUserLocation={true}
