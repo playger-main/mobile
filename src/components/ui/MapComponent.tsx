@@ -9,7 +9,6 @@ import { useUnit } from 'effector-react';
 import { ExtendedGroundItem } from './CardGround';
 import GroundMarker from './GroundMarker';
 import ClusterMarker from './ClusterMarker';
-import MapLegend from './MapLegend';
 import ClusterGroundsSheet from './ClusterGroundsSheet';
 
 import { $events } from '@/effector/store';
@@ -41,29 +40,23 @@ interface ClusterPoint {
 }
 
 /**
- * ✅ Рекурсивно находит максимальный зум, при котором кластер полностью
+ * Рекурсивно находит максимальный зум, при котором кластер полностью
  * разбивается на одиночные точки (включая вложенные кластеры).
  */
 const getFullExpansionZoom = (
   index: Supercluster,
   clusterId: number,
 ): number => {
-  // Базовый зум разбиения этого кластера
   let zoom = index.getClusterExpansionZoom(clusterId);
-
-  // Смотрим детей этого кластера
   const children = index.getChildren(clusterId) as any[];
 
   for (const child of children) {
-    // Если ребёнок — вложенный кластер, рекурсивно ищем его зум
     if (child.properties?.cluster) {
       const deeperZoom = getFullExpansionZoom(
         index,
         child.properties.cluster_id,
       );
-      if (deeperZoom > zoom) {
-        zoom = deeperZoom;
-      }
+      if (deeperZoom > zoom) zoom = deeperZoom;
     }
   }
 
@@ -71,8 +64,7 @@ const getFullExpansionZoom = (
 };
 
 /**
- * ✅ Конвертирует зум (уровень) в deltas для animateToRegion.
- * Стандартная формула Web Mercator для мобильных карт.
+ * Конвертирует зум (уровень) в deltas для animateToRegion.
  */
 const zoomToRegionDeltas = (
   zoom: number,
@@ -80,11 +72,10 @@ const zoomToRegionDeltas = (
   screenWidth: number,
   screenHeight: number,
 ): { latitudeDelta: number; longitudeDelta: number } => {
-  // 360° делим на 2^zoom — это видимая долгота на весь экран
   const longitudeDelta = 360 / Math.pow(2, zoom);
-  // Широта зависит от текущей параллели
   const latitudeDelta =
-    longitudeDelta * (screenHeight / screenWidth) *
+    longitudeDelta *
+    (screenHeight / screenWidth) *
     Math.max(Math.cos((latitude * Math.PI) / 180), 0.1);
 
   return { latitudeDelta, longitudeDelta };
@@ -122,7 +113,7 @@ export default function MapComponent({
           address: g.address || undefined,
           activityLevel,
           sportId,
-          avatar: g.avatar,   
+          avatar: g.avatar,
           raw: g,
         };
       });
@@ -180,7 +171,7 @@ export default function MapComponent({
     [onMarkerPress, router],
   );
 
-  // 5. ✅ Клик по кластеру: рекурсивный зум до полного раскрытия + список
+  // 5. Клик по кластеру: рекурсивный зум + список
   const handleClusterPress = useCallback(
     (clusterId: number) => {
       const leaves = supercluster.getLeaves(clusterId, Infinity) as ClusterPoint[];
@@ -196,7 +187,7 @@ export default function MapComponent({
           activityLevel: m.activityLevel,
           sportId: m.sportId,
           address: m.address,
-          avatar: m.avatar, 
+          avatar: m.avatar,
         }));
 
       if (items.length === 0) return;
@@ -219,14 +210,10 @@ export default function MapComponent({
       const centerLat = (minLat + maxLat) / 2;
       const centerLng = (minLng + maxLng) / 2;
 
-      // ✅ Рекурсивно ищем максимальный зум, при котором все точки разбиваются
+      // ✅ Рекурсивно ищем максимальный зум
       const expansionZoom = getFullExpansionZoom(supercluster, clusterId);
-
-      // ✅ +1 для запаса, чтобы точки не склеились на границе
-      // и ограничиваем maxZoom, чтобы не улететь в космос
       const targetZoom = Math.min(expansionZoom + 1, 18);
 
-      // Конвертируем в deltas
       const { latitudeDelta, longitudeDelta } = zoomToRegionDeltas(
         targetZoom,
         centerLat,
@@ -234,7 +221,6 @@ export default function MapComponent({
         screenHeight,
       );
 
-      // Плавный зум к центру с нужным масштабом
       mapRef.current?.animateToRegion(
         {
           latitude: centerLat,
@@ -245,7 +231,6 @@ export default function MapComponent({
         600,
       );
 
-      // Открываем список
       setClusterGrounds(items);
       setClusterSheetVisible(true);
     },
@@ -298,10 +283,9 @@ export default function MapComponent({
         })}
       </MapView>
 
-      <View style={styles.legendWrapper} pointerEvents="box-none">
-        <MapLegend />
-      </View>
+      {/* ✅ Легенда больше НЕ здесь — она в index.tsx, привязана к нижнему краю карты */}
 
+      {/* BottomSheet со списком */}
       <ClusterGroundsSheet
         visible={clusterSheetVisible}
         grounds={clusterGrounds}
@@ -318,10 +302,4 @@ export default function MapComponent({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   map: { width: '100%', height: '100%' },
-  legendWrapper: {
-    position: 'absolute',
-    left: 16,
-    bottom: 24,
-    zIndex: 5,
-  },
 });
