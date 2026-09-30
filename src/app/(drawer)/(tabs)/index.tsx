@@ -1,5 +1,5 @@
 // src/app/(drawer)/(tabs)/index.tsx
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useEffect } from 'react';
 import { StyleSheet, View, Platform, ScrollView, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,7 +12,7 @@ import CategorySport from '@/components/ui/CategorySport';
 import ListGrounds from '@/components/ui/ListGrounds';
 import MapComponent from '@/components/ui/MapComponent';
 
-import { $grounds, $searchQuery, $selectedCategory } from '@/effector/store';
+import { $grounds, $searchQuery, $selectedCategory, fetchAllEventsFx } from '@/effector/store';
 import { setSearchQuery, setSelectedCategory, toggleFavoriteInStore } from '@/effector/events/sync';
 
 export default function GroundsScreen() {
@@ -47,6 +47,11 @@ export default function GroundsScreen() {
 
   const snapPoints = useMemo(() => ['4%', `${limit/2 + 5}%`, `${limit}%`], []);
   const isWeb = Platform.OS === 'web';
+
+  
+  useEffect(() => {
+    fetchAllEventsFx();
+  }, []);
 
   const renderCustomHandle = () => (
     <View style={styles.massiveHandleContainer}>
