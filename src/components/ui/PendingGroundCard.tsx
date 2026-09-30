@@ -28,16 +28,13 @@ export default function PendingGroundCard({
   onPress,
   isProcessing = false,
 }: PendingGroundCardProps) {
-  // ✅ id спорта (для цвета) и label (для текста)
-  const primarySportId =
-    item.kindofsport && item.kindofsport.length > 0 ? item.kindofsport[0] : 'Sport';
-  const primarySportLabel = getSportLabel(primarySportId);
-
-  const currentBadgeStyle = getBadgeStyle(primarySportId);
+  const sportsList: string[] =
+    Array.isArray(item.kindofsport) && item.kindofsport.length > 0
+      ? item.kindofsport
+      : [];
 
   return (
     <View style={styles.card}>
-      {/* Верхняя часть — кликабельная */}
       <Pressable style={styles.topSection} onPress={onPress}>
         <Image
           source={{ uri: item.avatar || 'https://unsplash.com' }}
@@ -51,14 +48,33 @@ export default function PendingGroundCard({
             {item.address || 'No address provided'}
           </Text>
 
-          <View style={[styles.categoryBadge, { backgroundColor: currentBadgeStyle.bg }]}>
-            <View
-              style={[styles.categoryDot, { backgroundColor: currentBadgeStyle.text }]}
-            />
-            <Text style={[styles.categoryText, { color: currentBadgeStyle.text }]}>
-              {primarySportLabel.toUpperCase()}
-            </Text>
-          </View>
+          {/* ✅ 2 тега + +N */}
+          {sportsList.length > 0 && (
+            <View style={styles.sportsRow}>
+              {sportsList.slice(0, 2).map((sportId, idx) => {
+                const style = getBadgeStyle(sportId);
+                const label = getSportLabel(sportId);
+                return (
+                  <View
+                    key={`${sportId}-${idx}`}
+                    style={[styles.categoryBadge, { backgroundColor: style.bg }]}
+                  >
+                    <View
+                      style={[styles.categoryDot, { backgroundColor: style.text }]}
+                    />
+                    <Text style={[styles.categoryText, { color: style.text }]}>
+                      {label.toUpperCase()}
+                    </Text>
+                  </View>
+                );
+              })}
+              {sportsList.length > 2 && (
+                <View style={styles.moreBadge}>
+                  <Text style={styles.moreBadgeText}>+{sportsList.length - 2}</Text>
+                </View>
+              )}
+            </View>
+          )}
 
           {item.creator?.name && (
             <Text style={styles.creatorText}>by {item.creator.name}</Text>
@@ -66,7 +82,6 @@ export default function PendingGroundCard({
         </View>
       </Pressable>
 
-      {/* Нижняя часть — кнопки действий */}
       <View style={styles.actions}>
         <Pressable
           style={[styles.actionButton, styles.rejectButton]}
@@ -116,50 +131,40 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-  topSection: {
-    flexDirection: 'row',
-    padding: 12,
-  },
+  topSection: { flexDirection: 'row', padding: 12 },
   image: {
     width: 90,
     height: 90,
     borderRadius: 12,
     backgroundColor: '#F0F4F8',
   },
-  info: {
-    flex: 1,
-    marginLeft: 12,
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#334A77',
-  },
-  address: {
-    fontSize: 12,
-    color: '#6080A8',
-    marginTop: 2,
+  info: { flex: 1, marginLeft: 12, justifyContent: 'center' },
+  title: { fontSize: 15, fontWeight: '700', color: '#334A77' },
+  address: { fontSize: 12, color: '#6080A8', marginTop: 2 },
+
+  sportsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 6,
   },
   categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
-    marginTop: 6,
   },
-  categoryDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
+  categoryDot: { width: 5, height: 5, borderRadius: 2.5, marginRight: 4 },
+  categoryText: { fontSize: 9, fontWeight: '700' },
+  moreBadge: {
+    backgroundColor: '#F0F6FC',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
-  categoryText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
+  moreBadgeText: { fontSize: 9, fontWeight: '700', color: '#6080A8' },
+
   creatorText: {
     fontSize: 11,
     color: '#BACAD6',
@@ -184,17 +189,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: '#F0F6FC',
   },
-  approveButton: {
-    backgroundColor: '#208AEF',
-  },
-  rejectText: {
-    color: '#FF3B30',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  approveText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
+  approveButton: { backgroundColor: '#208AEF' },
+  rejectText: { color: '#FF3B30', fontSize: 13, fontWeight: '700' },
+  approveText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
 });

@@ -29,6 +29,7 @@ export {
   fetchGroundsFx,
   fetchGroundByIdFx,
   createGroundFx,
+  updateGroundFx,
   confirmGroundFx,
   deleteGroundFx,
 } from './events/async/grounds';
@@ -38,6 +39,7 @@ export {
   fetchEventsByGroundIdFx,
   fetchEventByIdFx,
   createEventFx,
+  updateEventFx, 
   toggleJoinEventFx,
 } from './events/async/events';
 

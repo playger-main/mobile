@@ -44,11 +44,14 @@ export default function GroundPickerModal({
 
   const [selectedGround, setSelectedGround] = useState<ExtendedGroundItem | null>(null);
 
-  // ✅ Фильтруем площадки, у которых есть координаты
+  // ✅ Показываем ТОЛЬКО подтверждённые площадки (для создания события)
   const markers = useMemo(
     () =>
       grounds.filter(
-        (g) => g.geolocation?.lat && g.geolocation?.lng,
+        (g) =>
+          g.geolocation?.lat &&
+          g.geolocation?.lng &&
+          g.confirmed !== false,
       ),
     [grounds],
   );
@@ -67,12 +70,12 @@ export default function GroundPickerModal({
     longitudeDelta: 0.05,
   };
 
-  // ✅ При открытии: восстанавливаем ранее выбранную площадку
+  // При открытии: восстанавливаем ранее выбранную площадку
   useEffect(() => {
     if (!visible) return;
 
     if (initialGroundId) {
-      const existing = grounds.find((g) => g.id === initialGroundId);
+      const existing = markers.find((g) => g.id === initialGroundId);
       if (existing) {
         setSelectedGround(existing);
         if (existing.geolocation?.lat && existing.geolocation?.lng) {
@@ -92,7 +95,7 @@ export default function GroundPickerModal({
       }
     }
     setSelectedGround(null);
-  }, [visible, initialGroundId, grounds]);
+  }, [visible, initialGroundId, markers]);
 
   const handleMarkerPress = (ground: ExtendedGroundItem) => {
     setSelectedGround(ground);
@@ -168,8 +171,9 @@ export default function GroundPickerModal({
         >
           {markers.map((g) => {
             const isSelected = selectedGround?.id === g.id;
-            const sportId =
-              g.kindofsport && g.kindofsport.length > 0 ? g.kindofsport[0] : 'Sport';
+            const sports = Array.isArray(g.kindofsport) ? g.kindofsport : [];
+            const sportId = sports.length > 0 ? sports[0] : 'Sport';
+            const hasMultiple = sports.length > 1;
 
             return (
               <Marker
@@ -181,17 +185,26 @@ export default function GroundPickerModal({
                 onPress={() => handleMarkerPress(g)}
                 tracksViewChanges={false}
               >
-                <View
-                  style={[
-                    styles.pin,
-                    isSelected ? styles.pinSelected : styles.pinDefault,
-                  ]}
-                >
-                  <Ionicons
-                    name={getSportIcon(sportId) as any}
-                    size={16}
-                    color="#FFFFFF"
-                  />
+                <View style={styles.pinWrapper}>
+                  <View
+                    style={[
+                      styles.pin,
+                      isSelected ? styles.pinSelected : styles.pinDefault,
+                    ]}
+                  >
+                    <Ionicons
+                      name={getSportIcon(sportId) as any}
+                      size={16}
+                      color="#FFFFFF"
+                    />
+                  </View>
+                  {hasMultiple && (
+                    <View style={styles.multiBadge}>
+                      <Text style={styles.multiBadgeText}>
+                        +{sports.length - 1}
+                      </Text>
+                    </View>
+                  )}
                 </View>
                 <View
                   style={[
@@ -247,7 +260,10 @@ export default function GroundPickerModal({
                 <Ionicons
                   name={
                     getSportIcon(
-                      selectedGround.kindofsport?.[0] || 'Sport',
+                      Array.isArray(selectedGround.kindofsport) &&
+                        selectedGround.kindofsport.length > 0
+                        ? selectedGround.kindofsport[0]
+                        : 'Sport',
                     ) as any
                   }
                   size={18}
@@ -268,9 +284,7 @@ export default function GroundPickerModal({
           ) : (
             <View style={styles.emptyBlock}>
               <Ionicons name="information-circle-outline" size={20} color="#BACAD6" />
-              <Text style={styles.emptyText}>
-                No ground selected yet
-              </Text>
+              <Text style={styles.emptyText}>No ground selected yet</Text>
             </View>
           )}
 
@@ -430,6 +444,9 @@ const styles = StyleSheet.create({
   confirmButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 
   // Маркеры
+  pinWrapper: {
+    position: 'relative',
+  },
   pin: {
     width: 32,
     height: 32,
@@ -456,11 +473,32 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 6,
   },
+  multiBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -6,
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 4,
+    borderRadius: 9,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#208AEF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  multiBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#208AEF',
+    lineHeight: 11,
+  },
   pinTail: {
     width: 3,
     height: 8,
     borderRadius: 2,
     marginTop: -2,
+    alignSelf: 'center',
   },
   pinTailDefault: { backgroundColor: '#208AEF' },
   pinTailSelected: { backgroundColor: '#27AE60' },

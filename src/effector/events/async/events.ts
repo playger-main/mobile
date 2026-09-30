@@ -64,6 +64,17 @@ export interface DetailedEventItem {
     geolocation?: { lat: string; lng: string } | null;  // ✅
   };
 }
+export interface UpdateEventPayload {
+  id: string;
+  name?: string;
+  description?: string;
+  date?: string;
+  startTime?: string;
+  duration?: string;
+  level?: string;
+  maxPlayers?: number;
+  groundId?: string;
+}
 
 // Эффект для получения всех событий
 export const fetchAllEventsFx = createEffect(async (): Promise<ServerEventItem[]> => {
@@ -96,6 +107,17 @@ export interface CreateEventPayload {
 export const createEventFx = createEffect(async (payload: CreateEventPayload): Promise<void> => {
   await apiInstance.post('/event', payload);
 });
+
+export const updateEventFx = createEffect(
+  async (payload: UpdateEventPayload): Promise<DetailedEventItem> => {
+    const { id, ...rest } = payload;
+    const response = await apiInstance.patch<DetailedEventItem>(
+      `/event/${id}`,
+      rest,
+    );
+    return response.data;
+  },
+);
 
 export const toggleJoinEventFx = createEffect(async (eventId: string): Promise<DetailedEventItem> => {
   const response = await apiInstance.post<DetailedEventItem>(`/event/${eventId}/join`);

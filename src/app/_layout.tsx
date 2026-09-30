@@ -126,8 +126,10 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(drawer)" />
           <Stack.Screen name="event/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="event/edit" options={{ headerShown: false }} />
           <Stack.Screen name="ground/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="ground/create" options={{ headerShown: false }} />
+          <Stack.Screen name="ground/edit" options={{ headerShown: false }} />
           <Stack.Screen name="ground/moderation" options={{ headerShown: false }} />
         </Stack>
       </ThemeProvider>

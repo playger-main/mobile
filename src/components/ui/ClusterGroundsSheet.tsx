@@ -7,7 +7,7 @@ import { useUnit } from 'effector-react';
 
 import { ACTIVITY_COLORS, ACTIVITY_LABELS } from '@/utils/groundActivity';
 import { getBadgeStyle } from '@/constants/badgeStyle';
-import { getSportLabel } from '@/constants/sports';
+import { getSportLabel, getSportIcon } from '@/constants/sports';
 import { GroundMapMarker } from '@/types/map';
 import { $userLocation, $cityCenter } from '@/effector/store';
 import { calculateDistance, formatDistance } from '@/utils/distance';
@@ -72,7 +72,6 @@ export default function ClusterGroundsSheet({
               <Text style={styles.headerSubtitle}>Tap one to open details</Text>
             </View>
 
-            {/* ✅ Кнопка закрытия */}
             <Pressable onPress={onClose} style={styles.closeButton} hitSlop={10}>
               <Ionicons name="close" size={20} color="#6080A8" />
             </Pressable>
@@ -80,9 +79,11 @@ export default function ClusterGroundsSheet({
         }
         renderItem={({ item }: { item: GroundMapMarker }) => {
           const activityColors = ACTIVITY_COLORS[item.activityLevel];
-          const sportBadgeStyle = getBadgeStyle(item.sportId);
-          const sportLabel = getSportLabel(item.sportId);
           const activityLabel = ACTIVITY_LABELS[item.activityLevel];
+
+          // ✅ Один спорт для иконки (в маркере всегда один sportId)
+          const sportIcon = getSportIcon(item.sportId);
+          const sportLabel = getSportLabel(item.sportId);
 
           const origin = userLocation ?? cityCenter;
           const distanceMeters = origin
@@ -131,17 +132,20 @@ export default function ClusterGroundsSheet({
                   <View
                     style={[
                       styles.sportTag,
-                      { backgroundColor: sportBadgeStyle.bg },
+                      { backgroundColor: getBadgeStyle(item.sportId).bg },
                     ]}
                   >
-                    <View
-                      style={[
-                        styles.sportDot,
-                        { backgroundColor: sportBadgeStyle.text },
-                      ]}
+                    <Ionicons
+                      name={sportIcon as any}
+                      size={10}
+                      color={getBadgeStyle(item.sportId).text}
+                      style={{ marginRight: 4 }}
                     />
                     <Text
-                      style={[styles.sportTagText, { color: sportBadgeStyle.text }]}
+                      style={[
+                        styles.sportTagText,
+                        { color: getBadgeStyle(item.sportId).text },
+                      ]}
                     >
                       {sportLabel.toUpperCase()}
                     </Text>
@@ -193,10 +197,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 16,
   },
-  handleContainer: {
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
+  handleContainer: { alignItems: 'center', paddingVertical: 10 },
   handlePill: {
     width: 55,
     height: 4,
@@ -247,11 +248,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#F0F4F8',
   },
-  image: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
+  image: { width: '100%', height: '100%', resizeMode: 'cover' },
   imagePlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -281,12 +278,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
-  },
-  sportDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    marginRight: 4,
   },
   sportTagText: {
     fontSize: 9,

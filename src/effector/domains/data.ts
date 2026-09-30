@@ -11,6 +11,7 @@ import {
   confirmGroundFx,
   deleteGroundFx,
   GroundDetailItem,
+  updateGroundFx,
 } from '../events/async/grounds';
 import {
   fetchAllEventsFx,
@@ -20,6 +21,7 @@ import {
   ServerEventItem,
   DetailedEventItem,
   toggleJoinEventFx,
+  updateEventFx,  
 } from '../events/async/events';
 
 const dataDomain = createDomain('data');
@@ -46,6 +48,10 @@ export const $grounds = dataDomain
     };
     return [extendedGround, ...state];
   })
+  .on(updateGroundFx.doneData, (state, updated) =>
+    // Если это currentGround — обновится через отдельный стор ниже
+    state,
+  )
   .on(confirmGroundFx.doneData, (state, updated) =>
     state.map((item) =>
       item.id === updated.id ? { ...item, confirmed: updated.confirmed } : item,
@@ -66,7 +72,8 @@ export const $groundsError = dataDomain
 export const $currentGround = dataDomain
   .createStore<GroundDetailItem | null>(null)
   .on(fetchGroundByIdFx.doneData, (_, payload) => payload)
-  .on(fetchGroundByIdFx.failData, () => null);
+  .on(fetchGroundByIdFx.failData, () => null)
+  .on(updateGroundFx.doneData, (_, updated) => updated);
 
 export const $isGroundDetailLoading = dataDomain
   .createStore<boolean>(false)
@@ -117,7 +124,8 @@ export const $currentEvent = dataDomain
   .createStore<DetailedEventItem | null>(null)
   .on(fetchEventByIdFx.doneData, (_, payload) => payload)
   .on(fetchEventByIdFx.failData, () => null)
-  .on(toggleJoinEventFx.doneData, (_, payload) => payload);
+  .on(toggleJoinEventFx.doneData, (_, payload) => payload)
+  .on(updateEventFx.doneData, (_, payload) => payload);
 
 export const $isEventDetailLoading = dataDomain
   .createStore<boolean>(false)

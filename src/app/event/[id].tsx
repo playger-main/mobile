@@ -97,9 +97,11 @@ export default function EventDetailScreen() {
   const maxPlayers = event.maxPlayers || 14;
   const currentPlayers = event.currentPlayers || 0;
 
-  const sportId = event.ground?.kindofsport?.[0] || 'Sport';
-  const sportLabel = getSportLabel(sportId);
-  const currentBadgeStyle = getBadgeStyle(sportId);
+  // ✅ Все виды спорта площадки
+  const sportsList: string[] =
+    Array.isArray(event.ground?.kindofsport) && event.ground.kindofsport.length > 0
+      ? event.ground.kindofsport
+      : [];
 
   const status = getEventStatus(event.date, event.startTime, event.duration);
   const statusStyle = getEventStatusStyle(status);
@@ -110,6 +112,13 @@ export default function EventDetailScreen() {
     Array.isArray(event.currentPlayers) &&
     event.currentPlayers.some((p: any) => p.id === userSession?.id);
   const isFull = currentPlayers >= maxPlayers;
+
+  // ✅ Права на редактирование
+  const isCreator = userSession?.id === event.creator?.id;
+  const isModerator =
+    userSession?.role?.includes('moderator') ||
+    userSession?.role?.includes('admin');
+  const canEdit = isCreator || isModerator;
 
   let buttonText = 'Join event';
   let buttonStyle = [styles.joinButton, styles.primaryJoinBg];
@@ -132,7 +141,18 @@ export default function EventDetailScreen() {
           <Ionicons name="chevron-back" size={24} color="#208AEF" />
         </Pressable>
         <Text style={styles.headerTitle}>Event</Text>
-        <View style={{ width: 24 }} />
+
+        {canEdit ? (
+          <Pressable
+            onPress={() => router.push(`/event/edit?id=${event.id}`)}
+            style={styles.editButton}
+            hitSlop={12}
+          >
+            <Ionicons name="create-outline" size={22} color="#208AEF" />
+          </Pressable>
+        ) : (
+          <View style={{ width: 24 }} />
+        )}
       </View>
 
       <ScrollView
@@ -142,13 +162,37 @@ export default function EventDetailScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
+        {/* ✅ Все спорты + статус */}
         <View style={styles.badgesRow}>
-          <View style={[styles.sportBadge, { backgroundColor: currentBadgeStyle.bg }]}>
-            <View style={[styles.sportDot, { backgroundColor: currentBadgeStyle.text }]} />
-            <Text style={[styles.sportText, { color: currentBadgeStyle.text }]}>
-              {sportLabel.toUpperCase()}
-            </Text>
-          </View>
+          {sportsList.length > 0 ? (
+            sportsList.slice(0, 4).map((sportId, idx) => {
+              const style = getBadgeStyle(sportId);
+              const label = getSportLabel(sportId);
+              return (
+                <View
+                  key={`${sportId}-${idx}`}
+                  style={[styles.sportBadge, { backgroundColor: style.bg }]}
+                >
+                  <View
+                    style={[styles.sportDot, { backgroundColor: style.text }]}
+                  />
+                  <Text style={[styles.sportText, { color: style.text }]}>
+                    {label.toUpperCase()}
+                  </Text>
+                </View>
+              );
+            })
+          ) : (
+            <View style={[styles.sportBadge, { backgroundColor: '#F0F4F8' }]}>
+              <Text style={[styles.sportText, { color: '#6080A8' }]}>SPORT</Text>
+            </View>
+          )}
+
+          {sportsList.length > 4 && (
+            <View style={styles.moreBadge}>
+              <Text style={styles.moreBadgeText}>+{sportsList.length - 4}</Text>
+            </View>
+          )}
 
           <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
             <Text style={[styles.statusText, { color: statusStyle.text }]}>
@@ -169,12 +213,8 @@ export default function EventDetailScreen() {
           maxPlayers={maxPlayers}
         />
 
-        <EventProgressBar
-          currentPlayers={currentPlayers}
-          maxPlayers={maxPlayers}
-        />
+        <EventProgressBar currentPlayers={currentPlayers} maxPlayers={maxPlayers} />
 
-        {/* ✅ Передаём координаты для клика «показать на карте» */}
         <EventLocationCard
           name={event.ground?.name || 'Playground'}
           address={event.ground?.address || 'Address'}
@@ -222,12 +262,14 @@ const styles = StyleSheet.create({
   },
   backButton: { padding: 4 },
   headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
+  editButton: { padding: 4 },
   scrollContent: { paddingHorizontal: 16, paddingTop: 16 },
 
   badgesRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     marginBottom: 12,
   },
   sportBadge: {
@@ -239,6 +281,13 @@ const styles = StyleSheet.create({
   },
   sportDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   sportText: { fontSize: 11, fontWeight: '700' },
+  moreBadge: {
+    backgroundColor: '#F0F6FC',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  moreBadgeText: { fontSize: 11, fontWeight: '700', color: '#6080A8' },
 
   statusBadge: {
     paddingHorizontal: 8,

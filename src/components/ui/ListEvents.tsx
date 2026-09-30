@@ -30,12 +30,11 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
   };
 
   const renderEventCard = ({ item }: { item: ServerEventItem }) => {
-    // ✅ id спорта (для цвета) и label (для текста)
-    const sportId = item.ground?.kindofsport?.[0] || 'Sport';
-    const sportLabel = getSportLabel(sportId);
-    const currentBadgeStyle = getBadgeStyle(sportId);
+    const sportsList: string[] =
+      Array.isArray(item.ground?.kindofsport) && item.ground.kindofsport.length > 0
+        ? item.ground.kindofsport
+        : [];
 
-    // ✅ Статус события: upcoming / active / finished
     const status = getEventStatus(item.date, item.startTime, item.duration);
     const statusStyle = getEventStatusStyle(status);
     const statusLabel = getEventStatusLabel(status);
@@ -46,12 +45,39 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
         onPress={() => router.push(`/event/${item.id}`)}
       >
         <View style={styles.cardHeader}>
-          <View style={[styles.sportBadge, { backgroundColor: currentBadgeStyle.bg }]}>
-            <View style={[styles.sportDot, { backgroundColor: currentBadgeStyle.text }]} />
-            <Text style={[styles.sportText, { color: currentBadgeStyle.text }]}>
-              {sportLabel.toUpperCase()}
-            </Text>
+          {/* ✅ 2 тега + +N */}
+          <View style={styles.sportsRow}>
+            {sportsList.length > 0 ? (
+              sportsList.slice(0, 2).map((sportId, idx) => {
+                const style = getBadgeStyle(sportId);
+                const label = getSportLabel(sportId);
+                return (
+                  <View
+                    key={`${sportId}-${idx}`}
+                    style={[styles.sportBadge, { backgroundColor: style.bg }]}
+                  >
+                    <View
+                      style={[styles.sportDot, { backgroundColor: style.text }]}
+                    />
+                    <Text style={[styles.sportText, { color: style.text }]}>
+                      {label.toUpperCase()}
+                    </Text>
+                  </View>
+                );
+              })
+            ) : (
+              <View style={[styles.sportBadge, { backgroundColor: '#F0F4F8' }]}>
+                <Text style={[styles.sportText, { color: '#6080A8' }]}>SPORT</Text>
+              </View>
+            )}
+
+            {sportsList.length > 2 && (
+              <View style={styles.moreBadge}>
+                <Text style={styles.moreBadgeText}>+{sportsList.length - 2}</Text>
+              </View>
+            )}
           </View>
+
           <Text style={styles.timeText}>{item.startTime}</Text>
         </View>
 
@@ -78,7 +104,6 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
             </View>
           </View>
 
-          {/* ✅ Динамический статус */}
           <View style={[styles.spotsBadge, { backgroundColor: statusStyle.bg }]}>
             <Text style={[styles.spotsText, { color: statusStyle.text }]}>
               {statusLabel}
@@ -140,6 +165,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
+    gap: 8,
+  },
+
+  sportsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    flex: 1,
   },
   sportBadge: {
     flexDirection: 'row',
@@ -150,6 +183,15 @@ const styles = StyleSheet.create({
   },
   sportDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   sportText: { fontSize: 11, fontWeight: '700' },
+  moreBadge: {
+    backgroundColor: '#F0F6FC',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    justifyContent: 'center',
+  },
+  moreBadgeText: { fontSize: 11, fontWeight: '700', color: '#6080A8' },
+
   timeText: { fontSize: 16, fontWeight: '800', color: '#334A77' },
 
   eventName: {
@@ -183,12 +225,7 @@ const styles = StyleSheet.create({
     maxWidth: 90,
   },
 
-  // ✅ Стили статуса (bg/text задаются динамически через getEventStatusStyle)
-  spotsBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
+  spotsBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   spotsText: { fontSize: 11, fontWeight: '700' },
 
   emptyContainer: {

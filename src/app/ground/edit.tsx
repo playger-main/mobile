@@ -1,5 +1,5 @@
-// src/app/ground/create.tsx
-import React, { useState } from 'react';
+// src/app/ground/edit.tsx
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -14,34 +14,64 @@ import {
   Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useUnit } from 'effector-react';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
-import { createGroundFx } from '@/effector/events/async/grounds';
-import { $userSession } from '@/effector/store';
+import {
+  fetchGroundByIdFx,
+  updateGroundFx,
+} from '@/effector/events/async/grounds';
+import { $currentGround, $isGroundDetailLoading, $userSession } from '@/effector/store';
 import LocationPickerModal from '@/components/ui/LocationPickerModal';
 
 import { SPORT_OPTIONS } from '@/constants/sports';
 import { AMENITIES_OPTIONS } from '@/constants/amenities';
 import { SURFACE_OPTIONS } from '@/constants/surface';
 
-export default function CreateGroundScreen() {
+export default function EditGroundScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const isSubmitting = useUnit(createGroundFx.pending);
+  const { id } = useLocalSearchParams<{ id: string }>();
+
+  const ground = useUnit($currentGround);
+  const isLoading = useUnit($isGroundDetailLoading);
+  const isSubmitting = useUnit(updateGroundFx.pending);
   const user = useUnit($userSession);
 
   const [name, setName] = useState('');
-  const [sports, setSports] = useState<string[]>(['basketball']); // ✅ массив
+  const [sports, setSports] = useState<string[]>([]);          // ✅ массив
   const [address, setAddress] = useState('');
-  const [surfaces, setSurfaces] = useState<string[]>([]);
+  const [surfaces, setSurfaces] = useState<string[]>([]);       // ✅ массив
   const [description, setDescription] = useState('');
   const [amenities, setAmenities] = useState<string[]>([]);
   const [avatar, setAvatar] = useState<string | null>(null);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationPickerVisible, setLocationPickerVisible] = useState(false);
+
+  // ✅ Загружаем площадку
+  useEffect(() => {
+    if (id) fetchGroundByIdFx(id);
+  }, [id]);
+
+  // ✅ Предзаполняем форму
+  useEffect(() => {
+    if (!ground) return;
+    setName(ground.name || '');
+    setSports(ground.kindofsport || []);
+    setAddress(ground.address || '');
+    setSurfaces(ground.coverage || []);
+    setDescription(ground.description || '');
+    setAmenities(ground.amenities || []);
+    setAvatar(ground.avatar || null);
+    if (ground.geolocation?.lat && ground.geolocation?.lng) {
+      setLocation({
+        lat: Number(ground.geolocation.lat),
+        lng: Number(ground.geolocation.lng),
+      });
+    }
+  }, [ground]);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -67,17 +97,18 @@ export default function CreateGroundScreen() {
     );
   };
 
-  const toggleAmenity = (amenity: string) => {
-    setAmenities((prev) =>
-      prev.includes(amenity) ? prev.filter((a) => a !== amenity) : [...prev, amenity],
-    );
-  };
-
+  // ✅ Мультивыбор покрытий
   const toggleSurface = (surfaceId: string) => {
     setSurfaces((prev) =>
       prev.includes(surfaceId)
         ? prev.filter((s) => s !== surfaceId)
         : [...prev, surfaceId],
+    );
+  };
+
+  const toggleAmenity = (amenity: string) => {
+    setAmenities((prev) =>
+      prev.includes(amenity) ? prev.filter((a) => a !== amenity) : [...prev, amenity],
     );
   };
 
@@ -91,30 +122,37 @@ export default function CreateGroundScreen() {
     setLocationPickerVisible(false);
   };
 
-  const handlePublish = async () => {
+  const handleSave = async () => {
     if (!name.trim()) return Alert.alert('Error', 'Please enter a ground name.');
-    if (sports.length === 0) return Alert.alert('Error', 'Please select at least one sport.');
+    if (sports.length === 0)
+      return Alert.alert('Error', 'Please select at least one sport.');
     if (!address.trim()) return Alert.alert('Error', 'Please enter an address.');
     if (!location) return Alert.alert('Error', 'Please select a location on the map.');
 
     try {
-      await createGroundFx({
+      await updateGroundFx({
+        id: id!,
         name: name.trim(),
-        kindofsport: sports,               // ✅ массив
+        kindofsport: sports,                 // ✅ массив
         address: address.trim(),
-        coverage: surfaces.length > 0 ? surfaces : undefined,
+        coverage: surfaces,                  // ✅ массив
         description: description.trim() || undefined,
         amenities,
-        geolocation: { lat: location.lat, lng: location.lng },
-        avatar: avatar
-          ? { uri: avatar, name: 'ground_photo.jpg', type: 'image/jpeg' }
-          : null,
+        geolocation: location,
+        avatar:
+          avatar && !avatar.startsWith('http')
+            ? { uri: avatar, name: 'ground_photo.jpg', type: 'image/jpeg' }
+            : null,
       });
-      Alert.alert('Success', 'Ground published successfully!', [
+
+      Alert.alert('Success', 'Ground updated successfully!', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (err: any) {
-      Alert.alert('Error', err?.response?.data?.message || 'Failed to create ground.');
+      Alert.alert(
+        'Error',
+        err?.response?.data?.message || 'Failed to update ground.',
+      );
     }
   };
 
@@ -123,6 +161,14 @@ export default function CreateGroundScreen() {
     sports.length > 0 &&
     address.trim().length > 0 &&
     location !== null;
+
+  if (isLoading && !ground) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#208AEF" />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -134,8 +180,8 @@ export default function CreateGroundScreen() {
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Add a ground</Text>
-          <Text style={styles.headerSubtitle}>Share a spot with the community</Text>
+          <Text style={styles.headerTitle}>Edit ground</Text>
+          <Text style={styles.headerSubtitle}>Update the info</Text>
         </View>
         <View style={{ width: 32 }} />
       </View>
@@ -203,11 +249,13 @@ export default function CreateGroundScreen() {
           onChangeText={setAddress}
         />
 
-        {/* Surface */}
+        {/* Surface (multi-select) */}
         <View style={styles.labelWithHintRow}>
           <Text style={styles.inputLabel}>Surface (optional)</Text>
           {surfaces.length > 0 && (
-            <Text style={styles.selectedCountHint}>{surfaces.length} selected</Text>
+            <Text style={styles.selectedCountHint}>
+              {surfaces.length} selected
+            </Text>
           )}
         </View>
         <View style={styles.surfaceWrap}>
@@ -307,6 +355,16 @@ export default function CreateGroundScreen() {
             </View>
           )}
         </Pressable>
+
+        {/* ✅ Информация о повторной модерации */}
+        {!user?.role?.includes('moderator') && !user?.role?.includes('admin') && (
+          <View style={styles.moderationNotice}>
+            <Ionicons name="information-circle-outline" size={18} color="#FF8000" />
+            <Text style={styles.moderationNoticeText}>
+              After editing, your ground will be sent for re-moderation and temporarily hidden from other users.
+            </Text>
+          </View>
+        )}
       </ScrollView>
 
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
@@ -316,13 +374,13 @@ export default function CreateGroundScreen() {
             isFormValid ? styles.publishButtonActive : styles.publishButtonDisabled,
             isSubmitting && styles.buttonDisabled,
           ]}
-          onPress={handlePublish}
+          onPress={handleSave}
           disabled={isSubmitting || !isFormValid}
         >
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={styles.publishButtonText}>Publish ground</Text>
+            <Text style={styles.publishButtonText}>Save changes</Text>
           )}
         </Pressable>
       </View>
@@ -340,6 +398,7 @@ export default function CreateGroundScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
+  loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -425,8 +484,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   sportLabelSelected: { color: '#208AEF', fontWeight: '700' },
-
-  // ✅ Галочка в углу карточки
   sportCheckmark: {
     position: 'absolute',
     top: 6,
@@ -506,6 +563,24 @@ const styles = StyleSheet.create({
     color: '#6080A8',
     fontWeight: '500',
     marginTop: 2,
+  },
+  moderationNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: '#FFF8EC',
+    borderWidth: 1,
+    borderColor: '#FFE0B2',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 20,
+  },
+  moderationNoticeText: {
+    flex: 1,
+    fontSize: 12,
+    color: '#B45F06',
+    fontWeight: '500',
+    lineHeight: 17,
   },
   bottomBar: {
     position: 'absolute',

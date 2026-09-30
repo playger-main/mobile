@@ -1,11 +1,5 @@
 // src/components/ui/MapComponent.tsx
-import React, {
-  useState,
-  useMemo,
-  useRef,
-  useCallback,
-  useEffect,
-} from 'react';
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -70,6 +64,10 @@ interface ClusterPoint {
   };
 }
 
+/**
+ * Рекурсивно находит максимальный зум, при котором кластер полностью
+ * разбивается на одиночные точки (включая вложенные кластеры).
+ */
 const getFullExpansionZoom = (
   index: Supercluster,
   clusterId: number,
@@ -90,6 +88,9 @@ const getFullExpansionZoom = (
   return zoom;
 };
 
+/**
+ * Конвертирует зум (уровень) в deltas для animateToRegion.
+ */
 const zoomToRegionDeltas = (
   zoom: number,
   latitude: number,
@@ -115,7 +116,6 @@ export default function MapComponent({
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
   const mapFocusTarget = useUnit($mapFocusTarget);
-
   const clusterSheetVisible = useUnit($clusterSheetVisible);
   const setClusterSheetVisible = useUnit(setClusterSheetVisibleEv);
 
@@ -126,10 +126,10 @@ export default function MapComponent({
   const [currentRegion, setCurrentRegion] = useState<Region>(region);
   const [isLocating, setIsLocating] = useState(false);
 
-  // ✅ Флаг: уже ли мы центрировали карту при старте
+  // ✅ Флаг: стартовое центрирование уже сделано
   const initialCenteringDoneRef = useRef(false);
 
-  // ✅ Автозапрос локации при монтировании
+  // ✅ Автозапрос локации при монтировании + обработка denied
   useEffect(() => {
     (async () => {
       try {
@@ -161,23 +161,18 @@ export default function MapComponent({
           detectCityFx(result.location);
         }
       } catch {
-        // ignore
+        // Игнорируем
       }
     })();
   }, []);
 
-  // ✅ Стартовое центрирование:
-  //    1. Как только появилась userLocation → центрируем на ней.
-  //    2. Если локация недоступна → центрируем на cityCenter (или Вильнюс).
-  //    3. Делаем это только ОДИН раз (флаг initialCenteringDoneRef).
+  // ✅ Стартовое центрирование: userLocation → cityCenter
   useEffect(() => {
     if (initialCenteringDoneRef.current) return;
 
-    // Приоритет: userLocation → cityCenter
     const target = userLocation ?? null;
 
     if (target) {
-      // Есть координаты пользователя — центрируем
       initialCenteringDoneRef.current = true;
 
       const timer = setTimeout(() => {
@@ -195,8 +190,7 @@ export default function MapComponent({
       return () => clearTimeout(timer);
     }
 
-    // Если локации нет, но cityCenter отличается от дефолтного (т.е. город определён)
-    // — тоже можно центрировать. Но подождём чуть дольше, чтобы userLocation успел появиться.
+    // Fallback через 2 секунды, если userLocation не появился
     const fallbackTimer = setTimeout(() => {
       if (initialCenteringDoneRef.current) return;
       if (!userLocation && cityCenter) {
@@ -216,7 +210,7 @@ export default function MapComponent({
     return () => clearTimeout(fallbackTimer);
   }, [userLocation, cityCenter]);
 
-  // Реакция на фокус-таргет (переход с другого экрана)
+  // ✅ Реакция на запрос фокуса (переход с другого экрана)
   useEffect(() => {
     if (!mapFocusTarget) return;
 
@@ -239,6 +233,7 @@ export default function MapComponent({
     return () => clearTimeout(timer);
   }, [mapFocusTarget]);
 
+  // ✅ Центрирование по кнопке
   const handleLocatePress = useCallback(async () => {
     setIsLocating(true);
     try {
@@ -298,14 +293,15 @@ export default function MapComponent({
     }
   }, [cityCenter]);
 
+  // 1. Готовим "сырые" маркеры
   const rawMarkers: (GroundMapMarker & { raw: ExtendedGroundItem })[] = useMemo(() => {
     return grounds
       .filter((g) => g.geolocation?.lat && g.geolocation?.lng)
       .map((g) => {
         const groundEvents = events.filter((e) => e.ground?.id === g.id);
         const activityLevel = getGroundActivityLevel(groundEvents);
-        const sportId =
-          g.kindofsport && g.kindofsport.length > 0 ? g.kindofsport[0] : 'Sport';
+        const sports = Array.isArray(g.kindofsport) ? g.kindofsport : [];
+        const sportId = sports.length > 0 ? sports[0] : 'Sport';
 
         return {
           id: g.id,
@@ -315,12 +311,14 @@ export default function MapComponent({
           address: g.address || undefined,
           activityLevel,
           sportId,
+          sportsCount: sports.length,   // ✅ количество спортов
           avatar: g.avatar,
           raw: g,
         };
       });
   }, [grounds, events]);
 
+  // 2. Supercluster
   const supercluster = useMemo(() => {
     const index = new Supercluster({
       radius: 60,
@@ -345,6 +343,7 @@ export default function MapComponent({
     return index;
   }, [rawMarkers]);
 
+  // 3. Кластеры для текущего региона
   const clusters = useMemo(() => {
     const zoom = Math.round(
       Math.log2(360 / Math.max(currentRegion.latitudeDelta, 0.0001)),
@@ -359,6 +358,7 @@ export default function MapComponent({
     return supercluster.getClusters(bbox, zoom);
   }, [supercluster, currentRegion]);
 
+  // 4. Клик по одиночному маркеру
   const handleMarkerPress = useCallback(
     (marker: GroundMapMarker & { raw: ExtendedGroundItem }) => {
       if (onMarkerPress) {
@@ -370,6 +370,7 @@ export default function MapComponent({
     [onMarkerPress, router],
   );
 
+  // 5. Клик по кластеру: рекурсивный зум + список
   const handleClusterPress = useCallback(
     (clusterId: number) => {
       const leaves = supercluster.getLeaves(clusterId, Infinity) as ClusterPoint[];
@@ -384,6 +385,7 @@ export default function MapComponent({
           longitude: m.longitude,
           activityLevel: m.activityLevel,
           sportId: m.sportId,
+          sportsCount: m.sportsCount,
           address: m.address,
           avatar: m.avatar,
         }));
@@ -474,9 +476,14 @@ export default function MapComponent({
               key={marker.id}
               coordinate={{ latitude, longitude }}
               onPress={() => handleMarkerPress(marker)}
-              tracksViewChanges={false}
+              // ✅ Для мультиспорта включаем перерисовку — иначе бейдж "+N" не появится на Android
+              tracksViewChanges={(marker.sportsCount ?? 1) > 1}
             >
-              <GroundMarker level={marker.activityLevel} sportId={marker.sportId} />
+              <GroundMarker
+                level={marker.activityLevel}
+                sportId={marker.sportId}
+                sportsCount={marker.sportsCount}
+              />
             </Marker>
           );
         })}

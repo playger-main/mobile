@@ -23,29 +23,33 @@ import {
   $currentGroundEvents,
   $isGroundDetailLoading,
   $userSession,
+  $userLocation,
+  $cityCenter,
 } from '@/effector/store';
 import { toggleFavoriteInStore } from '@/effector/events/sync';
 import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportLabel } from '@/constants/sports';
 import { getAmenityIcon } from '@/constants/amenities';
-import {
-  getEventStatus,
-  getEventStatusStyle,
-} from '@/utils/eventStatus';
+import { getSurfaceLabel } from '@/constants/surface';
+import { getEventStatus, getEventStatusStyle } from '@/utils/eventStatus';
 import { navigateToGroundOnMap } from '@/utils/navigateToGround';
+import { calculateDistance, formatDistance } from '@/utils/distance';
 
 export default function GroundDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const { ground, events, isLoading, toggleFavorite, user } = useUnit({
-    ground: $currentGround,
-    events: $currentGroundEvents,
-    isLoading: $isGroundDetailLoading,
-    toggleFavorite: toggleFavoriteInStore,
-    user: $userSession,
-  });
+  const { ground, events, isLoading, toggleFavorite, user, userLocation, cityCenter } =
+    useUnit({
+      ground: $currentGround,
+      events: $currentGroundEvents,
+      isLoading: $isGroundDetailLoading,
+      toggleFavorite: toggleFavoriteInStore,
+      user: $userSession,
+      userLocation: $userLocation,
+      cityCenter: $cityCenter,
+    });
 
   useEffect(() => {
     if (id) {
@@ -85,24 +89,42 @@ export default function GroundDetailScreen() {
     }
   };
 
-  // ✅ id спорта (для цвета) и label (для текста)
-  const primarySportId =
-    ground.kindofsport && ground.kindofsport.length > 0
-      ? ground.kindofsport[0]
-      : 'Sport';
-  const primarySportLabel = getSportLabel(primarySportId);
-  const currentBadgeStyle = getBadgeStyle(primarySportId);
+  // ✅ Дистанция: клиентский расчёт (userLocation → cityCenter → серверная)
+  const distanceMeters = (() => {
+    const origin = userLocation ?? cityCenter;
+    if (!origin || !ground.geolocation?.lat || !ground.geolocation?.lng) {
+      return ground.distanceMeters;
+    }
+    return calculateDistance(
+      origin.latitude,
+      origin.longitude,
+      Number(ground.geolocation.lat),
+      Number(ground.geolocation.lng),
+    );
+  })();
 
-  const displayDistance = ground.distanceMeters
-    ? `${(ground.distanceMeters / 1000).toFixed(1)} km away`
-    : 'Nearby';
+  const displayDistance = formatDistance(distanceMeters);
 
   const amenitiesList: string[] = Array.isArray(ground.amenities)
     ? ground.amenities
     : [];
 
+  const sportsList: string[] =
+    Array.isArray(ground.kindofsport) && ground.kindofsport.length > 0
+      ? ground.kindofsport
+      : [];
+
+  const surfacesList: string[] = Array.isArray(ground.coverage)
+    ? ground.coverage
+    : [];
+
   const hasCoordinates =
     !!ground.geolocation?.lat && !!ground.geolocation?.lng;
+
+  const isCreator = user?.id === ground.creator?.id;
+  const isModerator =
+    user?.role?.includes('moderator') || user?.role?.includes('admin');
+  const canEdit = isCreator || isModerator;
 
   return (
     <View style={styles.container}>
@@ -123,37 +145,75 @@ export default function GroundDetailScreen() {
               <Ionicons name="chevron-back" size={22} color="#334A77" />
             </Pressable>
 
-            <Pressable
-              onPress={() => toggleFavorite(ground.id)}
-              style={styles.iconButton}
-              hitSlop={8}
-            >
-              <Ionicons
-                name={ground.isFavorite ? 'heart' : 'heart-outline'}
-                size={22}
-                color={ground.isFavorite ? '#FF3B30' : '#334A77'}
-              />
-            </Pressable>
+            <View style={styles.headerRight}>
+              {canEdit && (
+                <Pressable
+                  onPress={() => router.push(`/ground/edit?id=${ground.id}`)}
+                  style={[styles.iconButton, { marginRight: 8 }]}
+                  hitSlop={8}
+                >
+                  <Ionicons name="create-outline" size={22} color="#334A77" />
+                </Pressable>
+              )}
+
+              <Pressable
+                onPress={() => toggleFavorite(ground.id)}
+                style={styles.iconButton}
+                hitSlop={8}
+              >
+                <Ionicons
+                  name={ground.isFavorite ? 'heart' : 'heart-outline'}
+                  size={22}
+                  color={ground.isFavorite ? '#FF3B30' : '#334A77'}
+                />
+              </Pressable>
+            </View>
           </View>
+
+          {ground.confirmed === false && (
+            <View style={styles.pendingBadge}>
+              <Ionicons name="time-outline" size={12} color="#FFFFFF" />
+              <Text style={styles.pendingBadgeText}>Pending moderation</Text>
+            </View>
+          )}
         </View>
 
         {/* 2. Основная информация */}
         <View style={styles.contentContainer}>
-          <View style={styles.metaRow}>
-            <View style={[styles.sportBadge, { backgroundColor: currentBadgeStyle.bg }]}>
-              <View style={[styles.sportDot, { backgroundColor: currentBadgeStyle.text }]} />
-              <Text style={[styles.sportText, { color: currentBadgeStyle.text }]}>
-                {primarySportLabel.toUpperCase()}
-              </Text>
-            </View>
+          {/* Все виды спорта чипами */}
+          <View style={styles.sportsRow}>
+            {sportsList.length > 0 ? (
+              sportsList.map((sportId) => {
+                const style = getBadgeStyle(sportId);
+                const label = getSportLabel(sportId);
+                return (
+                  <View
+                    key={sportId}
+                    style={[styles.sportBadge, { backgroundColor: style.bg }]}
+                  >
+                    <View
+                      style={[styles.sportDot, { backgroundColor: style.text }]}
+                    />
+                    <Text style={[styles.sportText, { color: style.text }]}>
+                      {label.toUpperCase()}
+                    </Text>
+                  </View>
+                );
+              })
+            ) : (
+              <View style={[styles.sportBadge, { backgroundColor: '#F0F4F8' }]}>
+                <Text style={[styles.sportText, { color: '#6080A8' }]}>SPORT</Text>
+              </View>
+            )}
+          </View>
 
-            <View style={styles.ratingBlock}>
-              <Ionicons name="star" size={16} color="#FFCC00" />
-              <Text style={styles.ratingText}>
-                {ground.avgRating ? ground.avgRating.toFixed(1) : '0.0'}{' '}
-                <Text style={styles.reviewsText}>({ground.eventsCount || 0})</Text>
-              </Text>
-            </View>
+          {/* Рейтинг */}
+          <View style={styles.ratingBlock}>
+            <Ionicons name="star" size={16} color="#FFCC00" />
+            <Text style={styles.ratingText}>
+              {ground.avgRating ? ground.avgRating.toFixed(1) : '0.0'}{' '}
+              <Text style={styles.reviewsText}>({ground.eventsCount || 0})</Text>
+            </Text>
           </View>
 
           <Text style={styles.title}>{ground.name}</Text>
@@ -163,46 +223,56 @@ export default function GroundDetailScreen() {
             {ground.address || 'No address provided'}
           </Text>
 
-          {/* ✅ Кнопка «Show on map» */}
-          {hasCoordinates && (
-            <Pressable
-              style={styles.showOnMapButton}
-              onPress={() =>
-                navigateToGroundOnMap(
-                  ground.geolocation!.lat,
-                  ground.geolocation!.lng,
-                )
-              }
-            >
-              <Ionicons name="map-outline" size={16} color="#208AEF" />
-              <Text style={styles.showOnMapText}>Show on map</Text>
-            </Pressable>
-          )}
+          {/* ✅ Одна строка: "Show on map" слева, дистанция справа */}
+          <View style={styles.mapRow}>
+            {hasCoordinates ? (
+              <Pressable
+                style={styles.showOnMapButton}
+                onPress={() =>
+                  navigateToGroundOnMap(
+                    ground.geolocation!.lat,
+                    ground.geolocation!.lng,
+                  )
+                }
+              >
+                <Ionicons name="map-outline" size={16} color="#208AEF" />
+                <Text style={styles.showOnMapText}>Show on map</Text>
+              </Pressable>
+            ) : (
+              <View />
+            )}
 
-          {/* 3. Мета-карточки */}
-          <View style={styles.infoCardsRow}>
-            <View style={styles.infoCard}>
-              <Text style={styles.infoCardLabel}>Surface</Text>
-              <Text style={styles.infoCardValue}>
-                {ground.coverage && ground.coverage.length > 0
-                  ? ground.coverage[0]
-                  : 'Asphalt'}
-              </Text>
-            </View>
-            <View style={styles.infoCard}>
-              <Text style={styles.infoCardLabel}>Distance</Text>
-              <Text style={styles.infoCardValue}>{displayDistance}</Text>
+            <View style={styles.distanceBlock}>
+              <Ionicons name="navigate-outline" size={14} color="#6080A8" />
+              <Text style={styles.distanceText}>{displayDistance}</Text>
             </View>
           </View>
 
-          {/* 4. About */}
+          {/* Surface — массив покрытий */}
+          {surfacesList.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Surface</Text>
+              <View style={styles.surfacesWrap}>
+                {surfacesList.map((cov, idx) => (
+                  <View key={`${cov}-${idx}`} style={styles.surfaceChip}>
+                    <Ionicons name="layers-outline" size={13} color="#208AEF" />
+                    <Text style={styles.surfaceChipText}>
+                      {getSurfaceLabel(cov)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
+
+          {/* About */}
           <Text style={styles.sectionTitle}>About</Text>
           <Text style={styles.description}>
             {ground.description ||
               'A community-focused open court for practice and friendly team matches. Check upcoming events to join existing teams.'}
           </Text>
 
-          {/* 5. Amenities — динамически с сервера */}
+          {/* Amenities */}
           <Text style={styles.sectionTitle}>Amenities</Text>
           {amenitiesList.length > 0 ? (
             <View style={styles.amenitiesContainer}>
@@ -224,13 +294,17 @@ export default function GroundDetailScreen() {
             </Text>
           )}
 
-          {/* 6. Upcoming events */}
+          {/* Upcoming events */}
           <Text style={styles.sectionTitle}>Upcoming events ({events.length})</Text>
 
           {events.length > 0 ? (
             events.map((event) => {
               const dateInfo = formatEventDate(event.date);
-              const status = getEventStatus(event.date, event.startTime, event.duration);
+              const status = getEventStatus(
+                event.date,
+                event.startTime,
+                event.duration,
+              );
               const statusStyle = getEventStatusStyle(status);
 
               return (
@@ -265,7 +339,6 @@ export default function GroundDetailScreen() {
                     </View>
                   </View>
 
-                  {/* Индикатор статуса события */}
                   <View
                     style={[styles.statusDot, { backgroundColor: statusStyle.text }]}
                   />
@@ -335,7 +408,12 @@ const styles = StyleSheet.create({
     right: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
     zIndex: 10,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   iconButton: {
     width: 40,
@@ -349,11 +427,35 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  contentContainer: { paddingHorizontal: 16, paddingTop: 16 },
-  metaRow: {
+  pendingBadge: {
+    position: 'absolute',
+    bottom: 12,
+    left: 16,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FF8000',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  pendingBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  contentContainer: { paddingHorizontal: 16, paddingTop: 16 },
+
+  sportsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8,
   },
   sportBadge: {
     flexDirection: 'row',
@@ -364,19 +466,31 @@ const styles = StyleSheet.create({
   },
   sportDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   sportText: { fontSize: 11, fontWeight: '700' },
-  ratingBlock: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+
+  ratingBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
+  },
   ratingText: { fontSize: 14, fontWeight: '700', color: '#334A77' },
   reviewsText: { color: '#BACAD6', fontWeight: '400' },
-  title: { fontSize: 24, fontWeight: '800', color: '#334A77', marginTop: 8 },
+
+  title: { fontSize: 24, fontWeight: '800', color: '#334A77', marginTop: 4 },
   address: { fontSize: 14, color: '#6080A8', marginTop: 4 },
 
-  // ✅ Кнопка «Show on map»
+  // ✅ Одна строка: show-on-map слева, дистанция справа
+  mapRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    gap: 12,
+  },
   showOnMapButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    alignSelf: 'flex-start',
-    marginTop: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
@@ -384,28 +498,19 @@ const styles = StyleSheet.create({
     borderColor: '#E6F4FE',
     backgroundColor: '#FFFFFF',
   },
-  showOnMapText: {
+  showOnMapText: { fontSize: 13, fontWeight: '600', color: '#208AEF' },
+
+  distanceBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  distanceText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#208AEF',
+    color: '#6080A8',
   },
 
-  infoCardsRow: { flexDirection: 'row', gap: 12, marginTop: 16 },
-  infoCard: {
-    flex: 1,
-    padding: 12,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E6F4FE',
-  },
-  infoCardLabel: { fontSize: 12, color: '#BACAD6', fontWeight: '500' },
-  infoCardValue: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#334A77',
-    marginTop: 2,
-  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
@@ -414,6 +519,23 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   description: { fontSize: 14, color: '#6080A8', lineHeight: 20 },
+
+  surfacesWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  surfaceChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F0F6FC',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  surfaceChipText: {
+    fontSize: 13,
+    color: '#334A77',
+    fontWeight: '500',
+  },
+
   amenitiesContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   amenityChip: {
     flexDirection: 'row',
@@ -429,6 +551,7 @@ const styles = StyleSheet.create({
     color: '#BACAD6',
     fontStyle: 'italic',
   },
+
   eventCard: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
@@ -453,12 +576,7 @@ const styles = StyleSheet.create({
   eventTitle: { fontSize: 14, fontWeight: '600', color: '#334A77' },
   eventMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   eventMetaText: { fontSize: 12, color: '#6080A8', marginLeft: 4 },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginLeft: 8,
-  },
+  statusDot: { width: 8, height: 8, borderRadius: 4, marginLeft: 8 },
   emptyEvents: {
     fontSize: 14,
     color: '#BACAD6',

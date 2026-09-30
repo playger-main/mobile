@@ -1,4 +1,4 @@
-// src/app/event/create.tsx
+// src/app/event/edit.tsx
 import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
@@ -14,28 +14,37 @@ import {
   Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useUnit } from 'effector-react';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-import { createEventFx } from '@/effector/events/async/events';
-import { $grounds, fetchGroundsFx } from '@/effector/store';
+import {
+  fetchEventByIdFx,
+  updateEventFx,
+} from '@/effector/events/async/events';
+import {
+  $currentEvent,
+  $isEventDetailLoading,
+  $grounds,
+  $userSession,
+} from '@/effector/store';
+
 import GroundPickerModal from '@/components/ui/GroundPickerModal';
 
-export default function CreateEventScreen() {
+export default function EditEventScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { groundId: initialGroundId } = useLocalSearchParams<{ groundId: string }>();
+  const { id } = useLocalSearchParams<{ id: string }>();
 
+  const event = useUnit($currentEvent);
+  const isLoading = useUnit($isEventDetailLoading);
+  const isSubmitting = useUnit(updateEventFx.pending);
   const grounds = useUnit($grounds);
-  const isSubmitting = useUnit(createEventFx.pending);
+  const user = useUnit($userSession);
 
-  // --- Form Field States ---
   const [title, setTitle] = useState('');
-  const [selectedGroundId, setSelectedGroundId] = useState(
-    initialGroundId || grounds?.[0]?.id || '',
-  );
+  const [selectedGroundId, setSelectedGroundId] = useState('');
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
   const [skillLevel, setSkillLevel] = useState('All levels');
@@ -43,43 +52,59 @@ export default function CreateEventScreen() {
   const [duration, setDuration] = useState(90);
   const [description, setDescription] = useState('');
 
-  // Picker visibility
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showGroundPicker, setShowGroundPicker] = useState(false);
 
-  // Temp для iOS
   const [tempDate, setTempDate] = useState<Date>(new Date());
   const [tempTime, setTempTime] = useState<Date>(new Date());
 
+  // ✅ Загружаем событие
+  useEffect(() => {
+    if (id) fetchEventByIdFx(id);
+  }, [id]);
+
+  // ✅ Предзаполняем форму
+  useEffect(() => {
+    if (!event) return;
+    setTitle(event.name || '');
+    setSelectedGroundId(event.ground?.id || '');
+    setDescription(event.description || '');
+    setSkillLevel(event.level || 'All levels');
+    setPlayersNeeded(event.maxPlayers || 10);
+
+    // Парсим дату "2025-10-12" -> Date
+    if (event.date) {
+      const [y, m, d] = event.date.split('-').map(Number);
+      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+        setDate(new Date(y, m - 1, d));
+      }
+    }
+
+    // Парсим время "18:00" -> Date
+    if (event.startTime) {
+      const [h, min] = event.startTime.split(':').map(Number);
+      if (!isNaN(h) && !isNaN(min)) {
+        const t = new Date();
+        t.setHours(h, min, 0, 0);
+        setTime(t);
+      }
+    }
+
+    // Парсим duration "90 min" -> 90
+    if (event.duration) {
+      const num = parseInt(event.duration, 10);
+      if (!isNaN(num)) setDuration(num);
+    }
+  }, [event]);
+
   const formattedDate = `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
   const formattedTime = `${String(time.getHours()).padStart(2, '0')}:${String(time.getMinutes()).padStart(2, '0')}`;
-
-  // ✅ Загружаем площадки, если их нет
-  useEffect(() => {
-    if (grounds.length === 0) {
-      fetchGroundsFx();
-    }
-  }, []);
-
-  // ✅ Проверяем: если initialGroundId ведёт на неподтверждённую площадку — предупреждаем
-  useEffect(() => {
-    if (!initialGroundId || grounds.length === 0) return;
-    const g = grounds.find((x) => x.id === initialGroundId);
-    if (g && g.confirmed === false) {
-      Alert.alert(
-        'Ground not available',
-        'This ground is pending moderation. Please choose another one.',
-        [{ text: 'OK', onPress: () => setSelectedGroundId('') }],
-      );
-    }
-  }, [initialGroundId, grounds]);
 
   const handleOpenDatePicker = () => {
     setTempDate(date);
     setShowDatePicker(true);
   };
-
   const handleOpenTimePicker = () => {
     setTempTime(time);
     setShowTimePicker(true);
@@ -87,63 +112,39 @@ export default function CreateEventScreen() {
 
   const handleDateValueChange = (event: any, selectedDate?: Date) => {
     if (selectedDate) {
-      if (Platform.OS === 'ios') {
-        setTempDate(selectedDate);
-      } else {
+      if (Platform.OS === 'ios') setTempDate(selectedDate);
+      else {
         setDate(selectedDate);
         setShowDatePicker(false);
       }
-    } else if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
+    } else if (Platform.OS === 'android') setShowDatePicker(false);
   };
-
-  const handleDateDismiss = () => setShowDatePicker(false);
 
   const handleTimeValueChange = (event: any, selectedTime?: Date) => {
     if (selectedTime) {
-      if (Platform.OS === 'ios') {
-        setTempTime(selectedTime);
-      } else {
+      if (Platform.OS === 'ios') setTempTime(selectedTime);
+      else {
         setTime(selectedTime);
         setShowTimePicker(false);
       }
-    } else if (Platform.OS === 'android') {
-      setShowTimePicker(false);
-    }
+    } else if (Platform.OS === 'android') setShowTimePicker(false);
   };
 
-  const handleTimeDismiss = () => setShowTimePicker(false);
-
-  // ✅ Подтверждение выбора площадки из модалки
   const handleConfirmGround = (ground: any) => {
     setSelectedGroundId(ground.id);
     setShowGroundPicker(false);
   };
 
-  const handlePublish = async () => {
-    if (!title.trim()) {
-      Alert.alert('Error', 'Please enter an event title.');
-      return;
-    }
-    if (!selectedGroundId) {
-      Alert.alert('Error', 'Please select a playground.');
-      return;
-    }
-
-    // ✅ Блокируем создание на неподтверждённой площадке
-    if (selectedGround?.confirmed === false) {
-      Alert.alert(
-        'Ground not available',
-        'This ground is pending moderation. Events cannot be created on it yet.',
-      );
-      return;
-    }
+  const handleSave = async () => {
+    if (!title.trim()) return Alert.alert('Error', 'Please enter an event title.');
+    if (!selectedGroundId)
+      return Alert.alert('Error', 'Please select a playground.');
 
     const backendDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
     try {
-      await createEventFx({
+      await updateEventFx({
+        id: id!,
         name: title.trim(),
         description: description.trim(),
         date: backendDate,
@@ -154,24 +155,29 @@ export default function CreateEventScreen() {
         groundId: selectedGroundId,
       });
 
-      Alert.alert('Success', 'Your match has been successfully published!', [
-        { text: 'Awesome', onPress: () => router.replace('/(drawer)/(tabs)/events') },
+      Alert.alert('Success', 'Event updated successfully!', [
+        { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (err: any) {
       Alert.alert(
         'Error',
-        err?.response?.data?.message || 'Failed to create event. Try again.',
+        err?.response?.data?.message || 'Failed to update event.',
       );
     }
   };
 
-  const selectedGround = grounds.find((g) => g.id === selectedGroundId);
-  const isGroundUnconfirmed = selectedGround?.confirmed === false;
-
   const isFormValid =
-    title.trim().length > 0 &&
-    selectedGroundId.length > 0 &&
-    !isGroundUnconfirmed;
+    title.trim().length > 0 && selectedGroundId.length > 0;
+
+  if (isLoading && !event) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#208AEF" />
+      </View>
+    );
+  }
+
+  const selectedGround = grounds.find((g) => g.id === selectedGroundId);
 
   return (
     <KeyboardAvoidingView
@@ -183,8 +189,8 @@ export default function CreateEventScreen() {
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Create event</Text>
-          <Text style={styles.headerSubtitle}>Organise a game</Text>
+          <Text style={styles.headerTitle}>Edit event</Text>
+          <Text style={styles.headerSubtitle}>Update details</Text>
         </View>
         <View style={{ width: 32 }} />
       </View>
@@ -207,7 +213,6 @@ export default function CreateEventScreen() {
           onChangeText={setTitle}
         />
 
-        {/* ✅ Ground Selector + Pick on map */}
         <View style={styles.groundLabelRow}>
           <Text style={styles.inputLabel}>Ground</Text>
           <Pressable
@@ -236,24 +241,6 @@ export default function CreateEventScreen() {
           <Ionicons name="chevron-down" size={18} color="#6080A8" />
         </Pressable>
 
-        {selectedGround?.address ? (
-          <Text style={styles.selectedGroundAddress} numberOfLines={1}>
-            <Ionicons name="location-outline" size={12} color="#6080A8" />{' '}
-            {selectedGround.address}
-          </Text>
-        ) : null}
-
-        {/* ✅ Предупреждение о неподтверждённой площадке */}
-        {isGroundUnconfirmed && (
-          <View style={styles.warningNotice}>
-            <Ionicons name="warning-outline" size={18} color="#FF8000" />
-            <Text style={styles.warningNoticeText}>
-              This ground is pending moderation. You cannot create events on it yet.
-            </Text>
-          </View>
-        )}
-
-        {/* Date and Time */}
         <View style={styles.rowContainer}>
           <View style={styles.flexItem}>
             <Text style={styles.inputLabel}>Date</Text>
@@ -343,7 +330,32 @@ export default function CreateEventScreen() {
         />
       </ScrollView>
 
-      {/* iOS Date/Time pickers */}
+      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
+        <Pressable
+          style={[
+            styles.publishButton,
+            isFormValid ? styles.publishButtonActive : styles.publishButtonDisabled,
+            isSubmitting && styles.buttonDisabled,
+          ]}
+          onPress={handleSave}
+          disabled={isSubmitting || !isFormValid}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#FFFFFF" size="small" />
+          ) : (
+            <Text style={styles.publishButtonText}>Save changes</Text>
+          )}
+        </Pressable>
+      </View>
+
+      <GroundPickerModal
+        visible={showGroundPicker}
+        initialGroundId={selectedGroundId}
+        onConfirm={handleConfirmGround}
+        onClose={() => setShowGroundPicker(false)}
+      />
+
+      {/* iOS Date Picker */}
       {Platform.OS === 'ios' && (
         <>
           <Modal visible={showDatePicker} animationType="slide" transparent>
@@ -366,9 +378,7 @@ export default function CreateEventScreen() {
                   value={tempDate}
                   mode="date"
                   display="spinner"
-                  minimumDate={new Date()}
                   onValueChange={handleDateValueChange}
-                  onDismiss={handleDateDismiss}
                 />
               </View>
             </View>
@@ -393,10 +403,9 @@ export default function CreateEventScreen() {
                 <DateTimePicker
                   value={tempTime}
                   mode="time"
-                  is24Hour={true}
+                  is24Hour
                   display="spinner"
                   onValueChange={handleTimeValueChange}
-                  onDismiss={handleTimeDismiss}
                 />
               </View>
             </View>
@@ -404,59 +413,30 @@ export default function CreateEventScreen() {
         </>
       )}
 
-      {/* Android pickers */}
       {Platform.OS === 'android' && showDatePicker && (
         <DateTimePicker
           value={date}
           mode="date"
           display="default"
-          minimumDate={new Date()}
           onValueChange={handleDateValueChange}
-          onDismiss={handleDateDismiss}
         />
       )}
       {Platform.OS === 'android' && showTimePicker && (
         <DateTimePicker
           value={time}
           mode="time"
-          is24Hour={true}
+          is24Hour
           display="default"
           onValueChange={handleTimeValueChange}
-          onDismiss={handleTimeDismiss}
         />
       )}
-
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
-        <Pressable
-          style={[
-            styles.publishButton,
-            isFormValid ? styles.publishButtonActive : styles.publishButtonDisabled,
-            isSubmitting && styles.buttonDisabled,
-          ]}
-          onPress={handlePublish}
-          disabled={isSubmitting || !isFormValid}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator color="#FFFFFF" size="small" />
-          ) : (
-            <Text style={styles.publishButtonText}>Publish event</Text>
-          )}
-        </Pressable>
-      </View>
-
-      {/* ✅ Модалка выбора площадки на карте */}
-      <GroundPickerModal
-        visible={showGroundPicker}
-        initialGroundId={selectedGroundId}
-        onConfirm={handleConfirmGround}
-        onClose={() => setShowGroundPicker(false)}
-      />
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
+  loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -495,7 +475,6 @@ const styles = StyleSheet.create({
     color: '#334A77',
     backgroundColor: '#FFFFFF',
   },
-
   groundLabelRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -510,7 +489,6 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
   },
   pickOnMapText: { fontSize: 13, fontWeight: '700', color: '#208AEF' },
-
   selectorField: {
     width: '100%',
     height: 48,
@@ -531,33 +509,6 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   selectorPlaceholder: { color: '#BACAD6', fontWeight: '400' },
-  selectedGroundAddress: {
-    fontSize: 12,
-    color: '#6080A8',
-    marginTop: 6,
-    marginLeft: 2,
-  },
-
-  // ✅ Предупреждение
-  warningNotice: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-    backgroundColor: '#FFF8EC',
-    borderWidth: 1,
-    borderColor: '#FFE0B2',
-    borderRadius: 12,
-    padding: 12,
-    marginTop: 12,
-  },
-  warningNoticeText: {
-    flex: 1,
-    fontSize: 12,
-    color: '#B45F06',
-    fontWeight: '500',
-    lineHeight: 17,
-  },
-
   rowContainer: { flexDirection: 'row', gap: 12 },
   flexItem: { flex: 1 },
   iconInputField: {

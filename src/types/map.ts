@@ -8,6 +8,7 @@ export interface GroundMapMarker {
   longitude: number;
   activityLevel: GroundActivityLevel;
   sportId: string;         // ✅ id спорта (для иконки)
+  sportsCount: number;
   address?: string;
   avatar?: string; 
 }
