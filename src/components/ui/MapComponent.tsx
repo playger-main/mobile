@@ -49,6 +49,8 @@ interface MapComponentProps {
   };
   grounds: ExtendedGroundItem[];
   onMarkerPress?: (ground: ExtendedGroundItem) => void;
+  /** ✅ Отступ сверху для кнопки locate (под поиском) */
+  topOffset?: number;
 }
 
 interface ClusterPoint {
@@ -110,6 +112,7 @@ export default function MapComponent({
   region,
   grounds,
   onMarkerPress,
+  topOffset = 76,
 }: MapComponentProps) {
   const router = useRouter();
   const events = useUnit($events);
@@ -129,7 +132,7 @@ export default function MapComponent({
   // ✅ Флаг: стартовое центрирование уже сделано
   const initialCenteringDoneRef = useRef(false);
 
-  // ✅ Автозапрос локации при монтировании + обработка denied
+  // ✅ Автозапрос локации при монтировании
   useEffect(() => {
     (async () => {
       try {
@@ -190,7 +193,7 @@ export default function MapComponent({
       return () => clearTimeout(timer);
     }
 
-    // Fallback через 2 секунды, если userLocation не появился
+    // Fallback через 2 секунды
     const fallbackTimer = setTimeout(() => {
       if (initialCenteringDoneRef.current) return;
       if (!userLocation && cityCenter) {
@@ -210,7 +213,7 @@ export default function MapComponent({
     return () => clearTimeout(fallbackTimer);
   }, [userLocation, cityCenter]);
 
-  // ✅ Реакция на запрос фокуса (переход с другого экрана)
+  // ✅ Реакция на фокус (переход с другого экрана)
   useEffect(() => {
     if (!mapFocusTarget) return;
 
@@ -311,7 +314,7 @@ export default function MapComponent({
           address: g.address || undefined,
           activityLevel,
           sportId,
-          sportsCount: sports.length,   // ✅ количество спортов
+          sportsCount: sports.length,
           avatar: g.avatar,
           raw: g,
         };
@@ -370,7 +373,7 @@ export default function MapComponent({
     [onMarkerPress, router],
   );
 
-  // 5. Клик по кластеру: рекурсивный зум + список
+  // 5. Клик по кластеру
   const handleClusterPress = useCallback(
     (clusterId: number) => {
       const leaves = supercluster.getLeaves(clusterId, Infinity) as ClusterPoint[];
@@ -476,7 +479,6 @@ export default function MapComponent({
               key={marker.id}
               coordinate={{ latitude, longitude }}
               onPress={() => handleMarkerPress(marker)}
-              // ✅ Для мультиспорта включаем перерисовку — иначе бейдж "+N" не появится на Android
               tracksViewChanges={(marker.sportsCount ?? 1) > 1}
             >
               <GroundMarker
@@ -489,10 +491,14 @@ export default function MapComponent({
         })}
       </MapView>
 
+      {/* ✅ Кнопка «Моё местоположение» — в правом ВЕРХНЕМ углу */}
       <Pressable
         style={({ pressed }) => [
           styles.locateButton,
-          { opacity: pressed ? 0.7 : 1 },
+          {
+            top: topOffset,
+            opacity: pressed ? 0.7 : 1,
+          },
         ]}
         onPress={handleLocatePress}
         disabled={isLocating}
@@ -520,10 +526,11 @@ export default function MapComponent({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   map: { width: '100%', height: '100%' },
+
   locateButton: {
     position: 'absolute',
     right: 16,
-    bottom: 16,
+    // ❌ bottom: 16 — убрано
     width: 48,
     height: 48,
     borderRadius: 24,
