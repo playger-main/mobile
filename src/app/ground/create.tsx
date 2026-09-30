@@ -355,7 +355,8 @@ const styles = StyleSheet.create({
   gridContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   sportCard: {
     width: '30%',
-    aspectRatio: 1.2,
+    height: 70,              // фиксированная высота вместо aspectRatio
+    alignSelf: 'flex-start',  // запрещает растягивание по вертикали
     borderWidth: 1,
     borderColor: '#E6F4FE',
     borderRadius: 12,
