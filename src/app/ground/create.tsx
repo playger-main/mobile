@@ -1,3 +1,4 @@
+// src/app/ground/create.tsx
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -17,11 +18,13 @@ import { useRouter } from 'expo-router';
 import { useUnit } from 'effector-react';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { AMENITIES_OPTIONS } from '@/constants/amenities';
-import { SPORT_OPTIONS } from '@/constants/sports';
 
 import { createGroundFx } from '@/effector/events/async/grounds';
 import { $userSession } from '@/effector/store';
+import LocationPickerModal from '@/components/ui/LocationPickerModal';
+
+import { SPORT_OPTIONS } from '@/constants/sports';
+import { AMENITIES_OPTIONS } from '@/constants/amenities';
 
 export default function CreateGroundScreen() {
   const insets = useSafeAreaInsets();
@@ -36,7 +39,13 @@ export default function CreateGroundScreen() {
   const [description, setDescription] = useState('');
   const [amenities, setAmenities] = useState<string[]>([]);
   const [avatar, setAvatar] = useState<string | null>(null);
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [location, setLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+
+  // ✅ Видимость модалки выбора локации
+  const [locationPickerVisible, setLocationPickerVisible] = useState(false);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -55,15 +64,33 @@ export default function CreateGroundScreen() {
 
   const toggleAmenity = (amenity: string) => {
     setAmenities((prev) =>
-      prev.includes(amenity) ? prev.filter((a) => a !== amenity) : [...prev, amenity]
+      prev.includes(amenity) ? prev.filter((a) => a !== amenity) : [...prev, amenity],
     );
   };
 
+  // ✅ Открыть модалку
   const handleOpenMap = () => {
-    // TODO: Реализовать модальное окно с картой
-    setLocation({ lat: 54.7284, lng: 25.2273 });
-    Alert.alert('Location Set', 'Координаты установлены (заглушка).');
+    setLocationPickerVisible(true);
   };
+
+  // ✅ Приём координат из модалки
+  const handleConfirmLocation = (data: {
+  latitude: number;
+  longitude: number;
+  address?: string;
+}) => {
+  setLocation({
+    lat: data.latitude,
+    lng: data.longitude,
+  });
+
+  // Автозаполнение адреса, если он ещё не введён вручную
+  if (data.address && !address.trim()) {
+    setAddress(data.address);
+  }
+
+  setLocationPickerVisible(false);
+};
 
   const handlePublish = async () => {
     if (!name.trim()) return Alert.alert('Error', 'Please enter a ground name.');
@@ -78,7 +105,10 @@ export default function CreateGroundScreen() {
         coverage: surface.trim() || undefined,
         description: description.trim() || undefined,
         amenities,
-        geolocation: location,
+        geolocation: {
+          lat: location.lat,
+          lng: location.lng,
+        },
         avatar: avatar
           ? {
               uri: avatar,
@@ -95,7 +125,8 @@ export default function CreateGroundScreen() {
     }
   };
 
-  const isFormValid = name.trim().length > 0 && address.trim().length > 0 && location !== null;
+  const isFormValid =
+    name.trim().length > 0 && address.trim().length > 0 && location !== null;
 
   return (
     <KeyboardAvoidingView
@@ -141,7 +172,9 @@ export default function CreateGroundScreen() {
                   size={24}
                   color={isSelected ? '#208AEF' : '#6080A8'}
                 />
-                <Text style={[styles.sportLabel, isSelected && styles.sportLabelSelected]}>
+                <Text
+                  style={[styles.sportLabel, isSelected && styles.sportLabelSelected]}
+                >
                   {sport.label}
                 </Text>
               </Pressable>
@@ -189,7 +222,9 @@ export default function CreateGroundScreen() {
                 onPress={() => toggleAmenity(amenity)}
                 style={[styles.amenityChip, isSelected && styles.amenityChipSelected]}
               >
-                <Text style={[styles.amenityText, isSelected && styles.amenityTextSelected]}>
+                <Text
+                  style={[styles.amenityText, isSelected && styles.amenityTextSelected]}
+                >
                   {amenity}
                 </Text>
               </Pressable>
@@ -209,19 +244,27 @@ export default function CreateGroundScreen() {
           )}
         </Pressable>
 
+        {/* ✅ Location on map — теперь с реальным выбором */}
         <Text style={styles.inputLabel}>Location on map</Text>
         <Pressable style={styles.mapPickerBox} onPress={handleOpenMap}>
           {location ? (
             <View style={styles.locationSetContainer}>
               <Ionicons name="checkmark-circle" size={24} color="#27AE60" />
-              <Text style={styles.locationSetText}>
-                Coordinates: {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.locationSetText}>
+                  Coordinates: {location.lat.toFixed(5)},{' '}
+                  {location.lng.toFixed(5)}
+                </Text>
+                <Text style={styles.locationChangeHint}>Tap to change</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#BACAD6" />
             </View>
           ) : (
             <View style={styles.mapPlaceholder}>
               <Ionicons name="map-outline" size={24} color="#208AEF" />
-              <Text style={styles.mapPlaceholderText}>Tap to select location on map</Text>
+              <Text style={styles.mapPlaceholderText}>
+                Tap to select location on map
+              </Text>
             </View>
           )}
         </Pressable>
@@ -244,6 +287,15 @@ export default function CreateGroundScreen() {
           )}
         </Pressable>
       </View>
+
+      {/* ✅ Модалка выбора локации */}
+      <LocationPickerModal
+        visible={locationPickerVisible}
+        initialLatitude={location?.lat ?? null}
+        initialLongitude={location?.lng ?? null}
+        onConfirm={handleConfirmLocation}
+        onClose={() => setLocationPickerVisible(false)}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -263,9 +315,20 @@ const styles = StyleSheet.create({
   backButton: { padding: 4 },
   headerTitleContainer: { flex: 1, alignItems: 'center' },
   headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
-  headerSubtitle: { fontSize: 12, color: '#BACAD6', fontWeight: '500', marginTop: 1 },
+  headerSubtitle: {
+    fontSize: 12,
+    color: '#BACAD6',
+    fontWeight: '500',
+    marginTop: 1,
+  },
   scrollContent: { paddingHorizontal: 16, paddingTop: 20 },
-  inputLabel: { fontSize: 14, fontWeight: '700', color: '#000000', marginBottom: 8, marginTop: 16 },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 8,
+    marginTop: 16,
+  },
   textField: {
     width: '100%',
     height: 48,
@@ -301,7 +364,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   sportCardSelected: { borderColor: '#208AEF', backgroundColor: '#F0F6FC' },
-  sportLabel: { fontSize: 11, fontWeight: '600', color: '#6080A8', marginTop: 4, textAlign: 'center' },
+  sportLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#6080A8',
+    marginTop: 4,
+    textAlign: 'center',
+  },
   sportLabelSelected: { color: '#208AEF', fontWeight: '700' },
   amenitiesWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   amenityChip: {
@@ -331,19 +400,31 @@ const styles = StyleSheet.create({
   photoPlaceholderText: { fontSize: 13, color: '#BACAD6', fontWeight: '500' },
   mapPickerBox: {
     width: '100%',
-    height: 100,
+    minHeight: 80,
     borderWidth: 1,
     borderColor: '#E6F4FE',
     borderRadius: 12,
     backgroundColor: '#F8FAFC',
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
   mapPlaceholder: { alignItems: 'center', gap: 6 },
   mapPlaceholderText: { fontSize: 13, color: '#208AEF', fontWeight: '600' },
-  locationSetContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  locationSetText: { fontSize: 13, color: '#27AE60', fontWeight: '600' },
+  locationSetContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    width: '100%',
+  },
+  locationSetText: { fontSize: 13, color: '#27AE60', fontWeight: '700' },
+  locationChangeHint: {
+    fontSize: 11,
+    color: '#6080A8',
+    fontWeight: '500',
+    marginTop: 2,
+  },
   bottomBar: {
     position: 'absolute',
     bottom: 0,
