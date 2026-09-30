@@ -1,24 +1,19 @@
+// src/components/ui/CategorySport.tsx
 import React from 'react';
 import { ScrollView, StyleSheet, Text, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-// Переименовали константу для соответствия сущности бэкенда
-export const KINDOFSPORT_CATEGORIES = [
-  { id: 'all', title: 'All sports', icon: 'grid-outline' },
-  { id: 'basketball', title: 'Basketball', icon: 'basketball-outline' },
-  { id: 'pickleball', title: 'Pickleball', icon: 'trophy-outline' },       // ✅ ДОБАВЛЕНО
-  { id: 'skateboarding', title: 'Skatepark', icon: 'bicycle-outline' },    // ✅ ДОБАВЛЕНО
-  { id: 'football', title: 'Football', icon: 'football-outline' },
-  { id: 'tennis', title: 'Tennis', icon: 'tennisball-outline' },
-];
+import { SPORT_CATEGORIES } from '@/constants/sports';
 
 interface CategorySportProps {
-  // ✅ ИСПРАВЛЕНИЕ: переименовали пропсы под бизнес-логику сервера
   selectedKindofsport: string;
   onSelectKindofsport: (id: string) => void;
 }
 
-export default function CategorySport({ selectedKindofsport, onSelectKindofsport }: CategorySportProps) {
+export default function CategorySport({
+  selectedKindofsport,
+  onSelectKindofsport,
+}: CategorySportProps) {
   return (
     <View style={styles.wrapper}>
       <ScrollView
@@ -26,8 +21,9 @@ export default function CategorySport({ selectedKindofsport, onSelectKindofsport
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.container}
       >
-        {KINDOFSPORT_CATEGORIES.map((category) => {
+        {SPORT_CATEGORIES.map((category) => {
           const isActive = selectedKindofsport === category.id;
+          const isAll = category.id === 'all';
 
           return (
             <Pressable
@@ -35,7 +31,7 @@ export default function CategorySport({ selectedKindofsport, onSelectKindofsport
               onPress={() => onSelectKindofsport(category.id)}
               style={[styles.chip, isActive && styles.chipActive]}
             >
-              {category.id !== 'all' && (
+              {!isAll && (
                 <Ionicons
                   name={category.icon as any}
                   size={14}
@@ -44,7 +40,7 @@ export default function CategorySport({ selectedKindofsport, onSelectKindofsport
                 />
               )}
               <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
-                {category.title}
+                {category.label}
               </Text>
             </Pressable>
           );
@@ -56,13 +52,13 @@ export default function CategorySport({ selectedKindofsport, onSelectKindofsport
 
 const styles = StyleSheet.create({
   wrapper: {
-    height: 44, 
+    height: 44,
     width: '100%',
     backgroundColor: '#FFFFFF',
   },
   container: {
     paddingHorizontal: 16,
-    alignItems: 'center', 
+    alignItems: 'center',
     gap: 8,
   },
   chip: {
@@ -73,7 +69,7 @@ const styles = StyleSheet.create({
     borderColor: '#E6F4FE',
     borderRadius: 16,
     paddingHorizontal: 12,
-    height: 28, 
+    height: 28,
   },
   chipActive: {
     backgroundColor: '#208AEF',

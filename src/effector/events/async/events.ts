@@ -60,6 +60,8 @@ export interface DetailedEventItem {
     name: string;
     address: string;
     kindofsport?: string[];
+    avatar?: string;              // ✅
+    geolocation?: { lat: string; lng: string } | null;  // ✅
   };
 }
 

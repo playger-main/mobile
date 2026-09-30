@@ -26,7 +26,12 @@ import {
 } from '@/effector/store';
 import { toggleFavoriteInStore } from '@/effector/events/sync';
 import { getBadgeStyle } from '@/constants/badgeStyle';
+import { getSportLabel } from '@/constants/sports';
 import { getAmenityIcon } from '@/constants/amenities';
+import {
+  getEventStatus,
+  getEventStatusStyle,
+} from '@/utils/eventStatus';
 
 export default function GroundDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -70,29 +75,30 @@ export default function GroundDetailScreen() {
       if (isNaN(date.getTime())) return { day: '??', month: 'ED' };
 
       const day = date.getDate().toString();
-      const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+      const month = date
+        .toLocaleString('en-US', { month: 'short' })
+        .toUpperCase();
       return { day, month };
     } catch {
       return { day: '00', month: 'EVT' };
     }
   };
 
-  const primarySport =
+  // ✅ id спорта (для цвета) и label (для текста)
+  const primarySportId =
     ground.kindofsport && ground.kindofsport.length > 0
       ? ground.kindofsport[0]
       : 'Sport';
-
-  const currentBadgeStyle = getBadgeStyle(primarySport);
+  const primarySportLabel = getSportLabel(primarySportId);
+  const currentBadgeStyle = getBadgeStyle(primarySportId);
 
   const displayDistance = ground.distanceMeters
     ? `${(ground.distanceMeters / 1000).toFixed(1)} km away`
     : 'Nearby';
 
-  // ✅ Удобства с сервера. Если пусто — фолбэк не показываем (или можно подставить дефолт)
-  const amenitiesList: string[] =
-    Array.isArray(ground.amenities) && ground.amenities.length > 0
-      ? ground.amenities
-      : [];
+  const amenitiesList: string[] = Array.isArray(ground.amenities)
+    ? ground.amenities
+    : [];
 
   return (
     <View style={styles.container}>
@@ -133,7 +139,7 @@ export default function GroundDetailScreen() {
             <View style={[styles.sportBadge, { backgroundColor: currentBadgeStyle.bg }]}>
               <View style={[styles.sportDot, { backgroundColor: currentBadgeStyle.text }]} />
               <Text style={[styles.sportText, { color: currentBadgeStyle.text }]}>
-                {primarySport.toUpperCase()}
+                {primarySportLabel.toUpperCase()}
               </Text>
             </View>
 
@@ -175,7 +181,7 @@ export default function GroundDetailScreen() {
               'A community-focused open court for practice and friendly team matches. Check upcoming events to join existing teams.'}
           </Text>
 
-          {/* 5. Amenities — динамически с сервера */}
+          {/* 5. Amenities */}
           <Text style={styles.sectionTitle}>Amenities</Text>
           {amenitiesList.length > 0 ? (
             <View style={styles.amenitiesContainer}>
@@ -203,6 +209,9 @@ export default function GroundDetailScreen() {
           {events.length > 0 ? (
             events.map((event) => {
               const dateInfo = formatEventDate(event.date);
+              const status = getEventStatus(event.date, event.startTime, event.duration);
+              const statusStyle = getEventStatusStyle(status);
+
               return (
                 <Pressable
                   key={event.id}
@@ -235,11 +244,15 @@ export default function GroundDetailScreen() {
                     </View>
                   </View>
 
+                  {/* ✅ Маленькая точка-индикатор статуса */}
+                  <View
+                    style={[styles.statusDot, { backgroundColor: statusStyle.text }]}
+                  />
                   <Ionicons
                     name="chevron-forward"
                     size={16}
                     color="#BACAD6"
-                    style={{ marginLeft: 4 }}
+                    style={{ marginLeft: 6 }}
                   />
                 </Pressable>
               );
@@ -398,6 +411,15 @@ const styles = StyleSheet.create({
   eventTitle: { fontSize: 14, fontWeight: '600', color: '#334A77' },
   eventMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   eventMetaText: { fontSize: 12, color: '#6080A8', marginLeft: 4 },
+
+  // ✅ Точка-индикатор статуса события
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginLeft: 8,
+  },
+
   emptyEvents: {
     fontSize: 14,
     color: '#BACAD6',

@@ -1,8 +1,16 @@
 // src/components/ui/PendingGroundCard.tsx
 import React from 'react';
-import { View, Text, StyleSheet, Image, Pressable, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  Pressable,
+  ActivityIndicator,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getBadgeStyle } from '@/constants/badgeStyle';
+import { getSportLabel } from '@/constants/sports';
 import { ExtendedGroundItem } from './CardGround';
 
 interface PendingGroundCardProps {
@@ -20,13 +28,16 @@ export default function PendingGroundCard({
   onPress,
   isProcessing = false,
 }: PendingGroundCardProps) {
-  const primarySport =
+  // ✅ id спорта (для цвета) и label (для текста)
+  const primarySportId =
     item.kindofsport && item.kindofsport.length > 0 ? item.kindofsport[0] : 'Sport';
-  const currentBadgeStyle = getBadgeStyle(primarySport);
+  const primarySportLabel = getSportLabel(primarySportId);
+
+  const currentBadgeStyle = getBadgeStyle(primarySportId);
 
   return (
     <View style={styles.card}>
-      {/* Верхняя часть — кликабельная, ведёт на детали */}
+      {/* Верхняя часть — кликабельная */}
       <Pressable style={styles.topSection} onPress={onPress}>
         <Image
           source={{ uri: item.avatar || 'https://unsplash.com' }}
@@ -39,12 +50,16 @@ export default function PendingGroundCard({
           <Text style={styles.address} numberOfLines={1}>
             {item.address || 'No address provided'}
           </Text>
+
           <View style={[styles.categoryBadge, { backgroundColor: currentBadgeStyle.bg }]}>
-            <View style={[styles.categoryDot, { backgroundColor: currentBadgeStyle.text }]} />
+            <View
+              style={[styles.categoryDot, { backgroundColor: currentBadgeStyle.text }]}
+            />
             <Text style={[styles.categoryText, { color: currentBadgeStyle.text }]}>
-              {primarySport.toUpperCase()}
+              {primarySportLabel.toUpperCase()}
             </Text>
           </View>
+
           {item.creator?.name && (
             <Text style={styles.creatorText}>by {item.creator.name}</Text>
           )}

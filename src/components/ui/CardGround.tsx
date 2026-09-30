@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getBadgeStyle } from '@/constants/badgeStyle';
+import { getSportLabel } from '@/constants/sports';
 
 export interface ExtendedGroundItem {
   id: string;
@@ -12,8 +13,8 @@ export interface ExtendedGroundItem {
   amenities?: string[];
   description: string | null;
   confirmed?: boolean;
-  createdAt: string;      // ✅ обязательное
-  updatedAt: string;      // ✅ обязательное
+  createdAt: string;
+  updatedAt: string;
   address: string | null;
   geolocation: {
     lat: string;
@@ -24,7 +25,7 @@ export interface ExtendedGroundItem {
   isFavorite: boolean;
   avgRating: number;
   distanceMeters?: number;
-  creator?: { id: string; name: string } | null;  // ✅ добавлено
+  creator?: { id: string; name: string } | null;
 }
 
 interface CardGroundProps {
@@ -34,17 +35,18 @@ interface CardGroundProps {
 }
 
 export default function CardGround({ item, onPress, onToggleFavorite }: CardGroundProps) {
-  const primarySport = item.kindofsport && item.kindofsport.length > 0
-    ? item.kindofsport[0]
-    : 'Sport';
+  // ✅ id спорта (для цвета) и label (для текста)
+  const primarySportId =
+    item.kindofsport && item.kindofsport.length > 0 ? item.kindofsport[0] : 'Sport';
+  const primarySportLabel = getSportLabel(primarySportId);
+  const currentBadgeStyle = getBadgeStyle(primarySportId);
 
-  const currentBadgeStyle = getBadgeStyle(primarySport);
-
-  const displayDistance = item.distanceMeters !== undefined
-    ? item.distanceMeters > 999
-      ? `${(item.distanceMeters / 1000).toFixed(1)} km`
-      : `${item.distanceMeters} m`
-    : 'Nearby';
+  const displayDistance =
+    item.distanceMeters !== undefined
+      ? item.distanceMeters > 999
+        ? `${(item.distanceMeters / 1000).toFixed(1)} km`
+        : `${item.distanceMeters} m`
+      : 'Nearby';
 
   return (
     <Pressable style={styles.card} onPress={onPress}>
@@ -61,7 +63,6 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
           </View>
         )}
 
-        {/* ✅ Бейдж "Pending" для неподтверждённых площадок */}
         {item.confirmed === false && (
           <View style={styles.pendingBadge}>
             <Ionicons name="time-outline" size={11} color="#FFFFFF" />
@@ -72,7 +73,9 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
 
       <View style={styles.infoContainer}>
         <View style={styles.headerRow}>
-          <Text style={styles.title} numberOfLines={1}>{item.name}</Text>
+          <Text style={styles.title} numberOfLines={1}>
+            {item.name}
+          </Text>
           <Pressable
             onPress={() => onToggleFavorite(item.id)}
             style={styles.favoriteButton}
@@ -93,7 +96,7 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
         <View style={[styles.categoryBadge, { backgroundColor: currentBadgeStyle.bg }]}>
           <View style={[styles.categoryDot, { backgroundColor: currentBadgeStyle.text }]} />
           <Text style={[styles.categoryText, { color: currentBadgeStyle.text }]}>
-            {primarySport.toUpperCase()}
+            {primarySportLabel.toUpperCase()}
           </Text>
         </View>
 
@@ -160,7 +163,6 @@ const styles = StyleSheet.create({
   badgeIcon: { marginRight: 3 },
   compactEventText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
 
-  // ✅ Стили для бейджа "Pending"
   pendingBadge: {
     position: 'absolute',
     top: 6,
@@ -216,7 +218,6 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#FF8000',
     marginRight: 6,
   },
   categoryText: {

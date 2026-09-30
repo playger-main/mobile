@@ -1,32 +1,49 @@
 // src/app/event/[id].tsx
 import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, Pressable, ActivityIndicator, Platform, Alert } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  ActivityIndicator,
+  Platform,
+  Alert,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
 import { Ionicons } from '@expo/vector-icons';
 
 import { fetchEventByIdFx, toggleJoinEventFx } from '@/effector/events/async/events';
-import { $currentEvent, $isEventDetailLoading, $userSession } from '@/effector/store';
+import {
+  $currentEvent,
+  $isEventDetailLoading,
+  $userSession,
+} from '@/effector/store';
 
-// Subcomponents layout wrappers
 import EventGridInfo from '@/components/ui/EventGridInfo';
 import EventProgressBar from '@/components/ui/EventProgressBar';
 import EventLocationCard from '@/components/ui/EventLocationCard';
 import { getBadgeStyle } from '@/constants/badgeStyle';
+import { getSportLabel } from '@/constants/sports';
+import {
+  getEventStatus,
+  getEventStatusLabel,
+  getEventStatusStyle,
+} from '@/utils/eventStatus';
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  // Resolution context bindings
   const { event, isLoading, userSession, toggleJoin, isJoining } = useUnit({
     event: $currentEvent,
     isLoading: $isEventDetailLoading,
     userSession: $userSession,
     toggleJoin: toggleJoinEventFx,
-    isJoining: toggleJoinEventFx.pending
+    isJoining: toggleJoinEventFx.pending,
   });
 
   useEffect(() => {
@@ -45,17 +62,27 @@ export default function EventDetailScreen() {
 
   const handleJoinToggleAction = async () => {
     if (!userSession) {
-      Alert.alert('Authentication Required', 'Please create an account or sign in to reserve a spot in this game.', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign In', onPress: () => router.push('/(drawer)/(tabs)/profile') }
-      ]);
+      Alert.alert(
+        'Authentication Required',
+        'Please create an account or sign in to reserve a spot in this game.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Sign In',
+            onPress: () => router.push('/(drawer)/(tabs)/profile'),
+          },
+        ],
+      );
       return;
     }
 
     try {
       await toggleJoin(event!.id);
     } catch (err: any) {
-      Alert.alert('Action Failed', err?.response?.data?.message || 'Could not adjust slot metrics.');
+      Alert.alert(
+        'Action Failed',
+        err?.response?.data?.message || 'Could not adjust slot metrics.',
+      );
     }
   };
 
@@ -69,18 +96,30 @@ export default function EventDetailScreen() {
 
   const maxPlayers = event.maxPlayers || 14;
   const currentPlayers = event.currentPlayers || 0;
-  const sportTag = event.ground?.kindofsport?.[0] || 'Sport';
-  const currentBadgeStyle = getBadgeStyle(sportTag);
 
-  // Check if current user is listed inside the event players array map
-  const isJoined = Array.isArray(event.currentPlayers) && event.currentPlayers.some((p: any) => p.id === userSession?.id);
+  // ✅ id спорта (для цвета) и label (для текста)
+  const sportId = event.ground?.kindofsport?.[0] || 'Sport';
+  const sportLabel = getSportLabel(sportId);
+  const currentBadgeStyle = getBadgeStyle(sportId);
+
+  // ✅ Статус события
+  const status = getEventStatus(event.date, event.startTime, event.duration);
+  const statusStyle = getEventStatusStyle(status);
+  const statusLabel = getEventStatusLabel(status);
+  const isFinished = status === 'finished';
+
+  const isJoined =
+    Array.isArray(event.currentPlayers) &&
+    event.currentPlayers.some((p: any) => p.id === userSession?.id);
   const isFull = currentPlayers >= maxPlayers;
 
-  // Determine bottom CTA button appearance dynamically
   let buttonText = 'Join event';
   let buttonStyle = [styles.joinButton, styles.primaryJoinBg];
 
-  if (isJoined) {
+  if (isFinished) {
+    buttonText = 'Event finished';
+    buttonStyle = [styles.joinButton, styles.disabledBtnBg];
+  } else if (isJoined) {
     buttonText = 'Leave event';
     buttonStyle = [styles.joinButton, styles.leaveBtnBg];
   } else if (isFull) {
@@ -90,7 +129,7 @@ export default function EventDetailScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Navigation Header bar */}
+      {/* Header */}
       <View style={[styles.customHeader, { paddingTop: insets.top + 6 }]}>
         <Pressable onPress={handleBack} style={styles.backButton} hitSlop={12}>
           <Ionicons name="chevron-back" size={24} color="#208AEF" />
@@ -99,21 +138,34 @@ export default function EventDetailScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView 
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 90 }]} 
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom + 90 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Sport Category tag badge */}
-        <View style={[styles.sportBadge, { backgroundColor: currentBadgeStyle.bg }]}>
-          <View style={[styles.sportDot, { backgroundColor: currentBadgeStyle.text }]} />
-          <Text style={[styles.sportText, { color: currentBadgeStyle.text }]}>{sportTag.toUpperCase()}</Text>
+        {/* Sport badge + Status badge */}
+        <View style={styles.badgesRow}>
+          <View style={[styles.sportBadge, { backgroundColor: currentBadgeStyle.bg }]}>
+            <View style={[styles.sportDot, { backgroundColor: currentBadgeStyle.text }]} />
+            <Text style={[styles.sportText, { color: currentBadgeStyle.text }]}>
+              {sportLabel.toUpperCase()}
+            </Text>
+          </View>
+
+          {/* ✅ Статус события */}
+          <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+            <Text style={[styles.statusText, { color: statusStyle.text }]}>
+              {statusLabel}
+            </Text>
+          </View>
         </View>
 
-        {/* Title parameters and host details */}
         <Text style={styles.title}>{event.name}</Text>
         <Text style={styles.hostedText}>Hosted by {event.creator?.name || 'User'}</Text>
 
-        <EventGridInfo 
+        <EventGridInfo
           date={event.date}
           startTime={event.startTime}
           duration={event.duration || '60m'}
@@ -122,14 +174,15 @@ export default function EventDetailScreen() {
           maxPlayers={maxPlayers}
         />
 
-        <EventProgressBar 
+        <EventProgressBar
           currentPlayers={currentPlayers}
           maxPlayers={maxPlayers}
         />
 
-        <EventLocationCard 
+        <EventLocationCard
           name={event.ground?.name || 'Playground'}
           address={event.ground?.address || 'Address'}
+          avatar={event.ground?.avatar}
           onPress={() => router.push(`/ground/${event.ground?.id}`)}
         />
 
@@ -139,17 +192,19 @@ export default function EventDetailScreen() {
         </Text>
       </ScrollView>
 
-      {/* Floating interactive action CTA footer block */}
+      {/* Bottom CTA */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
-        <Pressable 
-          style={[buttonStyle, isJoining && styles.disabledBtnBg]} 
+        <Pressable
+          style={[buttonStyle, isJoining && styles.disabledBtnBg]}
           onPress={handleJoinToggleAction}
-          disabled={isJoining || (!isJoined && isFull)}
+          disabled={isJoining || isFinished || (!isJoined && isFull)}
         >
           {isJoining ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={[styles.joinButtonText, isJoined && styles.leaveBtnText]}>{buttonText}</Text>
+            <Text style={[styles.joinButtonText, isJoined && styles.leaveBtnText]}>
+              {buttonText}
+            </Text>
           )}
         </Pressable>
       </View>
@@ -160,28 +215,88 @@ export default function EventDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  customHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 12, paddingBottom: 12, borderBottomWidth: 1, borderColor: '#F0F6FC' },
+  customHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderColor: '#F0F6FC',
+  },
   backButton: { padding: 4 },
   headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
   scrollContent: { paddingHorizontal: 16, paddingTop: 16 },
-  sportBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, alignSelf: 'flex-start', marginBottom: 12 },
+
+  // ✅ Ряд с двумя бейджами
+  badgesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+
+  sportBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
   sportDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   sportText: { fontSize: 11, fontWeight: '700' },
+
+  // ✅ Бейдж статуса
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  statusText: { fontSize: 11, fontWeight: '700' },
+
   title: { fontSize: 24, fontWeight: '800', color: '#334A77', marginBottom: 4 },
   hostedText: { fontSize: 14, color: '#6080A8', marginBottom: 20 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#334A77', marginBottom: 8 },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#334A77',
+    marginBottom: 8,
+  },
   descriptionText: { fontSize: 14, color: '#6080A8', lineHeight: 20 },
   bottomBar: {
-    position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#FFFFFF', paddingHorizontal: 16, paddingTop: 12, borderTopWidth: 1, borderColor: '#F0F6FC',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderColor: '#F0F6FC',
     ...Platform.select({
-      ios: { shadowColor: '#334A77', shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: -2 } },
+      ios: {
+        shadowColor: '#334A77',
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: -2 },
+      },
       android: { elevation: 8 },
-      web: { boxShadow: '0px -2px 6px rgba(51, 74, 119, 0.03)' }
-    })
+      web: { boxShadow: '0px -2px 6px rgba(51, 74, 119, 0.03)' },
+    }),
   },
-  joinButton: { width: '100%', height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  joinButton: {
+    width: '100%',
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   primaryJoinBg: { backgroundColor: '#208AEF' },
-  leaveBtnBg: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#FF3B30' },
+  leaveBtnBg: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#FF3B30',
+  },
   disabledBtnBg: { backgroundColor: '#BACAD6' },
   joinButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
   leaveBtnText: { color: '#FF3B30' },

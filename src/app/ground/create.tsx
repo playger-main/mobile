@@ -18,18 +18,10 @@ import { useUnit } from 'effector-react';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { AMENITIES_OPTIONS } from '@/constants/amenities';
+import { SPORT_OPTIONS } from '@/constants/sports';
 
 import { createGroundFx } from '@/effector/events/async/grounds';
 import { $userSession } from '@/effector/store';
-
-const SPORT_OPTIONS = [
-  { id: 'basketball', label: 'Basketball', icon: 'basketball-outline' },
-  { id: 'football', label: 'Football', icon: 'football-outline' },
-  { id: 'tennis', label: 'Tennis', icon: 'tennisball-outline' },
-  { id: 'volleyball', label: 'Volleyball', icon: 'basketball-outline' },
-  { id: 'skateboarding', label: 'Skate', icon: 'bicycle-outline' },
-  { id: 'running', label: 'Running', icon: 'walk-outline' },
-];
 
 export default function CreateGroundScreen() {
   const insets = useSafeAreaInsets();
