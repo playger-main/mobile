@@ -2,22 +2,56 @@
 import { createDomain, combine } from 'effector';
 import { ExtendedGroundItem } from '@/components/ui/CardGround';
 import { clearGrounds, toggleFavoriteInStore } from '../events/sync';
-import { $selectedDate } from './filter'; // Импортируем зависимый стор даты
+import { $selectedDate } from './filter';
 
-import { fetchGroundByIdFx, fetchGroundsFx, GroundDetailItem } from '../events/async/grounds';
-import { fetchAllEventsFx, fetchEventsByGroundIdFx, fetchEventByIdFx, RealEventItem, ServerEventItem, DetailedEventItem, toggleJoinEventFx } from '../events/async/events';
+import {
+  fetchGroundByIdFx,
+  fetchGroundsFx,
+  createGroundFx,
+  confirmGroundFx,
+  deleteGroundFx,
+  GroundDetailItem,
+} from '../events/async/grounds';
+import {
+  fetchAllEventsFx,
+  fetchEventsByGroundIdFx,
+  fetchEventByIdFx,
+  RealEventItem,
+  ServerEventItem,
+  DetailedEventItem,
+  toggleJoinEventFx,
+} from '../events/async/events';
 
 const dataDomain = createDomain('data');
 
-// --- Сторы площадок ---
+// ================== ПЛОЩАДКИ ==================
+
 export const $grounds = dataDomain
   .createStore<ExtendedGroundItem[]>([])
   .on(fetchGroundsFx.doneData, (_, payload) => payload)
   .on(fetchGroundsFx.failData, () => [])
   .on(clearGrounds, () => [])
   .on(toggleFavoriteInStore, (state, id) =>
-    state.map((item: any) => (item.id === id ? { ...item, isFavorite: !item.isFavorite } : item))
-  );
+    state.map((item: any) => (item.id === id ? { ...item, isFavorite: !item.isFavorite } : item)),
+  )
+  .on(createGroundFx.doneData, (state, newGround) => {
+    const extendedGround: ExtendedGroundItem = {
+      ...newGround,
+      // Уже есть: createdAt, updatedAt, creator
+      eventsCount: 0,
+      isFavorite: false,
+      avgRating: 0,
+      distanceMeters: undefined,
+      // amenities, confirmed тоже есть
+    };
+    return [extendedGround, ...state];
+  })
+  .on(confirmGroundFx.doneData, (state, updated) =>
+    state.map((item) =>
+      item.id === updated.id ? { ...item, confirmed: updated.confirmed } : item,
+    ),
+  )
+  .on(deleteGroundFx.done, (state, { params: id }) => state.filter((item) => item.id !== id));
 
 export const $isGroundsLoading = dataDomain
   .createStore<boolean>(false)
@@ -28,7 +62,7 @@ export const $groundsError = dataDomain
   .createStore<string | null>(null)
   .on(fetchGroundsFx.failData, (_, error: any) => error.message || 'Ошибка сети')
   .on(fetchGroundsFx, () => null);
-  
+
 export const $currentGround = dataDomain
   .createStore<GroundDetailItem | null>(null)
   .on(fetchGroundByIdFx.doneData, (_, payload) => payload)
@@ -39,7 +73,29 @@ export const $isGroundDetailLoading = dataDomain
   .on(fetchGroundByIdFx, () => true)
   .on(fetchGroundByIdFx.finally, () => false);
 
-// --- Сторы событий ---
+// ✅ Стор для неподтверждённых площадок (для модерации)
+export const $pendingGrounds = dataDomain
+  .createStore<ExtendedGroundItem[]>([])
+  .on(fetchGroundsFx.doneData, (_, payload) =>
+    // Фильтруем на клиенте: показываем только неподтверждённые
+    // (сервер отдаёт их модератору в общем списке)
+    payload.filter((g) => g.confirmed === false),
+  )
+  .on(confirmGroundFx.doneData, (state, updated) =>
+    // После подтверждения убираем из pending
+    state.filter((item) => item.id !== updated.id),
+  )
+  .on(deleteGroundFx.done, (state, { params: id }) =>
+    state.filter((item) => item.id !== id),
+  );
+
+export const $isPendingLoading = dataDomain
+  .createStore<boolean>(false)
+  .on(fetchGroundsFx, () => true)
+  .on(fetchGroundsFx.finally, () => false);
+
+// ================== СОБЫТИЯ ==================
+
 export const $currentGroundEvents = dataDomain
   .createStore<RealEventItem[]>([])
   .on(fetchEventsByGroundIdFx.doneData, (_, payload) => payload)
@@ -68,8 +124,8 @@ export const $isEventDetailLoading = dataDomain
   .on(fetchEventByIdFx, () => true)
   .on(fetchEventByIdFx.finally, () => false);
 
-// Селектор-комбайн матчей выбранного дня
 export const $currentDayEvents = combine(
-  $events, $selectedDate,
-  (events, selectedDate) => events.filter(evt => evt.date === selectedDate)
+  $events,
+  $selectedDate,
+  (events, selectedDate) => events.filter((evt) => evt.date === selectedDate),
 );

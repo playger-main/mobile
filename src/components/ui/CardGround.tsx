@@ -4,25 +4,27 @@ import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getBadgeStyle } from '@/constants/badgeStyle';
 
-// Полный интерфейс на основе реального ответа NestJS
 export interface ExtendedGroundItem {
   id: string;
   name: string;
   kindofsport: string[];
   coverage: string[];
+  amenities?: string[];
   description: string | null;
-  createdAt: string;
-  updatedAt: string;
+  confirmed?: boolean;
+  createdAt: string;      // ✅ обязательное
+  updatedAt: string;      // ✅ обязательное
   address: string | null;
   geolocation: {
     lat: string;
     lng: string;
   } | null;
   avatar: string;
-  eventsCount: number; // Счетчик событий с бэкенда
+  eventsCount: number;
   isFavorite: boolean;
   avgRating: number;
   distanceMeters?: number;
+  creator?: { id: string; name: string } | null;  // ✅ добавлено
 }
 
 interface CardGroundProps {
@@ -32,44 +34,47 @@ interface CardGroundProps {
 }
 
 export default function CardGround({ item, onPress, onToggleFavorite }: CardGroundProps) {
-  // Извлекаем основной вид спорта из массива (или "Sport" по умолчанию)
-  const primarySport = item.kindofsport && item.kindofsport.length > 0 
-    ? item.kindofsport[0] 
+  const primarySport = item.kindofsport && item.kindofsport.length > 0
+    ? item.kindofsport[0]
     : 'Sport';
 
   const currentBadgeStyle = getBadgeStyle(primarySport);
 
-  // Форматируем отображение дистанции (переводим метры в км)
   const displayDistance = item.distanceMeters !== undefined
-    ? item.distanceMeters > 999 
-      ? `${(item.distanceMeters / 1000).toFixed(1)} km` 
+    ? item.distanceMeters > 999
+      ? `${(item.distanceMeters / 1000).toFixed(1)} km`
       : `${item.distanceMeters} m`
     : 'Nearby';
 
   return (
     <Pressable style={styles.card} onPress={onPress}>
-      {/* Изображение площадки */}
       <View style={styles.imageContainer}>
-        <Image 
-          source={{ uri: item.avatar || 'https://unsplash.com' }} 
-          style={styles.image} 
+        <Image
+          source={{ uri: item.avatar || 'https://unsplash.com' }}
+          style={styles.image}
         />
-        
-        {/* ✅ ИСПРАВЛЕНИЕ: Компактный бадж. Только иконка календаря и число! */}
+
         {item.eventsCount > 0 && (
           <View style={styles.compactEventBadge}>
             <Ionicons name="calendar" size={11} color="#FFFFFF" style={styles.badgeIcon} />
             <Text style={styles.compactEventText}>{item.eventsCount}</Text>
           </View>
         )}
+
+        {/* ✅ Бейдж "Pending" для неподтверждённых площадок */}
+        {item.confirmed === false && (
+          <View style={styles.pendingBadge}>
+            <Ionicons name="time-outline" size={11} color="#FFFFFF" />
+            <Text style={styles.pendingBadgeText}>Pending</Text>
+          </View>
+        )}
       </View>
 
-      {/* Информация о площадке */}
       <View style={styles.infoContainer}>
         <View style={styles.headerRow}>
           <Text style={styles.title} numberOfLines={1}>{item.name}</Text>
-          <Pressable 
-            onPress={() => onToggleFavorite(item.id)} 
+          <Pressable
+            onPress={() => onToggleFavorite(item.id)}
             style={styles.favoriteButton}
             hitSlop={8}
           >
@@ -85,15 +90,13 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
           {item.address || 'No address provided'}
         </Text>
 
-        {/* Тег категории спорта с динамическим цветом */}
         <View style={[styles.categoryBadge, { backgroundColor: currentBadgeStyle.bg }]}>
-          <View style={[styles.categoryDot, {backgroundColor: currentBadgeStyle.text}]} />
+          <View style={[styles.categoryDot, { backgroundColor: currentBadgeStyle.text }]} />
           <Text style={[styles.categoryText, { color: currentBadgeStyle.text }]}>
             {primarySport.toUpperCase()}
           </Text>
         </View>
 
-        {/* Рейтинг и Дистанция */}
         <View style={styles.footerRow}>
           <View style={styles.ratingBlock}>
             <Ionicons name="star" size={14} color="#FFCC00" />
@@ -102,7 +105,7 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
               <Text style={styles.reviewsText}>({item.eventsCount || 0})</Text>
             </Text>
           </View>
-          
+
           <View style={styles.distanceBlock}>
             <Ionicons name="location-outline" size={14} color="#6080A8" />
             <Text style={styles.distanceText}>{displayDistance}</Text>
@@ -141,28 +144,42 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
   },
-  // ✅ НОВЫЕ АККУРАТНЫЕ СТИЛИ ДЛЯ МИНИ-БАДЖА
   compactEventBadge: {
     position: 'absolute',
     top: 6,
     left: 6,
-    backgroundColor: '#34C759', // Оставляем ваш сочный зеленый цвет
+    backgroundColor: '#34C759',
     paddingHorizontal: 6,
     paddingVertical: 3,
-    borderRadius: 6, // Аккуратное скругление плашки
+    borderRadius: 6,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
   },
-  badgeIcon: {
-    marginRight: 3,
+  badgeIcon: { marginRight: 3 },
+  compactEventText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
+
+  // ✅ Стили для бейджа "Pending"
+  pendingBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: '#FF8000',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    zIndex: 1,
   },
-  compactEventText: {
+  pendingBadgeText: {
     color: '#FFFFFF',
     fontSize: 10,
     fontWeight: '800',
   },
+
   infoContainer: {
     flex: 1,
     marginLeft: 12,
@@ -180,9 +197,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
   },
-  favoriteButton: {
-    padding: 2,
-  },
+  favoriteButton: { padding: 2 },
   address: {
     fontSize: 13,
     color: '#6080A8',
@@ -197,12 +212,12 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginTop: 4,
   },
-  categoryDot: { 
-    width: 6, 
-    height: 6, 
-    borderRadius: 3, 
-    backgroundColor: '#FF8000', 
-    marginRight: 6 
+  categoryDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FF8000',
+    marginRight: 6,
   },
   categoryText: {
     fontSize: 10,
@@ -214,24 +229,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 6,
   },
-  ratingBlock: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  ratingBlock: { flexDirection: 'row', alignItems: 'center' },
   ratingText: {
     fontSize: 12,
     fontWeight: '600',
     color: '#334A77',
     marginLeft: 4,
   },
-  reviewsText: {
-    color: '#BACAD6',
-    fontWeight: '400',
-  },
-  distanceBlock: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  reviewsText: { color: '#BACAD6', fontWeight: '400' },
+  distanceBlock: { flexDirection: 'row', alignItems: 'center' },
   distanceText: {
     fontSize: 12,
     color: '#6080A8',
@@ -239,4 +245,3 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
-

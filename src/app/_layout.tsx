@@ -62,6 +62,10 @@ export default function RootLayout() {
           <Stack.Screen name="(drawer)" />
           {/* Роут для детального экрана события */}
           <Stack.Screen name="event/[id]" options={{ headerShown: false }} />
+          {/* ✅ Роуты для площадок */}
+        <Stack.Screen name="ground/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="ground/create" options={{ headerShown: false }} />
+        <Stack.Screen name="ground/moderation" options={{ headerShown: false }} />
         </Stack>
       </ThemeProvider>
     </GestureHandlerRootView>

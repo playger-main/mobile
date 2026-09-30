@@ -1,26 +1,51 @@
 // src/effector/store.ts
 
-// 1. Экспортируем фильтры
+// ==========================================
+// 1. ДОМЕН: ФИЛЬТРЫ И ПОИСК
+// ==========================================
 export { $searchQuery, $selectedCategory, $selectedDate } from './domains/filter';
 
-// 2. Экспортируем серверные данные
-export { 
-  $grounds, 
-  $isGroundsLoading, 
-  $groundsError, 
-  $currentGround, 
-  $isGroundDetailLoading, 
-  $currentGroundEvents, 
-  $events, 
-  $isEventsLoading, 
-  $filteredEvents, 
-  $currentEvent, 
-  $isEventDetailLoading, 
-  $currentDayEvents 
+// ==========================================
+// 2. ДОМЕН: СЕРВЕРНЫЕ ДАННЫЕ (ПЛОЩАДКИ И СОБЫТИЯ)
+// ==========================================
+// Сторы состояния данных и лоадеров
+export {
+  $grounds,
+  $isGroundsLoading,
+  $groundsError,
+  $currentGround,
+  $isGroundDetailLoading,
+  $currentGroundEvents,
+  $pendingGrounds,     // ✅
+  $isPendingLoading,   // ✅
+  $events,
+  $isEventsLoading,
+  $filteredEvents,
+  $currentEvent,
+  $isEventDetailLoading,
+  $currentDayEvents,
 } from './domains/data';
 
-// 3. Экспортируем данные авторизации и интерфейс пользователя
-// Добавьте к экспортам из домена auth:
+// Эффекты площадок
+export {
+  fetchGroundsFx,
+  fetchGroundByIdFx,
+  createGroundFx,
+  confirmGroundFx,     // ✅
+  deleteGroundFx,      // ✅
+} from './events/async/grounds';
+
+export { 
+  fetchAllEventsFx, 
+  fetchEventsByGroundIdFx, 
+  fetchEventByIdFx,
+  createEventFx,
+  toggleJoinEventFx
+} from './events/async/events';
+
+// ==========================================
+// 3. ДОМЕН: АВТОРИЗАЦИЯ, СЕССИЯ И ВЕРИФИКАЦИЯ
+// ==========================================
 export { 
   $authStep, 
   $userSession, 
@@ -30,11 +55,12 @@ export {
   hydrateSessionFx 
 } from './domains/auth';
 
-// ✅ ДОБАВЬТЕ ЭКСПОРТ ЭФФЕКТА ИЗ АСИНХРОННОГО ФАЙЛА
-export { verifyCodeFx } from './events/async/auth';
+export { verifyCodeFx, signUpFx, signInFx, resendCodeFx } from './events/async/auth';
 export type { SessionUser } from './domains/auth';
 
-// Экспортируем сторы и экшены настроек
+// ==========================================
+// 4. ДОМЕН: НАСТРОЙКИ ПРИЛОЖЕНИЯ (ЛОКАЛЬНАЯ ПАМЯТЬ)
+// ==========================================
 export { 
   $eventReminders, 
   $useLocation, 

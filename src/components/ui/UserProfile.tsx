@@ -3,7 +3,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router'; // ✅ ДОБАВИЛИ ИМПОРТ РОУТЕРА
+import { useRouter } from 'expo-router';
 import { SessionUser } from '@/effector/domains/auth';
 
 interface UserProfileProps {
@@ -13,54 +13,66 @@ interface UserProfileProps {
 
 export default function UserProfile({ user, onLogout }: UserProfileProps) {
   const insets = useSafeAreaInsets();
-  const router = useRouter(); // ✅ ИНИЦИАЛИЗИРОВАЛИ РОУТЕР
+  const router = useRouter();
 
-  // Получаем первую букву имени для аватара
   const avatarLetter = user.name ? user.name.charAt(0).toUpperCase() : 'P';
 
-  // Фолбеки на данные из стора (если бэк их еще не считает, берем значения с макета)
   const joinedCount = user.joinedCount ?? 0;
   const savedCount = user.savedCount ?? 1;
   const gamesCount = user.gamesCount ?? 12;
 
+  // ✅ Проверка роли модератора
+  const isModerator =
+    user.role?.includes('moderator') || user.role?.includes('admin');
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* 1. Заголовок экрана */}
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerSpacer} />
         <Text style={styles.headerTitle}>Profile</Text>
         <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* 2. Блок пользователя (Аватар + Имя + Почта) */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* User Card */}
         <View style={styles.userCard}>
           <View style={styles.avatarBlock}>
             <Text style={styles.avatarText}>{avatarLetter}</Text>
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.userName} numberOfLines={1}>{user.name || 'Playgroundmanage'}</Text>
-            <Text style={styles.userEmail} numberOfLines={1}>{user.email || 'playgroundmanage@gmail.com'}</Text>
+            <Text style={styles.userName} numberOfLines={1}>
+              {user.name || 'Playgroundmanage'}
+            </Text>
+            <Text style={styles.userEmail} numberOfLines={1}>
+              {user.email || 'playgroundmanage@gmail.com'}
+            </Text>
           </View>
         </View>
 
-        {/* 3. Сетка статистики (3 колонки) */}
+        {/* Stats Grid */}
         <View style={styles.statsGrid}>
-          {/* Joined */}
-          <Pressable style={styles.statsCard} onPress={() => router.push('/(drawer)/(tabs)/events')}>
+          <Pressable
+            style={styles.statsCard}
+            onPress={() => router.push('/(drawer)/(tabs)/events')}
+          >
             <Ionicons name="calendar-outline" size={20} color="#208AEF" />
             <Text style={styles.statsNumber}>{joinedCount}</Text>
             <Text style={styles.statsLabel}>Joined</Text>
           </Pressable>
 
-          {/* Saved */}
-          <Pressable style={styles.statsCard} onPress={() => router.push('/(drawer)/(tabs)')}>
+          <Pressable
+            style={styles.statsCard}
+            onPress={() => router.push('/(drawer)/(tabs)')}
+          >
             <Ionicons name="heart-outline" size={20} color="#208AEF" />
             <Text style={styles.statsNumber}>{savedCount}</Text>
             <Text style={styles.statsLabel}>Saved</Text>
           </Pressable>
 
-          {/* Games */}
           <View style={styles.statsCard}>
             <Ionicons name="trophy-outline" size={20} color="#208AEF" />
             <Text style={styles.statsNumber}>{gamesCount}</Text>
@@ -68,12 +80,20 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           </View>
         </View>
 
-        {/* 4. Навигационное Меню-список */}
+        {/* Menu */}
         <View style={styles.menuContainer}>
           {/* My events */}
-          <Pressable style={styles.menuItem} onPress={() => router.push('/(drawer)/(tabs)/events')}>
+          <Pressable
+            style={styles.menuItem}
+            onPress={() => router.push('/(drawer)/(tabs)/events')}
+          >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="calendar-outline" size={20} color="#6080A8" style={styles.menuIcon} />
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color="#6080A8"
+                style={styles.menuIcon}
+              />
               <Text style={styles.menuItemText}>My events</Text>
             </View>
             <View style={styles.menuItemRight}>
@@ -83,9 +103,17 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           </Pressable>
 
           {/* Favourite grounds */}
-          <Pressable style={styles.menuItem} onPress={() => router.push('/(drawer)/(tabs)')}>
+          <Pressable
+            style={styles.menuItem}
+            onPress={() => router.push('/(drawer)/(tabs)')}
+          >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="heart-outline" size={20} color="#6080A8" style={styles.menuIcon} />
+              <Ionicons
+                name="heart-outline"
+                size={20}
+                color="#6080A8"
+                style={styles.menuIcon}
+              />
               <Text style={styles.menuItemText}>Favourite grounds</Text>
             </View>
             <View style={styles.menuItemRight}>
@@ -94,30 +122,73 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             </View>
           </Pressable>
 
+          {/* ✅ Moderation — только для модераторов/админов */}
+          {isModerator && (
+            <Pressable
+              style={styles.menuItem}
+              onPress={() => router.push('/ground/moderation')}
+            >
+              <View style={styles.menuItemLeft}>
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={20}
+                  color="#FF8000"
+                  style={styles.menuIcon}
+                />
+                <Text style={[styles.menuItemText, { color: '#FF8000' }]}>
+                  Moderation
+                </Text>
+              </View>
+              <View style={styles.menuItemRight}>
+                <View style={styles.moderationDot} />
+                <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
+              </View>
+            </Pressable>
+          )}
+
           {/* Settings */}
-          {/* ✅ НАСТРОЕНО: Ведет строго на экран src/app/(drawer)/settings.tsx */}
-          <Pressable style={styles.menuItem} onPress={() => router.push('/(drawer)/settings')}>
+          <Pressable
+            style={styles.menuItem}
+            onPress={() => router.push('/(drawer)/settings')}
+          >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="settings-outline" size={20} color="#6080A8" style={styles.menuIcon} />
+              <Ionicons
+                name="settings-outline"
+                size={20}
+                color="#6080A8"
+                style={styles.menuIcon}
+              />
               <Text style={styles.menuItemText}>Settings</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
           </Pressable>
 
           {/* About PlayG */}
-          {/* ✅ НАСТРОЕНО: Ведет строго на экран src/app/(drawer)/about.tsx */}
-          <Pressable style={[styles.menuItem, styles.noBorder]} onPress={() => router.push('/(drawer)/about')}>
+          <Pressable
+            style={[styles.menuItem, styles.noBorder]}
+            onPress={() => router.push('/(drawer)/about')}
+          >
             <View style={styles.menuItemLeft}>
-              <Ionicons name="information-circle-outline" size={20} color="#6080A8" style={styles.menuIcon} />
+              <Ionicons
+                name="information-circle-outline"
+                size={20}
+                color="#6080A8"
+                style={styles.menuIcon}
+              />
               <Text style={styles.menuItemText}>About PlayG</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
           </Pressable>
         </View>
 
-        {/* 5. Кнопка выхода из системы (Log Out) */}
+        {/* Logout */}
         <Pressable style={styles.logoutButton} onPress={onLogout}>
-          <Ionicons name="log-out-outline" size={18} color="#FF3B30" style={styles.logoutIcon} />
+          <Ionicons
+            name="log-out-outline"
+            size={18}
+            color="#FF3B30"
+            style={styles.logoutIcon}
+          />
           <Text style={styles.logoutButtonText}>Log out</Text>
         </Pressable>
       </ScrollView>
@@ -127,29 +198,103 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingBottom: 6, borderBottomWidth: 1, borderColor: '#F0F6FC', backgroundColor: '#FFFFFF' },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77', textAlign: 'center', lineHeight: 48 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderColor: '#F0F6FC',
+    backgroundColor: '#FFFFFF',
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#334A77',
+    textAlign: 'center',
+    lineHeight: 48,
+  },
   headerSpacer: { width: 32 },
   scrollContent: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 40 },
   userCard: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
-  avatarBlock: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#006EE6', alignItems: 'center', justifyContent: 'center' },
+  avatarBlock: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#006EE6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   avatarText: { fontSize: 24, fontWeight: '800', color: '#FFFFFF' },
   userInfo: { marginLeft: 16, flex: 1 },
   userName: { fontSize: 18, fontWeight: '700', color: '#334A77' },
   userEmail: { fontSize: 14, color: '#BACAD6', marginTop: 2 },
   statsGrid: { flexDirection: 'row', gap: 12, marginBottom: 28 },
-  statsCard: { flex: 1, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E6F4FE', borderRadius: 12, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
-  statsNumber: { fontSize: 18, fontWeight: '800', color: '#334A77', marginTop: 4 },
-  statsLabel: { fontSize: 12, color: '#BACAD6', fontWeight: '500', marginTop: 2 },
-  menuContainer: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E6F4FE', borderRadius: 12, paddingHorizontal: 16, marginBottom: 28 },
-  menuItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1, borderColor: '#F0F6FC' },
+  statsCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E6F4FE',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statsNumber: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#334A77',
+    marginTop: 4,
+  },
+  statsLabel: {
+    fontSize: 12,
+    color: '#BACAD6',
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  menuContainer: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E6F4FE',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    marginBottom: 28,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderColor: '#F0F6FC',
+  },
   noBorder: { borderBottomWidth: 0 },
   menuItemLeft: { flexDirection: 'row', alignItems: 'center' },
   menuIcon: { marginRight: 12 },
   menuItemText: { fontSize: 14, fontWeight: '600', color: '#334A77' },
   menuItemRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   menuCountText: { fontSize: 14, color: '#BACAD6', fontWeight: '500' },
-  logoutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 48, borderRadius: 12, borderWidth: 1, borderColor: '#E6F4FE', backgroundColor: '#FFFFFF' },
+
+  // ✅ Стиль для оранжевой точки-индикатора модерации
+  moderationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF8000',
+    marginRight: 8,
+  },
+
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E6F4FE',
+    backgroundColor: '#FFFFFF',
+  },
   logoutIcon: { marginRight: 8 },
-  logoutButtonText: { color: '#FF3B30', fontSize: 15, fontWeight: '700' }
+  logoutButtonText: { color: '#FF3B30', fontSize: 15, fontWeight: '700' },
 });
