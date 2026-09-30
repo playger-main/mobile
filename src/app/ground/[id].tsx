@@ -32,6 +32,7 @@ import {
   getEventStatus,
   getEventStatusStyle,
 } from '@/utils/eventStatus';
+import { navigateToGroundOnMap } from '@/utils/navigateToGround';
 
 export default function GroundDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -100,6 +101,9 @@ export default function GroundDetailScreen() {
     ? ground.amenities
     : [];
 
+  const hasCoordinates =
+    !!ground.geolocation?.lat && !!ground.geolocation?.lng;
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -153,10 +157,27 @@ export default function GroundDetailScreen() {
           </View>
 
           <Text style={styles.title}>{ground.name}</Text>
+
           <Text style={styles.address}>
             <Ionicons name="location-outline" size={14} color="#6080A8" />{' '}
             {ground.address || 'No address provided'}
           </Text>
+
+          {/* ✅ Кнопка «Show on map» */}
+          {hasCoordinates && (
+            <Pressable
+              style={styles.showOnMapButton}
+              onPress={() =>
+                navigateToGroundOnMap(
+                  ground.geolocation!.lat,
+                  ground.geolocation!.lng,
+                )
+              }
+            >
+              <Ionicons name="map-outline" size={16} color="#208AEF" />
+              <Text style={styles.showOnMapText}>Show on map</Text>
+            </Pressable>
+          )}
 
           {/* 3. Мета-карточки */}
           <View style={styles.infoCardsRow}>
@@ -181,7 +202,7 @@ export default function GroundDetailScreen() {
               'A community-focused open court for practice and friendly team matches. Check upcoming events to join existing teams.'}
           </Text>
 
-          {/* 5. Amenities */}
+          {/* 5. Amenities — динамически с сервера */}
           <Text style={styles.sectionTitle}>Amenities</Text>
           {amenitiesList.length > 0 ? (
             <View style={styles.amenitiesContainer}>
@@ -244,7 +265,7 @@ export default function GroundDetailScreen() {
                     </View>
                   </View>
 
-                  {/* ✅ Маленькая точка-индикатор статуса */}
+                  {/* Индикатор статуса события */}
                   <View
                     style={[styles.statusDot, { backgroundColor: statusStyle.text }]}
                   />
@@ -348,6 +369,27 @@ const styles = StyleSheet.create({
   reviewsText: { color: '#BACAD6', fontWeight: '400' },
   title: { fontSize: 24, fontWeight: '800', color: '#334A77', marginTop: 8 },
   address: { fontSize: 14, color: '#6080A8', marginTop: 4 },
+
+  // ✅ Кнопка «Show on map»
+  showOnMapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E6F4FE',
+    backgroundColor: '#FFFFFF',
+  },
+  showOnMapText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#208AEF',
+  },
+
   infoCardsRow: { flexDirection: 'row', gap: 12, marginTop: 16 },
   infoCard: {
     flex: 1,
@@ -411,15 +453,12 @@ const styles = StyleSheet.create({
   eventTitle: { fontSize: 14, fontWeight: '600', color: '#334A77' },
   eventMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   eventMetaText: { fontSize: 12, color: '#6080A8', marginLeft: 4 },
-
-  // ✅ Точка-индикатор статуса события
   statusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     marginLeft: 8,
   },
-
   emptyEvents: {
     fontSize: 14,
     color: '#BACAD6',

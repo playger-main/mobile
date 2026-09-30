@@ -97,12 +97,10 @@ export default function EventDetailScreen() {
   const maxPlayers = event.maxPlayers || 14;
   const currentPlayers = event.currentPlayers || 0;
 
-  // ✅ id спорта (для цвета) и label (для текста)
   const sportId = event.ground?.kindofsport?.[0] || 'Sport';
   const sportLabel = getSportLabel(sportId);
   const currentBadgeStyle = getBadgeStyle(sportId);
 
-  // ✅ Статус события
   const status = getEventStatus(event.date, event.startTime, event.duration);
   const statusStyle = getEventStatusStyle(status);
   const statusLabel = getEventStatusLabel(status);
@@ -129,7 +127,6 @@ export default function EventDetailScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={[styles.customHeader, { paddingTop: insets.top + 6 }]}>
         <Pressable onPress={handleBack} style={styles.backButton} hitSlop={12}>
           <Ionicons name="chevron-back" size={24} color="#208AEF" />
@@ -145,7 +142,6 @@ export default function EventDetailScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Sport badge + Status badge */}
         <View style={styles.badgesRow}>
           <View style={[styles.sportBadge, { backgroundColor: currentBadgeStyle.bg }]}>
             <View style={[styles.sportDot, { backgroundColor: currentBadgeStyle.text }]} />
@@ -154,7 +150,6 @@ export default function EventDetailScreen() {
             </Text>
           </View>
 
-          {/* ✅ Статус события */}
           <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
             <Text style={[styles.statusText, { color: statusStyle.text }]}>
               {statusLabel}
@@ -179,11 +174,13 @@ export default function EventDetailScreen() {
           maxPlayers={maxPlayers}
         />
 
+        {/* ✅ Передаём координаты для клика «показать на карте» */}
         <EventLocationCard
           name={event.ground?.name || 'Playground'}
           address={event.ground?.address || 'Address'}
           avatar={event.ground?.avatar}
-          onPress={() => router.push(`/ground/${event.ground?.id}`)}
+          latitude={event.ground?.geolocation?.lat}
+          longitude={event.ground?.geolocation?.lng}
         />
 
         <Text style={styles.sectionTitle}>Details</Text>
@@ -192,7 +189,6 @@ export default function EventDetailScreen() {
         </Text>
       </ScrollView>
 
-      {/* Bottom CTA */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
         <Pressable
           style={[buttonStyle, isJoining && styles.disabledBtnBg]}
@@ -228,14 +224,12 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
   scrollContent: { paddingHorizontal: 16, paddingTop: 16 },
 
-  // ✅ Ряд с двумя бейджами
   badgesRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginBottom: 12,
   },
-
   sportBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -246,7 +240,6 @@ const styles = StyleSheet.create({
   sportDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   sportText: { fontSize: 11, fontWeight: '700' },
 
-  // ✅ Бейдж статуса
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,

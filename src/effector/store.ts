@@ -8,7 +8,6 @@ export { $searchQuery, $selectedCategory, $selectedDate } from './domains/filter
 // ==========================================
 // 2. ДОМЕН: СЕРВЕРНЫЕ ДАННЫЕ (ПЛОЩАДКИ И СОБЫТИЯ)
 // ==========================================
-// Сторы состояния данных и лоадеров
 export {
   $grounds,
   $isGroundsLoading,
@@ -16,8 +15,8 @@ export {
   $currentGround,
   $isGroundDetailLoading,
   $currentGroundEvents,
-  $pendingGrounds,     // ✅
-  $isPendingLoading,   // ✅
+  $pendingGrounds,
+  $isPendingLoading,
   $events,
   $isEventsLoading,
   $filteredEvents,
@@ -26,47 +25,79 @@ export {
   $currentDayEvents,
 } from './domains/data';
 
-// Эффекты площадок
 export {
   fetchGroundsFx,
   fetchGroundByIdFx,
   createGroundFx,
-  confirmGroundFx,     // ✅
-  deleteGroundFx,      // ✅
+  confirmGroundFx,
+  deleteGroundFx,
 } from './events/async/grounds';
 
-export { 
-  fetchAllEventsFx, 
-  fetchEventsByGroundIdFx, 
+export {
+  fetchAllEventsFx,
+  fetchEventsByGroundIdFx,
   fetchEventByIdFx,
   createEventFx,
-  toggleJoinEventFx
+  toggleJoinEventFx,
 } from './events/async/events';
 
 // ==========================================
 // 3. ДОМЕН: АВТОРИЗАЦИЯ, СЕССИЯ И ВЕРИФИКАЦИЯ
 // ==========================================
-export { 
-  $authStep, 
-  $userSession, 
-  $accessToken, 
-  $isAuthSubmitting, 
-  $isHydrating, 
-  hydrateSessionFx 
+export {
+  $authStep,
+  $userSession,
+  $accessToken,
+  $isAuthSubmitting,
+  $isHydrating,
+  hydrateSessionFx,
 } from './domains/auth';
 
 export { verifyCodeFx, signUpFx, signInFx, resendCodeFx } from './events/async/auth';
 export type { SessionUser } from './domains/auth';
 
 // ==========================================
-// 4. ДОМЕН: НАСТРОЙКИ ПРИЛОЖЕНИЯ (ЛОКАЛЬНАЯ ПАМЯТЬ)
+// 4. ДОМЕН: НАСТРОЙКИ ПРИЛОЖЕНИЯ
 // ==========================================
-export { 
-  $eventReminders, 
-  $useLocation, 
-  $appLanguage, 
-  toggleEventReminders, 
-  toggleUseLocation, 
+export {
+  $eventReminders,
+  $useLocation,
+  $appLanguage,
+  toggleEventReminders,
+  toggleUseLocation,
   changeLanguage,
-  hydrateSettingsFx 
+  hydrateSettingsFx,
 } from './domains/settings';
+
+// ==========================================
+// 5. ДОМЕН: ГЕОЛОКАЦИЯ И ГОРОД
+// ==========================================
+export {
+  $userLocation,
+  $locationPermission,
+  $currentCity,
+  $cityCenter,
+  $isDetectingCity,
+  $mapCenter,
+  $mapFocusTarget,
+  $clusterSheetVisible,  
+  requestUserLocationFx,
+  checkLocationPermissionFx,
+  detectCityFx,
+} from './domains/location';
+
+// ==========================================
+// 6. SYNC-СОБЫТИЯ (для использования в UI)
+// ==========================================
+export {
+  setMapFocusTarget,
+  clearMapFocusTarget,
+  setClusterSheetVisible,
+  setSearchQuery,
+  setSelectedCategory,
+  setSelectedDate,
+  setAuthStep,
+  logout,
+  clearGrounds,
+  toggleFavoriteInStore,
+} from './events/sync';

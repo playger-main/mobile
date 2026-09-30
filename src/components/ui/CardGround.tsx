@@ -1,9 +1,13 @@
 // src/components/ui/CardGround.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useUnit } from 'effector-react';
+
 import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportLabel } from '@/constants/sports';
+import { $userLocation } from '@/effector/store';
+import { calculateDistance, formatDistance } from '@/utils/distance';
 
 export interface ExtendedGroundItem {
   id: string;
@@ -35,27 +39,41 @@ interface CardGroundProps {
 }
 
 export default function CardGround({ item, onPress, onToggleFavorite }: CardGroundProps) {
-  // ✅ id спорта (для цвета) и label (для текста)
+  // ✅ Реактивно подписываемся на позицию пользователя
+  const userLocation = useUnit($userLocation);
+
+  // id спорта (для цвета бейджа) + label (для текста)
   const primarySportId =
     item.kindofsport && item.kindofsport.length > 0 ? item.kindofsport[0] : 'Sport';
   const primarySportLabel = getSportLabel(primarySportId);
   const currentBadgeStyle = getBadgeStyle(primarySportId);
 
-  const displayDistance =
-    item.distanceMeters !== undefined
-      ? item.distanceMeters > 999
-        ? `${(item.distanceMeters / 1000).toFixed(1)} km`
-        : `${item.distanceMeters} m`
-      : 'Nearby';
+  // ✅ Расстояние: клиентский расчёт, если есть userLocation
+  // Если сервер уже вернул distanceMeters и локации нет — используем его
+  const distanceMeters = useMemo(() => {
+    if (!userLocation || !item.geolocation?.lat || !item.geolocation?.lng) {
+      return item.distanceMeters;
+    }
+    return calculateDistance(
+      userLocation.latitude,
+      userLocation.longitude,
+      Number(item.geolocation.lat),
+      Number(item.geolocation.lng),
+    );
+  }, [userLocation, item.geolocation, item.distanceMeters]);
+
+  const displayDistance = formatDistance(distanceMeters);
 
   return (
     <Pressable style={styles.card} onPress={onPress}>
+      {/* Обложка */}
       <View style={styles.imageContainer}>
         <Image
           source={{ uri: item.avatar || 'https://unsplash.com' }}
           style={styles.image}
         />
 
+        {/* Компактный бадж количества событий */}
         {item.eventsCount > 0 && (
           <View style={styles.compactEventBadge}>
             <Ionicons name="calendar" size={11} color="#FFFFFF" style={styles.badgeIcon} />
@@ -63,6 +81,7 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
           </View>
         )}
 
+        {/* Бейдж "Pending" для неподтверждённых */}
         {item.confirmed === false && (
           <View style={styles.pendingBadge}>
             <Ionicons name="time-outline" size={11} color="#FFFFFF" />
@@ -71,6 +90,7 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
         )}
       </View>
 
+      {/* Информация */}
       <View style={styles.infoContainer}>
         <View style={styles.headerRow}>
           <Text style={styles.title} numberOfLines={1}>
@@ -93,6 +113,7 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
           {item.address || 'No address provided'}
         </Text>
 
+        {/* Бейдж спорта */}
         <View style={[styles.categoryBadge, { backgroundColor: currentBadgeStyle.bg }]}>
           <View style={[styles.categoryDot, { backgroundColor: currentBadgeStyle.text }]} />
           <Text style={[styles.categoryText, { color: currentBadgeStyle.text }]}>
@@ -100,6 +121,7 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
           </Text>
         </View>
 
+        {/* Рейтинг и расстояние */}
         <View style={styles.footerRow}>
           <View style={styles.ratingBlock}>
             <Ionicons name="star" size={14} color="#FFCC00" />

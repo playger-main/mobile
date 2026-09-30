@@ -2,27 +2,39 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { navigateToGroundOnMap } from '@/utils/navigateToGround';
 
 interface EventLocationCardProps {
   name: string;
   address: string;
   avatar?: string | null;
-  onPress: () => void;
+  latitude?: string | number | null;
+  longitude?: string | number | null;
+  onPress?: () => void;
 }
 
 export default function EventLocationCard({
   name,
   address,
   avatar,
+  latitude,
+  longitude,
   onPress,
 }: EventLocationCardProps) {
   const [imageError, setImageError] = useState(false);
-
   const showImage = !!avatar && !imageError;
 
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+      return;
+    }
+    // По умолчанию — переход на карту с фокусом на площадке
+    navigateToGroundOnMap(latitude, longitude);
+  };
+
   return (
-    <Pressable style={styles.locationCard} onPress={onPress}>
-      {/* Обложка площадки или плейсхолдер */}
+    <Pressable style={styles.locationCard} onPress={handlePress}>
       <View style={styles.locationImageContainer}>
         {showImage ? (
           <Image
@@ -48,9 +60,9 @@ export default function EventLocationCard({
       </View>
 
       <Ionicons
-        name="chevron-forward"
-        size={18}
-        color="#6080A8"
+        name="map-outline"
+        size={20}
+        color="#208AEF"
         style={styles.locationArrow}
       />
     </Pressable>
@@ -105,4 +117,3 @@ const styles = StyleSheet.create({
   },
   locationArrow: { marginLeft: 'auto' },
 });
-  

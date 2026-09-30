@@ -1,5 +1,5 @@
 // src/app/(drawer)/(tabs)/index.tsx
-import React, { useRef, useMemo, useCallback, useState } from 'react';
+import React, { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -7,10 +7,7 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
 import { useRouter } from 'expo-router';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
@@ -25,7 +22,12 @@ import ListGrounds from '@/components/ui/ListGrounds';
 import MapComponent from '@/components/ui/MapComponent';
 import MapLegend from '@/components/ui/MapLegend';
 
-import { $grounds, $searchQuery, $selectedCategory } from '@/effector/store';
+import {
+  $grounds,
+  $searchQuery,
+  $selectedCategory,
+  $clusterSheetVisible, // ✅
+} from '@/effector/store';
 import {
   setSearchQuery,
   setSelectedCategory,
@@ -36,38 +38,52 @@ export default function GroundsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const { height: screenHeight } = useWindowDimensions();
 
   const isWeb = Platform.OS === 'web';
 
-  // ✅ Snap points BottomSheet
+  // ✅ Подписываемся на стейт списка кластера
+  const clusterSheetVisible = useUnit($clusterSheetVisible);
+
+  // Snap-поинты: 30px, средний, максимальный
   const snapPoints = useMemo(() => {
-  const minListHeight = insets.top + 58;
-  const topLimit = 100 - (minListHeight / screenHeight) * 100;
-  return [30, `${Math.round(topLimit / 2 + 8)}%`, `${Math.round(topLimit)}%`];
-}, [insets.top, screenHeight]);
+    const minListHeight = insets.top + 58;
+    const topLimit = 100 - (minListHeight / screenHeight) * 100;
+    return [30, `${Math.round(topLimit / 2 + 8)}%`, `${Math.round(topLimit)}%`];
+  }, [insets.top, screenHeight]);
 
-  // ✅ Y-позиция верхней грани BottomSheet
+  // Стартовая позиция карты/шита
   const initialSheetPosition = useMemo(() => {
-  const midPercent = parseFloat((snapPoints[1] as string).replace('%', ''));
-  return screenHeight - (screenHeight * midPercent) / 100;
-}, [screenHeight, snapPoints]);
+    const midPercent = parseFloat((snapPoints[1] as string).replace('%', ''));
+    return screenHeight - (screenHeight * midPercent) / 100;
+  }, [screenHeight, snapPoints]);
 
-const sheetPosition = useSharedValue(initialSheetPosition);
+  const sheetPosition = useSharedValue(initialSheetPosition);
 
-  // ✅ Минимальная высота карты (когда sheet развёрнут)
-  const MIN_MAP_HEIGHT = insets.top + 60;
+  const MIN_MAP_HEIGHT = insets.top + 100;
 
-  // ✅ Карта занимает всю доступную высоту над sheet, но не меньше MIN_MAP_HEIGHT
   const animatedMapStyle = useAnimatedStyle(() => {
-  const height = Math.max(sheetPosition.value, MIN_MAP_HEIGHT);
-  return { height };
+    const height = Math.max(sheetPosition.value, MIN_MAP_HEIGHT);
+    return { height };
   });
 
   const [sheetIndex, setSheetIndex] = useState(1);
   const handleSheetChange = useCallback((index: number) => {
     setSheetIndex(index);
   }, []);
+
+  // ✅ Скрываем/показываем основной BottomSheet при открытии/закрытии списка кластера
+  useEffect(() => {
+    if (isWeb) return;
+
+    if (clusterSheetVisible) {
+      // Скрываем основной список
+      bottomSheetRef.current?.close();
+    } else {
+      // Возвращаем на средний snap
+      bottomSheetRef.current?.snapToIndex(1);
+    }
+  }, [clusterSheetVisible, isWeb]);
 
   const {
     grounds,
@@ -98,7 +114,6 @@ const sheetPosition = useSharedValue(initialSheetPosition);
     </View>
   );
 
-  // Web-версия
   if (isWeb) {
     return (
       <View style={styles.webRoot}>
@@ -129,17 +144,14 @@ const sheetPosition = useSharedValue(initialSheetPosition);
 
   return (
     <View style={styles.container}>
-      {/* ✅ Карта — от самого верха экрана, без paddingTop */}
       <Animated.View style={[styles.mapContainer, animatedMapStyle]}>
         <MapComponent region={mapRegion} grounds={grounds} />
 
-        {/* Легенда — внутри карты, привязана к её нижнему краю */}
         <View style={styles.legendWrapper} pointerEvents="box-none">
           <MapLegend />
         </View>
       </Animated.View>
 
-      {/* Поиск поверх карты, с учётом insets */}
       <View
         style={[styles.topOverlayMobile, { paddingTop: insets.top }]}
         pointerEvents="box-none"
@@ -147,7 +159,6 @@ const sheetPosition = useSharedValue(initialSheetPosition);
         <SearchGrounds value={searchQuery} onChangeText={changeSearch} />
       </View>
 
-      {/* BottomSheet */}
       <BottomSheet
         ref={bottomSheetRef}
         index={1}
@@ -179,28 +190,22 @@ const sheetPosition = useSharedValue(initialSheetPosition);
 }
 
 const styles = StyleSheet.create({
-  // ✅ Главный контейнер — без SafeAreaView, чтобы карта шла от самого верха
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-
-  // ✅ Карта — обычный блок, высота из анимации
   mapContainer: {
     width: '100%',
     position: 'relative',
     backgroundColor: '#F0F4F8',
     overflow: 'hidden',
   },
-
-  // Легенда внутри карты, у нижнего края
   legendWrapper: {
     position: 'absolute',
     left: 16,
     bottom: 16,
     zIndex: 5,
   },
-
   topOverlayMobile: {
     position: 'absolute',
     top: 0,
@@ -208,7 +213,6 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 10,
   },
-
   bottomSheetBackground: {
     backgroundColor: '#F8FAFC',
     borderTopLeftRadius: 18,
@@ -227,12 +231,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   customHandlePill: {
-    backgroundColor: '#BACAD6',
+    backgroundColor: '#86909C',
     width: 55,
     height: 4,
     borderRadius: 2,
   },
-
   webRoot: { flex: 1, backgroundColor: '#FFFFFF' },
   webScrollContainer: { flex: 1 },
   webSearchWrapper: { paddingTop: 16, paddingBottom: 8, width: '100%' },

@@ -3,14 +3,14 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
+import { useUnit } from 'effector-react';
 
-import {
-  ACTIVITY_COLORS,
-  ACTIVITY_LABELS,
-} from '@/utils/groundActivity';
+import { ACTIVITY_COLORS, ACTIVITY_LABELS } from '@/utils/groundActivity';
 import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportLabel } from '@/constants/sports';
 import { GroundMapMarker } from '@/types/map';
+import { $userLocation, $cityCenter } from '@/effector/store';
+import { calculateDistance, formatDistance } from '@/utils/distance';
 
 interface ClusterGroundsSheetProps {
   visible: boolean;
@@ -26,7 +26,10 @@ export default function ClusterGroundsSheet({
   onSelect,
 }: ClusterGroundsSheetProps) {
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ['45%', '80%'], []);
+  const snapPoints = useMemo(() => ['50%', '85%'], []);
+
+  const userLocation = useUnit($userLocation);
+  const cityCenter = useUnit($cityCenter);
 
   useEffect(() => {
     if (visible) {
@@ -62,44 +65,58 @@ export default function ClusterGroundsSheet({
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>
-              {grounds.length} {grounds.length === 1 ? 'ground' : 'grounds'} nearby
-            </Text>
-            <Text style={styles.headerSubtitle}>Tap one to open details</Text>
+            <View style={styles.headerLeft}>
+              <Text style={styles.headerTitle}>
+                {grounds.length} {grounds.length === 1 ? 'ground' : 'grounds'} nearby
+              </Text>
+              <Text style={styles.headerSubtitle}>Tap one to open details</Text>
+            </View>
+
+            {/* ✅ Кнопка закрытия */}
+            <Pressable onPress={onClose} style={styles.closeButton} hitSlop={10}>
+              <Ionicons name="close" size={20} color="#6080A8" />
+            </Pressable>
           </View>
         }
         renderItem={({ item }: { item: GroundMapMarker }) => {
-          // ✅ Метаданные — как в основном списке (CardGround)
           const activityColors = ACTIVITY_COLORS[item.activityLevel];
           const sportBadgeStyle = getBadgeStyle(item.sportId);
           const sportLabel = getSportLabel(item.sportId);
           const activityLabel = ACTIVITY_LABELS[item.activityLevel];
 
+          const origin = userLocation ?? cityCenter;
+          const distanceMeters = origin
+            ? calculateDistance(
+                origin.latitude,
+                origin.longitude,
+                item.latitude,
+                item.longitude,
+              )
+            : undefined;
+          const displayDistance = formatDistance(distanceMeters);
+
           return (
             <Pressable style={styles.row} onPress={() => onSelect(item)}>
-              {/* ✅ Миниатюра площадки (avatar) — как в CardGround */}
-                <View style={styles.imageContainer}>
+              <View style={styles.imageContainer}>
                 {item.avatar ? (
-                    <Image source={{ uri: item.avatar }} style={styles.image} />
+                  <Image source={{ uri: item.avatar }} style={styles.image} />
                 ) : (
-                    <View style={[styles.image, styles.imagePlaceholder]}>
+                  <View style={[styles.image, styles.imagePlaceholder]}>
                     <Ionicons name="image-outline" size={22} color="#BACAD6" />
-                    </View>
+                  </View>
                 )}
 
-                {/* Индикатор активности (цветная точка) в углу обложки */}
                 <View
-                    style={[
+                  style={[
                     styles.activityIndicator,
                     {
-                        backgroundColor: activityColors.bg,
-                        borderColor: '#FFFFFF',
+                      backgroundColor: activityColors.bg,
+                      borderColor: '#FFFFFF',
                     },
-                    ]}
+                  ]}
                 />
-                </View>
+              </View>
 
-              {/* Информация о площадке */}
               <View style={styles.info}>
                 <Text style={styles.name} numberOfLines={1}>
                   {item.name}
@@ -110,7 +127,6 @@ export default function ClusterGroundsSheet({
                   </Text>
                 ) : null}
 
-                {/* Теги: спорт (цвет по id) + активность */}
                 <View style={styles.tagsRow}>
                   <View
                     style={[
@@ -150,6 +166,11 @@ export default function ClusterGroundsSheet({
                     </Text>
                   </View>
                 </View>
+
+                <View style={styles.distanceRow}>
+                  <Ionicons name="location-outline" size={12} color="#6080A8" />
+                  <Text style={styles.distanceText}>{displayDistance}</Text>
+                </View>
               </View>
 
               <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
@@ -183,17 +204,30 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#F0F6FC',
     marginBottom: 4,
   },
+  headerLeft: { flex: 1 },
   headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
   headerSubtitle: {
     fontSize: 12,
     color: '#BACAD6',
     fontWeight: '500',
     marginTop: 2,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F0F6FC',
+    marginLeft: 8,
   },
   listContent: { paddingHorizontal: 16, paddingBottom: 32 },
 
@@ -205,8 +239,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F0F6FC',
     gap: 12,
   },
-
-  // ✅ Миниатюра (обложка площадки)
   imageContainer: {
     position: 'relative',
     width: 64,
@@ -220,6 +252,11 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
   },
+  imagePlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F0F4F8',
+  },
   activityIndicator: {
     position: 'absolute',
     top: 4,
@@ -229,13 +266,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 2,
   },
-
-  // Информация
   info: { flex: 1 },
   name: { fontSize: 14, fontWeight: '700', color: '#334A77' },
   address: { fontSize: 12, color: '#6080A8', marginTop: 2 },
-
-  // Теги
   tagsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -270,9 +303,15 @@ const styles = StyleSheet.create({
   },
   activityDot: { width: 5, height: 5, borderRadius: 2.5 },
   activityTagText: { fontSize: 9, fontWeight: '700' },
-  imagePlaceholder: {
+  distanceRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F0F4F8',
-},
+    gap: 4,
+    marginTop: 4,
+  },
+  distanceText: {
+    fontSize: 11,
+    color: '#6080A8',
+    fontWeight: '500',
+  },
 });

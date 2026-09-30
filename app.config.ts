@@ -27,6 +27,7 @@ export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
         backgroundImage: './assets/images/android-icon-background.png',
         monochromeImage: './assets/images/android-icon-monochrome.png',
       },
+      permissions: ['ACCESS_FINE_LOCATION', 'ACCESS_COARSE_LOCATION'],
     },
 
     // Настройки платформы iOS
@@ -36,6 +37,8 @@ export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
       supportsTablet: false,
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
+        NSLocationWhenInUseUsageDescription:
+          'PlayG uses your location to show grounds near you.',
       },
     },
 

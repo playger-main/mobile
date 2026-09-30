@@ -1,6 +1,13 @@
 // src/app/_layout.tsx
 import React, { useEffect } from 'react';
-import { useColorScheme, View, ActivityIndicator } from 'react-native';
+import {
+  useColorScheme,
+  View,
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Platform,
+} from 'react-native';
 import { Stack, ThemeProvider, DarkTheme, DefaultTheme } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -9,33 +16,76 @@ import { useFonts } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import { useUnit } from 'effector-react';
 
-// Импортируем механизмы инициализации сессии из Effector
-import { hydrateSessionFx, $isHydrating, hydrateSettingsFx } from '@/effector/store';
+// Effector
+import {
+  hydrateSessionFx,
+  $isHydrating,
+  hydrateSettingsFx,
+  requestUserLocationFx,
+  checkLocationPermissionFx,
+  detectCityFx,
+} from '@/effector/store';
 
-// Удерживаем Splash Screen от автоматического скрытия
+import { DEFAULT_CITY_CENTER } from '@/constants/location';
+
+// Удерживаем Splash Screen до готовности приложения
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
-  // 1. Подписываемся на состояние дешифрования токенов сессии из Effector
   const { isHydrating } = useUnit({
     isHydrating: $isHydrating,
   });
 
-  // 2. Загрузка системных шрифтов и иконок
   const [fontsLoaded, fontError] = useFonts({
     ...Ionicons.font,
   });
 
-  // 3. Запускаем нативную проверку защищенной памяти SecureStore при монтировании лейаута
+  // ✅ Гидратация сессии + настроек + проверка локации
   useEffect(() => {
     hydrateSessionFx();
     hydrateSettingsFx();
+
+    // Проверка и запрос разрешения на локацию
+    (async () => {
+      try {
+        const status = await checkLocationPermissionFx();
+
+        if (status === 'denied') {
+          Alert.alert(
+            'Location Access',
+            'PlayG works best with your location to show nearby grounds and events. Enable it in Settings?',
+            [
+              { text: 'Not now', style: 'cancel' },
+              {
+                text: 'Open Settings',
+                onPress: () => {
+                  if (Platform.OS === 'ios') {
+                    Linking.openURL('app-settings:');
+                  } else {
+                    Linking.openSettings();
+                  }
+                },
+              },
+            ],
+          );
+          return;
+        }
+
+        const result = await requestUserLocationFx();
+        if (result?.location) {
+          detectCityFx(result.location);
+        } else {
+          detectCityFx(DEFAULT_CITY_CENTER);
+        }
+      } catch {
+        // Игнорируем — приложение всё равно стартует
+      }
+    })();
   }, []);
 
-  // 4. Умный триггер скрытия Сплеш Скрина:
-  // Прячем заставку только когда шрифты ГОТОВЫ (или упали с ошибкой) И токены полностью СЧИТАНЫ
+  // Скрываем Splash Screen, когда всё готово
   useEffect(() => {
     const assetsReady = fontsLoaded || fontError;
     if (assetsReady && !isHydrating) {
@@ -43,10 +93,17 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError, isHydrating]);
 
-  // Защитный фолбек-индикатор (на случай, если Сплеш закрылся, но дерево рендерится)
+  // Fallback-загрузка
   if ((!fontsLoaded && !fontError) || isHydrating) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFFFFF' }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#FFFFFF',
+        }}
+      >
         <ActivityIndicator size="large" color="#208AEF" />
       </View>
     );
@@ -56,16 +113,22 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <StatusBar style="auto" />
-        
-        {/* Корневой стек навигаторов приложения */}
+
+        {/*
+          ✅ ВАЖНО: перечисляем только те экраны, которые точно существуют.
+          Expo Router автоматически подхватывает все файлы из src/app/,
+          но если указать Stack.Screen для несуществующего файла —
+          получите "Element type is invalid".
+
+          Если файл src/app/ground/moderation.tsx уже создан —
+          раскомментируйте строку ниже.
+        */}
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(drawer)" />
-          {/* Роут для детального экрана события */}
           <Stack.Screen name="event/[id]" options={{ headerShown: false }} />
-          {/* ✅ Роуты для площадок */}
-        <Stack.Screen name="ground/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="ground/create" options={{ headerShown: false }} />
-        <Stack.Screen name="ground/moderation" options={{ headerShown: false }} />
+          <Stack.Screen name="ground/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="ground/create" options={{ headerShown: false }} />
+          <Stack.Screen name="ground/moderation" options={{ headerShown: false }} />
         </Stack>
       </ThemeProvider>
     </GestureHandlerRootView>
