@@ -7,6 +7,7 @@ import {
   Alert,
   Linking,
   Platform,
+  AppState,
 } from 'react-native';
 import { Stack, ThemeProvider, DarkTheme, DefaultTheme } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -16,11 +17,12 @@ import { useFonts } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import { useUnit } from 'effector-react';
 
-// Effector
 import {
   hydrateSessionFx,
   $isHydrating,
   hydrateSettingsFx,
+  fetchGroundsFx,
+  fetchAllEventsFx,
   requestUserLocationFx,
   checkLocationPermissionFx,
   detectCityFx,
@@ -28,7 +30,6 @@ import {
 
 import { DEFAULT_CITY_CENTER } from '@/constants/location';
 
-// Удерживаем Splash Screen до готовности приложения
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
@@ -42,36 +43,16 @@ export default function RootLayout() {
     ...Ionicons.font,
   });
 
-  // ✅ Гидратация сессии + настроек + проверка локации
+  // ✅ Гидратация при старте
   useEffect(() => {
     hydrateSessionFx();
     hydrateSettingsFx();
 
-    // Проверка и запрос разрешения на локацию
+    // Запрос локации + определение города
     (async () => {
       try {
         const status = await checkLocationPermissionFx();
-
-        if (status === 'denied') {
-          Alert.alert(
-            'Location Access',
-            'PlayG works best with your location to show nearby grounds and events. Enable it in Settings?',
-            [
-              { text: 'Not now', style: 'cancel' },
-              {
-                text: 'Open Settings',
-                onPress: () => {
-                  if (Platform.OS === 'ios') {
-                    Linking.openURL('app-settings:');
-                  } else {
-                    Linking.openSettings();
-                  }
-                },
-              },
-            ],
-          );
-          return;
-        }
+        if (status === 'denied') return;
 
         const result = await requestUserLocationFx();
         if (result?.location) {
@@ -79,13 +60,27 @@ export default function RootLayout() {
         } else {
           detectCityFx(DEFAULT_CITY_CENTER);
         }
-      } catch {
-        // Игнорируем — приложение всё равно стартует
-      }
+      } catch {}
     })();
   }, []);
 
-  // Скрываем Splash Screen, когда всё готово
+  // ✅ AppState — при возврате в приложение обновляем данные
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        console.log('[AppState] App is active → refreshing data');
+        // Перепроверяем сессию (мог протухнуть токен)
+        hydrateSessionFx();
+        // Подтягиваем свежие данные
+        fetchGroundsFx();
+        fetchAllEventsFx();
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
+
+  // Скрываем Splash Screen
   useEffect(() => {
     const assetsReady = fontsLoaded || fontError;
     if (assetsReady && !isHydrating) {
@@ -93,7 +88,6 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError, isHydrating]);
 
-  // Fallback-загрузка
   if ((!fontsLoaded && !fontError) || isHydrating) {
     return (
       <View
@@ -114,24 +108,16 @@ export default function RootLayout() {
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <StatusBar style="auto" />
 
-        {/*
-          ✅ ВАЖНО: перечисляем только те экраны, которые точно существуют.
-          Expo Router автоматически подхватывает все файлы из src/app/,
-          но если указать Stack.Screen для несуществующего файла —
-          получите "Element type is invalid".
-
-          Если файл src/app/ground/moderation.tsx уже создан —
-          раскомментируйте строку ниже.
-        */}
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(drawer)" />
-          <Stack.Screen name="user/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="event/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="event/edit" options={{ headerShown: false }} />
           <Stack.Screen name="ground/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="ground/create" options={{ headerShown: false }} />
           <Stack.Screen name="ground/edit" options={{ headerShown: false }} />
           <Stack.Screen name="ground/moderation" options={{ headerShown: false }} />
+          <Stack.Screen name="event/create" options={{ headerShown: false }} />
+          <Stack.Screen name="event/edit" options={{ headerShown: false }} />
+          <Stack.Screen name="user/[id]" options={{ headerShown: false }} />
         </Stack>
       </ThemeProvider>
     </GestureHandlerRootView>
