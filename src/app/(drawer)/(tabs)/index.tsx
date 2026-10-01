@@ -51,8 +51,14 @@ export default function GroundsScreen() {
   const clusterSheetVisible = useUnit($clusterSheetVisible);
   const user = useUnit($userSession);
   const pendingCount = useUnit($pendingGrounds.map((p) => p.length));
+
   const isModerator =
     user?.role?.includes('moderator') || user?.role?.includes('admin');
+
+  // ✅ Кнопка модерации видна только если есть pending и это модератор
+  const showModerationFab = isModerator && pendingCount > 0;
+  // ✅ Кнопка Add выше, если снизу есть модерация
+  const showAddFab = true;
 
   const snapPoints = useMemo(() => {
     const minListHeight = insets.top + 58;
@@ -113,7 +119,6 @@ export default function GroundsScreen() {
     </View>
   );
 
-  // ✅ FAB: Add ground
   const handleAddGroundPress = () => {
     if (user) {
       router.push('/ground/create');
@@ -132,7 +137,6 @@ export default function GroundsScreen() {
     }
   };
 
-  // ✅ FAB: Moderation
   const handleModerationPress = () => {
     router.push('/ground/moderation');
   };
@@ -168,7 +172,6 @@ export default function GroundsScreen() {
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.mapContainer, animatedMapStyle]}>
-        {/* ✅ Кнопка locate теперь сверху, под поиском */}
         <MapComponent
           region={mapRegion}
           grounds={grounds}
@@ -180,7 +183,6 @@ export default function GroundsScreen() {
         </View>
       </Animated.View>
 
-      {/* Строка поиска поверх карты */}
       <View
         style={[styles.topOverlayMobile, { paddingTop: insets.top }]}
         pointerEvents="box-none"
@@ -211,26 +213,29 @@ export default function GroundsScreen() {
         />
       </BottomSheet>
 
-      {/* ✅ FAB'ы — поверх BottomSheet, скрываем когда открыт список кластера */}
       {!clusterSheetVisible && (
         <>
-          <Pressable
-            style={({ pressed }) => [
-              styles.fabButton,
-              {
-                bottom:
-                  isModerator && pendingCount > 0
+          {/* ✅ FAB "Add ground" — всегда */}
+          {showAddFab && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.fabButton,
+                {
+                  // ✅ Поднимаем выше, если снизу показана кнопка модерации
+                  bottom: showModerationFab
                     ? insets.bottom + 88
                     : insets.bottom + 16,
-                opacity: pressed ? 0.85 : 1,
-              },
-            ]}
-            onPress={handleAddGroundPress}
-          >
-            <Ionicons name="add" size={28} color="#FFFFFF" />
-          </Pressable>
+                  opacity: pressed ? 0.85 : 1,
+                },
+              ]}
+              onPress={handleAddGroundPress}
+            >
+              <Ionicons name="add" size={28} color="#FFFFFF" />
+            </Pressable>
+          )}
 
-          {isModerator && (
+          {/* ✅ FAB "Moderation" — только если есть pending */}
+          {showModerationFab && (
             <Pressable
               style={({ pressed }) => [
                 styles.fabButton,
@@ -244,13 +249,11 @@ export default function GroundsScreen() {
             >
               <Ionicons name="shield-checkmark" size={24} color="#FFFFFF" />
 
-              {pendingCount > 0 && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>
-                    {pendingCount > 99 ? '99+' : pendingCount}
-                  </Text>
-                </View>
-              )}
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {pendingCount > 99 ? '99+' : pendingCount}
+                </Text>
+              </View>
             </Pressable>
           )}
         </>
@@ -307,7 +310,6 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
 
-  // ✅ FAB'ы
   fabButton: {
     position: 'absolute',
     right: 16,
