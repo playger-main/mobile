@@ -11,7 +11,6 @@ import {
   KeyboardAvoidingView,
   Alert,
   ActivityIndicator,
-  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -25,10 +24,13 @@ import {
 } from '@/effector/events/async/grounds';
 import { $currentGround, $isGroundDetailLoading, $userSession } from '@/effector/store';
 import LocationPickerModal from '@/components/ui/LocationPickerModal';
+import PhotoPicker, { PhotoInput } from '@/components/ui/PhotoPicker';
 
 import { SPORT_OPTIONS } from '@/constants/sports';
 import { AMENITIES_OPTIONS } from '@/constants/amenities';
 import { SURFACE_OPTIONS } from '@/constants/surface';
+
+const MAX_PHOTOS = 5;
 
 export default function EditGroundScreen() {
   const insets = useSafeAreaInsets();
@@ -41,21 +43,20 @@ export default function EditGroundScreen() {
   const user = useUnit($userSession);
 
   const [name, setName] = useState('');
-  const [sports, setSports] = useState<string[]>([]);          // ✅ массив
+  const [sports, setSports] = useState<string[]>([]);
   const [address, setAddress] = useState('');
-  const [surfaces, setSurfaces] = useState<string[]>([]);       // ✅ массив
+  const [surfaces, setSurfaces] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [amenities, setAmenities] = useState<string[]>([]);
-  const [avatar, setAvatar] = useState<string | null>(null);
+  const [photoInputs, setPhotoInputs] = useState<PhotoInput[]>([]);
+  const [initialPhotoIds, setInitialPhotoIds] = useState<string[]>([]);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationPickerVisible, setLocationPickerVisible] = useState(false);
 
-  // ✅ Загружаем площадку
   useEffect(() => {
     if (id) fetchGroundByIdFx(id);
   }, [id]);
 
-  // ✅ Предзаполняем форму
   useEffect(() => {
     if (!ground) return;
     setName(ground.name || '');
@@ -64,7 +65,22 @@ export default function EditGroundScreen() {
     setSurfaces(ground.coverage || []);
     setDescription(ground.description || '');
     setAmenities(ground.amenities || []);
-    setAvatar(ground.avatar || null);
+
+    const photos = Array.isArray(ground.photos) ? ground.photos : [];
+    const paths = Array.isArray(ground.photoPaths) ? ground.photoPaths : [];
+    const ids = Array.isArray(ground.photoIds) ? ground.photoIds : [];
+
+    setPhotoInputs(
+      photos.map((uri, i) => ({
+        uri,
+        path: paths[i],
+        id: ids[i],
+        isNew: false,
+        isMain: uri === ground.avatar,
+      })),
+    );
+    setInitialPhotoIds(ids);
+
     if (ground.geolocation?.lat && ground.geolocation?.lng) {
       setLocation({
         lat: Number(ground.geolocation.lat),
@@ -74,35 +90,53 @@ export default function EditGroundScreen() {
   }, [ground]);
 
   const pickImage = async () => {
+    if (photoInputs.length >= MAX_PHOTOS) {
+      Alert.alert('Maximum photos', `You can add up to ${MAX_PHOTOS} photos.`);
+      return;
+    }
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'We need camera roll permissions to upload a photo.');
+      Alert.alert('Permission needed', 'We need access to your photos.');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [16, 9],
       quality: 0.8,
     });
-    if (!result.canceled) setAvatar(result.assets[0].uri);
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      setPhotoInputs((prev) => [
+        ...prev,
+        { uri, isNew: true, isMain: prev.length === 0 },
+      ]);
+    }
   };
 
-  // ✅ Мультивыбор спорта
+  const removePhoto = (index: number) => {
+    setPhotoInputs((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      if (prev[index].isMain && next.length > 0) {
+        next[0] = { ...next[0], isMain: true };
+      }
+      return next;
+    });
+  };
+
+  const setMainPhoto = (index: number) => {
+    setPhotoInputs((prev) => prev.map((p, i) => ({ ...p, isMain: i === index })));
+  };
+
   const toggleSport = (sportId: string) => {
     setSports((prev) =>
-      prev.includes(sportId)
-        ? prev.filter((s) => s !== sportId)
-        : [...prev, sportId],
+      prev.includes(sportId) ? prev.filter((s) => s !== sportId) : [...prev, sportId],
     );
   };
 
-  // ✅ Мультивыбор покрытий
   const toggleSurface = (surfaceId: string) => {
     setSurfaces((prev) =>
-      prev.includes(surfaceId)
-        ? prev.filter((s) => s !== surfaceId)
-        : [...prev, surfaceId],
+      prev.includes(surfaceId) ? prev.filter((s) => s !== surfaceId) : [...prev, surfaceId],
     );
   };
 
@@ -124,35 +158,48 @@ export default function EditGroundScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) return Alert.alert('Error', 'Please enter a ground name.');
-    if (sports.length === 0)
-      return Alert.alert('Error', 'Please select at least one sport.');
+    if (sports.length === 0) return Alert.alert('Error', 'Please select at least one sport.');
     if (!address.trim()) return Alert.alert('Error', 'Please enter an address.');
     if (!location) return Alert.alert('Error', 'Please select a location on the map.');
+
+    // Удалённые существующие фото
+    const currentIds = photoInputs
+      .filter((p) => !p.isNew && p.id)
+      .map((p) => p.id!);
+    const removedPhotoIds = initialPhotoIds.filter(
+      (i) => !currentIds.includes(i),
+    );
+
+    const newPhotos = photoInputs.filter((p) => p.isNew);
+    const newUris = newPhotos.map((p) => p.uri);
+    const mainNewIdx = newPhotos.findIndex((p) => p.isMain);
+    const mainExisting = photoInputs.find((p) => p.isMain && !p.isNew);
+
+    const currentMainIsNew = mainNewIdx >= 0;
 
     try {
       await updateGroundFx({
         id: id!,
         name: name.trim(),
-        kindofsport: sports,                 // ✅ массив
+        kindofsport: sports,
         address: address.trim(),
-        coverage: surfaces,                  // ✅ массив
+        coverage: surfaces,
         description: description.trim() || undefined,
         amenities,
         geolocation: location,
-        avatar:
-          avatar && !avatar.startsWith('http')
-            ? { uri: avatar, name: 'ground_photo.jpg', type: 'image/jpeg' }
-            : null,
+        newPhotoUris: newUris.length > 0 ? newUris : undefined,
+        removedPhotoIds: removedPhotoIds.length > 0 ? removedPhotoIds : undefined,
+        mainPhotoPath: !currentMainIsNew ? mainExisting?.path ?? null : undefined,
+        mainNewPhotoIndex: currentMainIsNew ? mainNewIdx : undefined,
       });
 
-      Alert.alert('Success', 'Ground updated successfully!', [
+      Alert.alert('Success', 'Ground updated!', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (err: any) {
-      Alert.alert(
-        'Error',
-        err?.response?.data?.message || 'Failed to update ground.',
-      );
+      const raw = err?.response?.data?.message ?? err?.message ?? err;
+      const message = Array.isArray(raw) ? raw.join('\n') : String(raw);
+      Alert.alert('Error', message || 'Failed to update ground.');
     }
   };
 
@@ -188,10 +235,7 @@ export default function EditGroundScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + 120 },
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 120 }]}
       >
         <Text style={styles.inputLabel}>Ground name</Text>
         <TextInput
@@ -202,13 +246,10 @@ export default function EditGroundScreen() {
           onChangeText={setName}
         />
 
-        {/* ✅ Sport — multi-select */}
         <View style={styles.labelWithHintRow}>
           <Text style={styles.inputLabel}>Sport</Text>
           {sports.length > 0 && (
-            <Text style={styles.selectedCountHint}>
-              {sports.length} selected
-            </Text>
+            <Text style={styles.selectedCountHint}>{sports.length} selected</Text>
           )}
         </View>
         <View style={styles.gridContainer}>
@@ -225,9 +266,7 @@ export default function EditGroundScreen() {
                   size={24}
                   color={isSelected ? '#208AEF' : '#6080A8'}
                 />
-                <Text
-                  style={[styles.sportLabel, isSelected && styles.sportLabelSelected]}
-                >
+                <Text style={[styles.sportLabel, isSelected && styles.sportLabelSelected]}>
                   {sport.label}
                 </Text>
                 {isSelected && (
@@ -249,13 +288,10 @@ export default function EditGroundScreen() {
           onChangeText={setAddress}
         />
 
-        {/* Surface (multi-select) */}
         <View style={styles.labelWithHintRow}>
           <Text style={styles.inputLabel}>Surface (optional)</Text>
           {surfaces.length > 0 && (
-            <Text style={styles.selectedCountHint}>
-              {surfaces.length} selected
-            </Text>
+            <Text style={styles.selectedCountHint}>{surfaces.length} selected</Text>
           )}
         </View>
         <View style={styles.surfaceWrap}>
@@ -274,13 +310,10 @@ export default function EditGroundScreen() {
                   style={{ marginRight: 6 }}
                 />
                 <Text
-                  style={[
-                    styles.surfaceChipText,
-                    isSelected && styles.surfaceChipTextSelected,
-                  ]}
+                  style={[styles.surfaceChipText, isSelected && styles.surfaceChipTextSelected]}
                 >
                   {s.label}
-                </Text>                
+                </Text>
               </Pressable>
             );
           })}
@@ -308,9 +341,7 @@ export default function EditGroundScreen() {
                 onPress={() => toggleAmenity(amenity)}
                 style={[styles.amenityChip, isSelected && styles.amenityChipSelected]}
               >
-                <Text
-                  style={[styles.amenityText, isSelected && styles.amenityTextSelected]}
-                >
+                <Text style={[styles.amenityText, isSelected && styles.amenityTextSelected]}>
                   {amenity}
                 </Text>
               </Pressable>
@@ -318,17 +349,14 @@ export default function EditGroundScreen() {
           })}
         </View>
 
-        <Text style={styles.inputLabel}>Photo</Text>
-        <Pressable style={styles.photoUploadBox} onPress={pickImage}>
-          {avatar ? (
-            <Image source={{ uri: avatar }} style={styles.uploadedImage} />
-          ) : (
-            <View style={styles.photoPlaceholder}>
-              <Ionicons name="camera-outline" size={32} color="#BACAD6" />
-              <Text style={styles.photoPlaceholderText}>Tap to upload a photo</Text>
-            </View>
-          )}
-        </Pressable>
+        <Text style={styles.inputLabel}>Photos</Text>
+        <PhotoPicker
+          photos={photoInputs}
+          max={MAX_PHOTOS}
+          onAdd={pickImage}
+          onRemove={removePhoto}
+          onSetMain={setMainPhoto}
+        />
 
         <Text style={styles.inputLabel}>Location on map</Text>
         <Pressable
@@ -356,7 +384,6 @@ export default function EditGroundScreen() {
           )}
         </Pressable>
 
-        {/* ✅ Информация о повторной модерации */}
         {!user?.role?.includes('moderator') && !user?.role?.includes('admin') && (
           <View style={styles.moderationNotice}>
             <Ionicons name="information-circle-outline" size={18} color="#FF8000" />
@@ -412,12 +439,7 @@ const styles = StyleSheet.create({
   backButton: { padding: 4 },
   headerTitleContainer: { flex: 1, alignItems: 'center' },
   headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
-  headerSubtitle: {
-    fontSize: 12,
-    color: '#BACAD6',
-    fontWeight: '500',
-    marginTop: 1,
-  },
+  headerSubtitle: { fontSize: 12, color: '#BACAD6', fontWeight: '500', marginTop: 1 },
   scrollContent: { paddingHorizontal: 16, paddingTop: 20 },
   inputLabel: {
     fontSize: 14,
@@ -465,7 +487,7 @@ const styles = StyleSheet.create({
   gridContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   sportCard: {
     width: '30%',
-    height: 80,
+    height: 92,
     alignSelf: 'flex-start',
     borderWidth: 1,
     borderColor: '#E6F4FE',
@@ -495,7 +517,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
   surfaceWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   surfaceChip: {
     flexDirection: 'row',
@@ -510,7 +531,6 @@ const styles = StyleSheet.create({
   surfaceChipSelected: { backgroundColor: '#208AEF', borderColor: '#208AEF' },
   surfaceChipText: { fontSize: 13, color: '#334A77', fontWeight: '500' },
   surfaceChipTextSelected: { color: '#FFFFFF', fontWeight: '600' },
-
   amenitiesWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   amenityChip: {
     paddingHorizontal: 12,
@@ -523,20 +543,6 @@ const styles = StyleSheet.create({
   amenityChipSelected: { backgroundColor: '#208AEF', borderColor: '#208AEF' },
   amenityText: { fontSize: 13, color: '#334A77', fontWeight: '500' },
   amenityTextSelected: { color: '#FFFFFF', fontWeight: '600' },
-  photoUploadBox: {
-    width: '100%',
-    height: 160,
-    borderWidth: 1,
-    borderColor: '#E6F4FE',
-    borderRadius: 12,
-    backgroundColor: '#F8FAFC',
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  uploadedImage: { width: '100%', height: '100%', resizeMode: 'cover' },
-  photoPlaceholder: { alignItems: 'center', gap: 8 },
-  photoPlaceholderText: { fontSize: 13, color: '#BACAD6', fontWeight: '500' },
   mapPickerBox: {
     width: '100%',
     minHeight: 80,
@@ -558,12 +564,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   locationSetText: { fontSize: 13, color: '#27AE60', fontWeight: '700' },
-  locationChangeHint: {
-    fontSize: 11,
-    color: '#6080A8',
-    fontWeight: '500',
-    marginTop: 2,
-  },
+  locationChangeHint: { fontSize: 11, color: '#6080A8', fontWeight: '500', marginTop: 2 },
   moderationNotice: {
     flexDirection: 'row',
     alignItems: 'flex-start',

@@ -11,7 +11,6 @@ import {
   KeyboardAvoidingView,
   Alert,
   ActivityIndicator,
-  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -22,10 +21,13 @@ import * as ImagePicker from 'expo-image-picker';
 import { createGroundFx } from '@/effector/events/async/grounds';
 import { $userSession } from '@/effector/store';
 import LocationPickerModal from '@/components/ui/LocationPickerModal';
+import PhotoPicker, { PhotoInput } from '@/components/ui/PhotoPicker';
 
 import { SPORT_OPTIONS } from '@/constants/sports';
 import { AMENITIES_OPTIONS } from '@/constants/amenities';
 import { SURFACE_OPTIONS } from '@/constants/surface';
+
+const MAX_PHOTOS = 5;
 
 export default function CreateGroundScreen() {
   const insets = useSafeAreaInsets();
@@ -34,50 +36,73 @@ export default function CreateGroundScreen() {
   const user = useUnit($userSession);
 
   const [name, setName] = useState('');
-  const [sports, setSports] = useState<string[]>(['basketball']); // ✅ массив
+  const [sports, setSports] = useState<string[]>(['basketball']);
   const [address, setAddress] = useState('');
   const [surfaces, setSurfaces] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [amenities, setAmenities] = useState<string[]>([]);
-  const [avatar, setAvatar] = useState<string | null>(null);
+  const [photoInputs, setPhotoInputs] = useState<PhotoInput[]>([]);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationPickerVisible, setLocationPickerVisible] = useState(false);
 
   const pickImage = async () => {
+    if (photoInputs.length >= MAX_PHOTOS) {
+      Alert.alert('Maximum photos', `You can add up to ${MAX_PHOTOS} photos.`);
+      return;
+    }
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'We need camera roll permissions to upload a photo.');
+      Alert.alert('Permission needed', 'We need access to your photos.');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [16, 9],
       quality: 0.8,
     });
-    if (!result.canceled) setAvatar(result.assets[0].uri);
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      setPhotoInputs((prev) => [
+        ...prev,
+        {
+          uri,
+          isNew: true,
+          isMain: prev.length === 0,
+        },
+      ]);
+    }
   };
 
-  // ✅ Мультивыбор спорта
+  const removePhoto = (index: number) => {
+    setPhotoInputs((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      if (prev[index].isMain && next.length > 0) {
+        next[0] = { ...next[0], isMain: true };
+      }
+      return next;
+    });
+  };
+
+  const setMainPhoto = (index: number) => {
+    setPhotoInputs((prev) => prev.map((p, i) => ({ ...p, isMain: i === index })));
+  };
+
   const toggleSport = (sportId: string) => {
     setSports((prev) =>
-      prev.includes(sportId)
-        ? prev.filter((s) => s !== sportId)
-        : [...prev, sportId],
+      prev.includes(sportId) ? prev.filter((s) => s !== sportId) : [...prev, sportId],
+    );
+  };
+
+  const toggleSurface = (surfaceId: string) => {
+    setSurfaces((prev) =>
+      prev.includes(surfaceId) ? prev.filter((s) => s !== surfaceId) : [...prev, surfaceId],
     );
   };
 
   const toggleAmenity = (amenity: string) => {
     setAmenities((prev) =>
       prev.includes(amenity) ? prev.filter((a) => a !== amenity) : [...prev, amenity],
-    );
-  };
-
-  const toggleSurface = (surfaceId: string) => {
-    setSurfaces((prev) =>
-      prev.includes(surfaceId)
-        ? prev.filter((s) => s !== surfaceId)
-        : [...prev, surfaceId],
     );
   };
 
@@ -100,21 +125,22 @@ export default function CreateGroundScreen() {
     try {
       await createGroundFx({
         name: name.trim(),
-        kindofsport: sports,               // ✅ массив
+        kindofsport: sports,
         address: address.trim(),
         coverage: surfaces.length > 0 ? surfaces : undefined,
         description: description.trim() || undefined,
         amenities,
         geolocation: { lat: location.lat, lng: location.lng },
-        avatar: avatar
-          ? { uri: avatar, name: 'ground_photo.jpg', type: 'image/jpeg' }
-          : null,
+        photoUris: photoInputs.map((p) => p.uri),
+        mainPhotoIndex: Math.max(0, photoInputs.findIndex((p) => p.isMain)),
       });
-      Alert.alert('Success', 'Ground published successfully!', [
+      Alert.alert('Success', 'Ground published!', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (err: any) {
-      Alert.alert('Error', err?.response?.data?.message || 'Failed to create ground.');
+      const raw = err?.response?.data?.message ?? err?.message ?? err;
+      const message = Array.isArray(raw) ? raw.join('\n') : String(raw);
+      Alert.alert('Error', message || 'Failed to create ground.');
     }
   };
 
@@ -142,10 +168,7 @@ export default function CreateGroundScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + 120 },
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 120 }]}
       >
         <Text style={styles.inputLabel}>Ground name</Text>
         <TextInput
@@ -156,13 +179,10 @@ export default function CreateGroundScreen() {
           onChangeText={setName}
         />
 
-        {/* ✅ Sport — multi-select */}
         <View style={styles.labelWithHintRow}>
           <Text style={styles.inputLabel}>Sport</Text>
           {sports.length > 0 && (
-            <Text style={styles.selectedCountHint}>
-              {sports.length} selected
-            </Text>
+            <Text style={styles.selectedCountHint}>{sports.length} selected</Text>
           )}
         </View>
         <View style={styles.gridContainer}>
@@ -179,9 +199,7 @@ export default function CreateGroundScreen() {
                   size={24}
                   color={isSelected ? '#208AEF' : '#6080A8'}
                 />
-                <Text
-                  style={[styles.sportLabel, isSelected && styles.sportLabelSelected]}
-                >
+                <Text style={[styles.sportLabel, isSelected && styles.sportLabelSelected]}>
                   {sport.label}
                 </Text>
                 {isSelected && (
@@ -203,7 +221,6 @@ export default function CreateGroundScreen() {
           onChangeText={setAddress}
         />
 
-        {/* Surface */}
         <View style={styles.labelWithHintRow}>
           <Text style={styles.inputLabel}>Surface (optional)</Text>
           {surfaces.length > 0 && (
@@ -226,13 +243,10 @@ export default function CreateGroundScreen() {
                   style={{ marginRight: 6 }}
                 />
                 <Text
-                  style={[
-                    styles.surfaceChipText,
-                    isSelected && styles.surfaceChipTextSelected,
-                  ]}
+                  style={[styles.surfaceChipText, isSelected && styles.surfaceChipTextSelected]}
                 >
                   {s.label}
-                </Text>                
+                </Text>
               </Pressable>
             );
           })}
@@ -260,9 +274,7 @@ export default function CreateGroundScreen() {
                 onPress={() => toggleAmenity(amenity)}
                 style={[styles.amenityChip, isSelected && styles.amenityChipSelected]}
               >
-                <Text
-                  style={[styles.amenityText, isSelected && styles.amenityTextSelected]}
-                >
+                <Text style={[styles.amenityText, isSelected && styles.amenityTextSelected]}>
                   {amenity}
                 </Text>
               </Pressable>
@@ -270,17 +282,14 @@ export default function CreateGroundScreen() {
           })}
         </View>
 
-        <Text style={styles.inputLabel}>Photo</Text>
-        <Pressable style={styles.photoUploadBox} onPress={pickImage}>
-          {avatar ? (
-            <Image source={{ uri: avatar }} style={styles.uploadedImage} />
-          ) : (
-            <View style={styles.photoPlaceholder}>
-              <Ionicons name="camera-outline" size={32} color="#BACAD6" />
-              <Text style={styles.photoPlaceholderText}>Tap to upload a photo</Text>
-            </View>
-          )}
-        </Pressable>
+        <Text style={styles.inputLabel}>Photos</Text>
+        <PhotoPicker
+          photos={photoInputs}
+          max={MAX_PHOTOS}
+          onAdd={pickImage}
+          onRemove={removePhoto}
+          onSetMain={setMainPhoto}
+        />
 
         <Text style={styles.inputLabel}>Location on map</Text>
         <Pressable
@@ -353,12 +362,7 @@ const styles = StyleSheet.create({
   backButton: { padding: 4 },
   headerTitleContainer: { flex: 1, alignItems: 'center' },
   headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
-  headerSubtitle: {
-    fontSize: 12,
-    color: '#BACAD6',
-    fontWeight: '500',
-    marginTop: 1,
-  },
+  headerSubtitle: { fontSize: 12, color: '#BACAD6', fontWeight: '500', marginTop: 1 },
   scrollContent: { paddingHorizontal: 16, paddingTop: 20 },
   inputLabel: {
     fontSize: 14,
@@ -406,7 +410,7 @@ const styles = StyleSheet.create({
   gridContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   sportCard: {
     width: '30%',
-    height: 80,
+    height: 92,
     alignSelf: 'flex-start',
     borderWidth: 1,
     borderColor: '#E6F4FE',
@@ -425,8 +429,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   sportLabelSelected: { color: '#208AEF', fontWeight: '700' },
-
-  // ✅ Галочка в углу карточки
   sportCheckmark: {
     position: 'absolute',
     top: 6,
@@ -438,7 +440,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
   surfaceWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   surfaceChip: {
     flexDirection: 'row',
@@ -453,7 +454,6 @@ const styles = StyleSheet.create({
   surfaceChipSelected: { backgroundColor: '#208AEF', borderColor: '#208AEF' },
   surfaceChipText: { fontSize: 13, color: '#334A77', fontWeight: '500' },
   surfaceChipTextSelected: { color: '#FFFFFF', fontWeight: '600' },
-
   amenitiesWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   amenityChip: {
     paddingHorizontal: 12,
@@ -466,20 +466,6 @@ const styles = StyleSheet.create({
   amenityChipSelected: { backgroundColor: '#208AEF', borderColor: '#208AEF' },
   amenityText: { fontSize: 13, color: '#334A77', fontWeight: '500' },
   amenityTextSelected: { color: '#FFFFFF', fontWeight: '600' },
-  photoUploadBox: {
-    width: '100%',
-    height: 160,
-    borderWidth: 1,
-    borderColor: '#E6F4FE',
-    borderRadius: 12,
-    backgroundColor: '#F8FAFC',
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  uploadedImage: { width: '100%', height: '100%', resizeMode: 'cover' },
-  photoPlaceholder: { alignItems: 'center', gap: 8 },
-  photoPlaceholderText: { fontSize: 13, color: '#BACAD6', fontWeight: '500' },
   mapPickerBox: {
     width: '100%',
     minHeight: 80,
@@ -501,12 +487,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   locationSetText: { fontSize: 13, color: '#27AE60', fontWeight: '700' },
-  locationChangeHint: {
-    fontSize: 11,
-    color: '#6080A8',
-    fontWeight: '500',
-    marginTop: 2,
-  },
+  locationChangeHint: { fontSize: 11, color: '#6080A8', fontWeight: '500', marginTop: 2 },
   bottomBar: {
     position: 'absolute',
     bottom: 0,

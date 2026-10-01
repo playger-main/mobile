@@ -1,5 +1,5 @@
 // src/components/ui/ListGrounds.tsx
-import React, { useEffect } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
+import { useFocusEffect } from 'expo-router';
 
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 
@@ -32,7 +33,10 @@ interface ListGroundsProps {
   onToggleFavorite: (id: string) => void;
 }
 
-export default function ListGrounds({ onItemPress, onToggleFavorite }: ListGroundsProps) {
+export default function ListGrounds({
+  onItemPress,
+  onToggleFavorite,
+}: ListGroundsProps) {
   const isWeb = Platform.OS === 'web';
   const insets = useSafeAreaInsets();
 
@@ -54,19 +58,22 @@ export default function ListGrounds({ onItemPress, onToggleFavorite }: ListGroun
     events: $events,
   });
 
-  // ✅ Перезапрашиваем площадки при:
-  //  - смене фильтра (category)
-  //  - изменении поискового запроса
-  //  - логине/логауте (user?.id меняется)
-  useEffect(() => {
-    fetchGroundsFx({
-      kindofsport: selectedCategory === 'all' ? undefined : selectedCategory,
-      search: searchQuery.trim() || undefined,
-    });
-  }, [selectedCategory, searchQuery, user?.id]);
+  // ✅ Рефетч при:
+  //  - смене фильтра
+  //  - изменении поиска
+  //  - логине/логауте
+  //  - возврате на таб (useFocusEffect)
+  useFocusEffect(
+    useCallback(() => {
+      fetchGroundsFx({
+        kindofsport: selectedCategory === 'all' ? undefined : selectedCategory,
+        search: searchQuery.trim() || undefined,
+      });
+    }, [selectedCategory, searchQuery, user?.id]),
+  );
 
-  // ✅ Загружаем события один раз при монтировании (для счётчика upcoming)
-  useEffect(() => {
+  // События — один раз
+  React.useEffect(() => {
     if (events.length === 0) {
       fetchAllEventsFx();
     }
@@ -75,7 +82,9 @@ export default function ListGrounds({ onItemPress, onToggleFavorite }: ListGroun
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       <View style={styles.headerTopRow}>
-        <Text style={styles.countText}>{grounds.length} grounds nearby</Text>
+        <Text style={styles.countText}>
+          {grounds.length} grounds nearby
+        </Text>
         <Text style={styles.sortText}>By distance</Text>
       </View>
 
@@ -114,7 +123,7 @@ export default function ListGrounds({ onItemPress, onToggleFavorite }: ListGroun
     );
   }
 
-  // Mobile — BottomSheetFlatList напрямую
+  // Mobile
   return (
     <BottomSheetFlatList
       data={grounds}
@@ -161,6 +170,10 @@ const styles = StyleSheet.create({
   },
   countText: { fontSize: 16, fontWeight: '700', color: '#334A77' },
   sortText: { fontSize: 13, color: '#6080A8', fontWeight: '500' },
-  loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   webListContent: { width: '100%', paddingBottom: 32 },
 });

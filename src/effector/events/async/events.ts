@@ -1,20 +1,24 @@
 // src/effector/events/async/events.ts
 import { createEffect } from 'effector';
+
 import { apiInstance } from '../../api';
 
-// Структура ответа с сервера /event
+// ==========================================
+// ТИПЫ
+// ==========================================
+
 export interface ServerEventItem {
   id: string;
   name: string;
   description: string;
-  date: string;        // "2025-10-12"
-  startTime: string;   // "14:00"
-  duration: string;    // "1.5 hours"
+  date: string;
+  startTime: string;
+  duration: string;
   createdAt: string;
   updatedAt: string;
-  maxPlayers: number;        // ✅
-  currentPlayers: number;    // ✅
-  level?: string;            // ✅
+  maxPlayers: number;
+  currentPlayers: number;
+  level?: string;
   creator: {
     id: string;
     name: string;
@@ -24,18 +28,17 @@ export interface ServerEventItem {
     id: string;
     name: string;
     address: string;
-    kindofsport?: string[]; // Извлекаем спорт площадки для тегов
+    kindofsport?: string[];
   };
 }
 
-// Интерфейс ивента на основе реального JSON ответа NestJS
 export interface RealEventItem {
   id: string;
   name: string;
   description: string;
-  date: string;       // "2025-10-12"
-  startTime: string;  // "14:00"
-  duration: string;   // "1.5 hours"
+  date: string;
+  startTime: string;
+  duration: string;
   creator: {
     id: string;
     name: string;
@@ -47,13 +50,13 @@ export interface DetailedEventItem {
   id: string;
   name: string;
   description: string;
-  date: string;        // "2025-10-12"
-  startTime: string;   // "14:00"
-  duration: string;    // "1.5 hours" (или "60m")
-  level?: string;      // "Intermediate"
-  playersCount?: string; // "12/14"
-  maxPlayers?: number;  // 14
-  currentPlayers?: number; // 12
+  date: string;
+  startTime: string;
+  duration: string;
+  level?: string;
+  playersCount?: string;
+  maxPlayers?: number;
+  currentPlayers?: number;
   players?: Array<{ id: string; name: string }>;
   creator: {
     id: string;
@@ -64,10 +67,22 @@ export interface DetailedEventItem {
     name: string;
     address: string;
     kindofsport?: string[];
-    avatar?: string;              // ✅
-    geolocation?: { lat: string; lng: string } | null;  // ✅
+    avatar?: string | null;
+    geolocation?: { lat: string; lng: string } | null;
   };
 }
+
+export interface CreateEventPayload {
+  name: string;
+  description: string;
+  date: string;
+  startTime: string;
+  duration: string;
+  level: string;
+  maxPlayers: number;
+  groundId: string;
+}
+
 export interface UpdateEventPayload {
   id: string;
   name?: string;
@@ -80,50 +95,57 @@ export interface UpdateEventPayload {
   groundId?: string;
 }
 
-// Эффект для получения всех событий
-export const fetchAllEventsFx = createEffect(async (): Promise<ServerEventItem[]> => {
-  const response = await apiInstance.get<ServerEventItem[]>('/event');
-  return response.data;
-});
+// ==========================================
+// API
+// ==========================================
 
-// Эффект запроса событий конкретной площадки
-export const fetchEventsByGroundIdFx = createEffect(async (groundId: string): Promise<RealEventItem[]> => {
-  const response = await apiInstance.get<RealEventItem[]>(`/event/ground/${groundId}`);
-  return response.data;
-});
+const eventApi = {
+  getAll: async (): Promise<ServerEventItem[]> => {
+    const response = await apiInstance.get<ServerEventItem[]>('/event');
+    return response.data;
+  },
 
-export const fetchEventByIdFx = createEffect(async (id: string): Promise<DetailedEventItem> => {
-  const response = await apiInstance.get<DetailedEventItem>(`/event/${id}`);
-  return response.data;
-});
+  getByGroundId: async (groundId: string): Promise<RealEventItem[]> => {
+    const response = await apiInstance.get<RealEventItem[]>(
+      `/event/ground/${groundId}`,
+    );
+    return response.data;
+  },
 
-export interface CreateEventPayload {
-  name: string;
-  description: string;
-  date: string;         // "2026-09-21"
-  startTime: string;    // "18:00"
-  duration: string;     // "90 min"
-  level: string;        // "All levels" | "Beginner" | "Intermediate" | "Advanced"
-  maxPlayers: number;   // 10
-  groundId: string;     // ID выбранной площадки
-}
+  getById: async (id: string): Promise<DetailedEventItem> => {
+    const response = await apiInstance.get<DetailedEventItem>(`/event/${id}`);
+    return response.data;
+  },
 
-export const createEventFx = createEffect(async (payload: CreateEventPayload): Promise<void> => {
-  await apiInstance.post('/event', payload);
-});
+  create: async (payload: CreateEventPayload): Promise<DetailedEventItem> => {
+    const response = await apiInstance.post<DetailedEventItem>('/event', payload);
+    return response.data;
+  },
 
-export const updateEventFx = createEffect(
-  async (payload: UpdateEventPayload): Promise<DetailedEventItem> => {
+  update: async (payload: UpdateEventPayload): Promise<DetailedEventItem> => {
     const { id, ...rest } = payload;
-    const response = await apiInstance.patch<DetailedEventItem>(
+    const response = await apiInstance.put<DetailedEventItem>(
       `/event/${id}`,
       rest,
     );
     return response.data;
   },
-);
 
-export const toggleJoinEventFx = createEffect(async (eventId: string): Promise<DetailedEventItem> => {
-  const response = await apiInstance.post<DetailedEventItem>(`/event/${eventId}/join`);
-  return response.data;
-});
+  toggleJoin: async (eventId: string): Promise<DetailedEventItem> => {
+    const response = await apiInstance.post<DetailedEventItem>(
+      `/event/${eventId}/join`,
+    );
+    return response.data;
+  },
+};
+
+// ==========================================
+// ЭФФЕКТЫ
+// ==========================================
+
+export const fetchAllEventsFx = createEffect(eventApi.getAll);
+export const fetchEventsByGroundIdFx = createEffect(eventApi.getByGroundId);
+export const fetchEventByIdFx = createEffect(eventApi.getById);
+export const createEventFx = createEffect(eventApi.create);
+export const updateEventFx = createEffect(eventApi.update);
+export const toggleJoinEventFx = createEffect(eventApi.toggleJoin);

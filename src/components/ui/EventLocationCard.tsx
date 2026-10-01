@@ -29,7 +29,6 @@ export default function EventLocationCard({
       onPress();
       return;
     }
-    // По умолчанию — переход на карту с фокусом на площадке
     navigateToGroundOnMap(latitude, longitude);
   };
 
@@ -38,8 +37,11 @@ export default function EventLocationCard({
       <View style={styles.locationImageContainer}>
         {showImage ? (
           <Image
+            // ✅ key — при смене URL картинка перезагрузится
+            key={avatar!}
             source={{ uri: avatar! }}
             style={styles.locationImage}
+            resizeMode="cover"
             onError={() => setImageError(true)}
           />
         ) : (
@@ -90,7 +92,6 @@ const styles = StyleSheet.create({
   locationImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
   locationImagePlaceholder: {
     width: '100%',

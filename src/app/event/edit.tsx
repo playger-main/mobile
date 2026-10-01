@@ -20,10 +20,7 @@ import { useUnit } from 'effector-react';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-import {
-  fetchEventByIdFx,
-  updateEventFx,
-} from '@/effector/events/async/events';
+import { fetchEventByIdFx, updateEventFx } from '@/effector/events/async/events';
 import {
   $currentEvent,
   $isEventDetailLoading,
@@ -60,12 +57,10 @@ export default function EditEventScreen() {
   const [tempDate, setTempDate] = useState<Date>(new Date());
   const [tempTime, setTempTime] = useState<Date>(new Date());
 
-  // ✅ Загружаем событие
   useEffect(() => {
     if (id) fetchEventByIdFx(id);
   }, [id]);
 
-  // ✅ Предзаполняем форму
   useEffect(() => {
     if (!event) return;
     setTitle(event.name || '');
@@ -74,7 +69,6 @@ export default function EditEventScreen() {
     setSkillLevel(event.level || 'All levels');
     setPlayersNeeded(event.maxPlayers || 10);
 
-    // Парсим дату "2025-10-12" -> Date
     if (event.date) {
       const [y, m, d] = event.date.split('-').map(Number);
       if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
@@ -82,7 +76,6 @@ export default function EditEventScreen() {
       }
     }
 
-    // Парсим время "18:00" -> Date
     if (event.startTime) {
       const [h, min] = event.startTime.split(':').map(Number);
       if (!isNaN(h) && !isNaN(min)) {
@@ -92,7 +85,6 @@ export default function EditEventScreen() {
       }
     }
 
-    // Парсим duration "90 min" -> 90
     if (event.duration) {
       const num = parseInt(event.duration, 10);
       if (!isNaN(num)) setDuration(num);
@@ -111,7 +103,7 @@ export default function EditEventScreen() {
     setShowTimePicker(true);
   };
 
-  const handleDateValueChange = (event: any, selectedDate?: Date) => {
+  const handleDateValueChange = (_event: any, selectedDate?: Date) => {
     if (selectedDate) {
       if (Platform.OS === 'ios') setTempDate(selectedDate);
       else {
@@ -121,7 +113,7 @@ export default function EditEventScreen() {
     } else if (Platform.OS === 'android') setShowDatePicker(false);
   };
 
-  const handleTimeValueChange = (event: any, selectedTime?: Date) => {
+  const handleTimeValueChange = (_event: any, selectedTime?: Date) => {
     if (selectedTime) {
       if (Platform.OS === 'ios') setTempTime(selectedTime);
       else {
@@ -137,17 +129,11 @@ export default function EditEventScreen() {
   };
 
   const handleSave = async () => {
-    // ✅ Закрываем клавиатуру — предотвращает краш iOS
     Keyboard.dismiss();
 
-    if (!title.trim()) {
-      Alert.alert('Error', 'Please enter an event title.');
-      return;
-    }
-    if (!selectedGroundId) {
-      Alert.alert('Error', 'Please select a playground.');
-      return;
-    }
+    if (!title.trim()) return Alert.alert('Error', 'Please enter an event title.');
+    if (!selectedGroundId)
+      return Alert.alert('Error', 'Please select a playground.');
 
     const backendDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
@@ -168,28 +154,17 @@ export default function EditEventScreen() {
         {
           text: 'OK',
           onPress: () => {
-            // ✅ setTimeout — устраняет краш при навигации сразу из onPress
-            setTimeout(() => {
-              router.back();
-            }, 150);
+            setTimeout(() => router.back(), 150);
           },
         },
       ]);
     } catch (err: any) {
-      // ✅ Безопасное извлечение — сервер может вернуть массив строк
       const raw = err?.response?.data?.message ?? err?.message;
       const message = Array.isArray(raw)
         ? raw.join('\n')
         : typeof raw === 'string'
           ? raw
           : 'Failed to update event.';
-
-      console.log(
-        '[updateEvent error]',
-        err?.response?.status,
-        err?.response?.data,
-      );
-
       Alert.alert('Error', message);
     }
   };
@@ -226,10 +201,7 @@ export default function EditEventScreen() {
         showsVerticalScrollIndicator={false}
         automaticallyAdjustKeyboardInsets={true}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + 120 },
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 120 }]}
       >
         <Text style={styles.inputLabel}>Event title</Text>
         <TextInput
@@ -257,10 +229,7 @@ export default function EditEventScreen() {
           onPress={() => setShowGroundPicker(true)}
         >
           <Text
-            style={[
-              styles.selectorText,
-              !selectedGround && styles.selectorPlaceholder,
-            ]}
+            style={[styles.selectorText, !selectedGround && styles.selectorPlaceholder]}
             numberOfLines={1}
           >
             {selectedGround?.name || 'Select playground court'}
@@ -382,7 +351,6 @@ export default function EditEventScreen() {
         onClose={() => setShowGroundPicker(false)}
       />
 
-      {/* iOS Date Picker */}
       {Platform.OS === 'ios' && (
         <>
           <Modal visible={showDatePicker} animationType="slide" transparent>
@@ -430,7 +398,7 @@ export default function EditEventScreen() {
                 <DateTimePicker
                   value={tempTime}
                   mode="time"
-                  is24Hour
+                  is24Hour={true}
                   display="spinner"
                   onValueChange={handleTimeValueChange}
                 />
@@ -452,7 +420,7 @@ export default function EditEventScreen() {
         <DateTimePicker
           value={time}
           mode="time"
-          is24Hour
+          is24Hour={true}
           display="default"
           onValueChange={handleTimeValueChange}
         />
@@ -477,12 +445,7 @@ const styles = StyleSheet.create({
   backButton: { padding: 4 },
   headerTitleContainer: { flex: 1, alignItems: 'center' },
   headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
-  headerSubtitle: {
-    fontSize: 12,
-    color: '#BACAD6',
-    fontWeight: '500',
-    marginTop: 1,
-  },
+  headerSubtitle: { fontSize: 12, color: '#BACAD6', fontWeight: '500', marginTop: 1 },
   scrollContent: { paddingHorizontal: 16, paddingTop: 20 },
   inputLabel: {
     fontSize: 14,

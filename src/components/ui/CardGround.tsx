@@ -1,6 +1,12 @@
 // src/components/ui/CardGround.tsx
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Image,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useUnit } from 'effector-react';
 
@@ -25,7 +31,8 @@ export interface ExtendedGroundItem {
   updatedAt: string;
   address: string | null;
   geolocation: { lat: string; lng: string } | null;
-  avatar: string;
+  avatar: string | null;
+  photos?: string[];
   eventsCount: number;
   isFavorite: boolean;
   avgRating: number;
@@ -44,6 +51,12 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
   const cityCenter = useUnit($cityCenter);
   const upcomingByGround = useUnit($upcomingEventsCountByGround);
 
+  // ✅ Сброс ошибки при смене URL
+  const [imageError, setImageError] = useState(false);
+  useEffect(() => {
+    setImageError(false);
+  }, [item.avatar]);
+
   const sportsList: string[] = useMemo(() => {
     if (Array.isArray(item.kindofsport) && item.kindofsport.length > 0) {
       return item.kindofsport;
@@ -51,7 +64,6 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
     return [];
   }, [item.kindofsport]);
 
-  // ✅ Только предстоящие + активные
   const upcomingCount = upcomingByGround[item.id] ?? 0;
 
   const distanceMeters = useMemo(() => {
@@ -69,15 +81,25 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
 
   const displayDistance = formatDistance(distanceMeters);
 
+  const showImage = !!item.avatar && !imageError;
+
   return (
     <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: item.avatar || 'https://unsplash.com' }}
-          style={styles.image}
-        />
+        {showImage ? (
+          <Image
+            key={item.avatar!}
+            source={{ uri: item.avatar! }}
+            style={styles.image}
+            resizeMode="cover"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <Ionicons name="image-outline" size={28} color="#BACAD6" />
+          </View>
+        )}
 
-        {/* ✅ Только предстоящие/активные события */}
         {upcomingCount > 0 && (
           <View style={styles.compactEventBadge}>
             <Ionicons name="calendar" size={11} color="#FFFFFF" style={styles.badgeIcon} />
@@ -182,7 +204,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#F0F4F8',
   },
-  image: { width: '100%', height: '100%', resizeMode: 'cover' },
+  image: { width: '100%', height: '100%' },
+  imagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F0F4F8',
+  },
   compactEventBadge: {
     position: 'absolute',
     top: 6,

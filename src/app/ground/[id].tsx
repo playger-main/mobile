@@ -1,22 +1,22 @@
 // src/app/ground/[id].tsx
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   StyleSheet,
   View,
   Text,
-  Image,
   ScrollView,
   Pressable,
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
 import { Ionicons } from '@expo/vector-icons';
 
 import { fetchGroundByIdFx } from '@/effector/events/async/grounds';
 import { fetchEventsByGroundIdFx } from '@/effector/events/async/events';
+import PhotoSlider from '@/components/ui/PhotoSlider';
 
 import {
   $currentGround,
@@ -40,32 +40,40 @@ export default function GroundDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const { ground, events, isLoading, toggleFavorite, user, userLocation, cityCenter } =
-    useUnit({
-      ground: $currentGround,
-      events: $currentGroundEvents,
-      isLoading: $isGroundDetailLoading,
-      toggleFavorite: toggleFavoriteInStore,
-      user: $userSession,
-      userLocation: $userLocation,
-      cityCenter: $cityCenter,
-    });
+  const {
+    ground,
+    events,
+    isLoading,
+    toggleFavorite,
+    user,
+    userLocation,
+    cityCenter,
+  } = useUnit({
+    ground: $currentGround,
+    events: $currentGroundEvents,
+    isLoading: $isGroundDetailLoading,
+    toggleFavorite: toggleFavoriteInStore,
+    user: $userSession,
+    userLocation: $userLocation,
+    cityCenter: $cityCenter,
+  });
 
   const [showHistory, setShowHistory] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      fetchGroundByIdFx(id);
-      fetchEventsByGroundIdFx(id);
-    }
-  }, [id]);
+  useFocusEffect(
+    useCallback(() => {
+      if (id) {
+        fetchGroundByIdFx(id);
+        fetchEventsByGroundIdFx(id);
+      }
+    }, [id]),
+  );
 
   const handleBack = () => {
     if (router.canGoBack()) router.back();
     else router.replace('/(drawer)/(tabs)');
   };
 
-  // ✅ Разбиваем события на 3 группы
   const { activeEvents, upcomingEvents, pastEvents } = useMemo(() => {
     const active: typeof events = [];
     const upcoming: typeof events = [];
@@ -100,7 +108,9 @@ export default function GroundDetailScreen() {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return { day: '??', month: 'ED' };
       const day = date.getDate().toString();
-      const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+      const month = date
+        .toLocaleString('en-US', { month: 'short' })
+        .toUpperCase();
       return { day, month };
     } catch {
       return { day: '00', month: 'EVT' };
@@ -121,18 +131,37 @@ export default function GroundDetailScreen() {
   })();
   const displayDistance = formatDistance(distanceMeters);
 
-  const amenitiesList: string[] = Array.isArray(ground.amenities) ? ground.amenities : [];
+  const amenitiesList: string[] = Array.isArray(ground.amenities)
+    ? ground.amenities
+    : [];
   const sportsList: string[] =
-    Array.isArray(ground.kindofsport) && ground.kindofsport.length > 0 ? ground.kindofsport : [];
-  const surfacesList: string[] = Array.isArray(ground.coverage) ? ground.coverage : [];
+    Array.isArray(ground.kindofsport) && ground.kindofsport.length > 0
+      ? ground.kindofsport
+      : [];
+  const surfacesList: string[] = Array.isArray(ground.coverage)
+    ? ground.coverage
+    : [];
 
-  const hasCoordinates = !!ground.geolocation?.lat && !!ground.geolocation?.lng;
+  const photosList: string[] =
+    Array.isArray(ground.photos) && ground.photos.length > 0
+      ? ground.photos
+      : ground.avatar
+        ? [ground.avatar]
+        : [];
+
+  const mainPhotoIndex = (() => {
+    if (!ground.avatar) return 0;
+    const idx = photosList.indexOf(ground.avatar);
+    return idx >= 0 ? idx : 0;
+  })();
+
+  const hasCoordinates =
+    !!ground.geolocation?.lat && !!ground.geolocation?.lng;
   const isCreator = user?.id === ground.creator?.id;
   const isModerator =
     user?.role?.includes('moderator') || user?.role?.includes('admin');
   const canEdit = isCreator || isModerator;
 
-  // ✅ Рендер карточки события (без бейджа статуса)
   const renderEventCard = (event: any) => {
     const dateInfo = formatEventDate(event.date);
     const players = event.currentPlayers ?? 0;
@@ -153,7 +182,6 @@ export default function GroundDetailScreen() {
           <Text style={styles.eventTitle} numberOfLines={1}>
             {event.name}
           </Text>
-
           <View style={styles.eventMeta}>
             <Ionicons name="time-outline" size={14} color="#6080A8" />
             <Text style={styles.eventMetaText}>
@@ -182,15 +210,22 @@ export default function GroundDetailScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* 1. Обложка */}
+        {/* ✅ Слайдер с key — перемонтирование при смене массива */}
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: ground.avatar || 'https://unsplash.com' }}
-            style={styles.image}
-            resizeMode="cover"
+          <PhotoSlider
+            key={photosList.join('|')}
+            photos={photosList}
+            mainIndex={mainPhotoIndex}
+            initialIndex={mainPhotoIndex}
+            height={260}
           />
+
           <View style={[styles.headerOverlay, { top: insets.top + 12 }]}>
-            <Pressable onPress={handleBack} style={styles.iconButton} hitSlop={8}>
+            <Pressable
+              onPress={handleBack}
+              style={styles.iconButton}
+              hitSlop={8}
+            >
               <Ionicons name="chevron-back" size={22} color="#334A77" />
             </Pressable>
             <View style={styles.headerRight}>
@@ -225,7 +260,6 @@ export default function GroundDetailScreen() {
           )}
         </View>
 
-        {/* 2. Основная информация */}
         <View style={styles.contentContainer}>
           <View style={styles.sportsRow}>
             {sportsList.length > 0 ? (
@@ -272,7 +306,10 @@ export default function GroundDetailScreen() {
               <Pressable
                 style={styles.showOnMapButton}
                 onPress={() =>
-                  navigateToGroundOnMap(ground.geolocation!.lat, ground.geolocation!.lng)
+                  navigateToGroundOnMap(
+                    ground.geolocation!.lat,
+                    ground.geolocation!.lng,
+                  )
                 }
               >
                 <Ionicons name="map-outline" size={16} color="#208AEF" />
@@ -330,12 +367,13 @@ export default function GroundDetailScreen() {
             </Text>
           )}
 
-          {/* LIVE — заголовок секции вместо бейджа на карточках */}
           {activeEvents.length > 0 && (
             <>
               <View style={styles.sectionHeaderRow}>
                 <View style={styles.liveDot} />
-                <Text style={[styles.sectionTitle, { marginBottom: 0, marginTop: 0 }]}>
+                <Text
+                  style={[styles.sectionTitle, { marginBottom: 0, marginTop: 0 }]}
+                >
                   Live now ({activeEvents.length})
                 </Text>
               </View>
@@ -345,7 +383,6 @@ export default function GroundDetailScreen() {
             </>
           )}
 
-          {/* UPCOMING */}
           <Text style={styles.sectionTitle}>
             Upcoming events ({upcomingEvents.length})
           </Text>
@@ -357,7 +394,6 @@ export default function GroundDetailScreen() {
             </Text>
           )}
 
-          {/* HISTORY */}
           {pastEvents.length > 0 && (
             <>
               <Pressable
@@ -392,7 +428,6 @@ export default function GroundDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Нижняя панель — Create event */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
         <Pressable
           style={styles.createEventButton}
@@ -434,7 +469,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   imageContainer: { width: '100%', height: 260, position: 'relative' },
-  image: { width: '100%', height: '100%' },
   headerOverlay: {
     position: 'absolute',
     left: 16,
@@ -471,7 +505,12 @@ const styles = StyleSheet.create({
   },
   pendingBadgeText: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
   contentContainer: { paddingHorizontal: 16, paddingTop: 16 },
-  sportsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
+  sportsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8,
+  },
   sportBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -481,7 +520,12 @@ const styles = StyleSheet.create({
   },
   sportDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   sportText: { fontSize: 11, fontWeight: '700' },
-  ratingBlock: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 },
+  ratingBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
+  },
   ratingText: { fontSize: 14, fontWeight: '700', color: '#334A77' },
   reviewsText: { color: '#BACAD6', fontWeight: '400' },
   title: { fontSize: 24, fontWeight: '800', color: '#334A77', marginTop: 4 },
@@ -521,12 +565,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 12,
   },
-  liveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#27AE60',
-  },
+  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#27AE60' },
   description: { fontSize: 14, color: '#6080A8', lineHeight: 20 },
   surfacesWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   surfaceChip: {
@@ -550,8 +589,6 @@ const styles = StyleSheet.create({
   },
   amenityText: { fontSize: 13, color: '#334A77', fontWeight: '500' },
   emptyAmenities: { fontSize: 13, color: '#BACAD6', fontStyle: 'italic' },
-
-  // ✅ Карточка события — без бейджа статуса
   eventCard: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
@@ -576,9 +613,12 @@ const styles = StyleSheet.create({
   eventTitle: { fontSize: 14, fontWeight: '600', color: '#334A77' },
   eventMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   eventMetaText: { fontSize: 12, color: '#6080A8', marginLeft: 4 },
-  emptyEvents: { fontSize: 14, color: '#BACAD6', fontStyle: 'italic', marginTop: 4 },
-
-  // History toggle
+  emptyEvents: {
+    fontSize: 14,
+    color: '#BACAD6',
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
   historyToggle: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -590,12 +630,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   historyToggleLeft: { flexDirection: 'row', alignItems: 'center' },
-  historyToggleText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#6080A8',
-  },
-
+  historyToggleText: { fontSize: 14, fontWeight: '700', color: '#6080A8' },
   bottomBar: {
     position: 'absolute',
     bottom: 0,

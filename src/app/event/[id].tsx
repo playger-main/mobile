@@ -1,5 +1,5 @@
 // src/app/event/[id].tsx
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,7 +10,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,7 +28,11 @@ import EventLocationCard from '@/components/ui/EventLocationCard';
 import ParticipantsModal from '@/components/ui/ParticipantsModal';
 import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportLabel } from '@/constants/sports';
-import { getEventStatus } from '@/utils/eventStatus';
+import {
+  getEventStatus,
+  getEventStatusLabel,
+  getEventStatusStyle,
+} from '@/utils/eventStatus';
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -45,18 +49,17 @@ export default function EventDetailScreen() {
 
   const [participantsVisible, setParticipantsVisible] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      fetchEventByIdFx(id);
-    }
-  }, [id]);
+  useFocusEffect(
+    useCallback(() => {
+      if (id) {
+        fetchEventByIdFx(id);
+      }
+    }, [id]),
+  );
 
   const handleBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/(drawer)/(tabs)/events');
-    }
+    if (router.canGoBack()) router.back();
+    else router.replace('/(drawer)/(tabs)/events');
   };
 
   const handleJoinToggleAction = async () => {
@@ -105,6 +108,8 @@ export default function EventDetailScreen() {
       : [];
 
   const status = getEventStatus(event.date, event.startTime, event.duration);
+  const statusStyle = getEventStatusStyle(status);
+  const statusLabel = getEventStatusLabel(status);
   const isFinished = status === 'finished';
 
   const isJoined = Array.isArray(event.players)
@@ -119,20 +124,14 @@ export default function EventDetailScreen() {
     userSession?.role?.includes('admin');
   const canEdit = isCreator || isModerator;
 
-  // Список игроков: серверный массив + гарантированно добавляем создателя
   const playersList = (() => {
     const list = Array.isArray(event.players) ? [...event.players] : [];
-
-    if (
-      event.creator?.id &&
-      !list.some((p) => p.id === event.creator!.id)
-    ) {
+    if (event.creator?.id && !list.some((p) => p.id === event.creator!.id)) {
       list.unshift({
         id: event.creator.id,
         name: event.creator.name || 'Creator',
       });
     }
-
     return list;
   })();
 
@@ -155,12 +154,12 @@ export default function EventDetailScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Обычный хедер — без фото события */}
       <View style={[styles.customHeader, { paddingTop: insets.top + 6 }]}>
         <Pressable onPress={handleBack} style={styles.backButton} hitSlop={12}>
           <Ionicons name="chevron-back" size={24} color="#208AEF" />
         </Pressable>
         <Text style={styles.headerTitle}>Event</Text>
-
         {canEdit ? (
           <Pressable
             onPress={() => router.push(`/event/edit?id=${event.id}`)}
@@ -181,7 +180,6 @@ export default function EventDetailScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Спорт + статус */}
         <View style={styles.badgesRow}>
           {sportsList.length > 0 ? (
             sportsList.slice(0, 4).map((sportId, idx) => {
@@ -211,22 +209,24 @@ export default function EventDetailScreen() {
             <View style={styles.moreBadge}>
               <Text style={styles.moreBadgeText}>+{sportsList.length - 4}</Text>
             </View>
-          )}         
+          )}
+
+          <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+            <Text style={[styles.statusText, { color: statusStyle.text }]}>
+              {statusLabel}
+            </Text>
+          </View>
         </View>
 
         <Text style={styles.title}>{event.name}</Text>
 
-        {/* ✅ Отдельный блок "Host" — кликабельный */}
         {event.creator && (
           <Pressable
             style={styles.hostCard}
             onPress={() =>
               router.push({
                 pathname: '/user/[id]',
-                params: {
-                  id: event.creator.id,
-                  name: event.creator.name,
-                },
+                params: { id: event.creator.id, name: event.creator.name },
               })
             }
           >
@@ -252,16 +252,20 @@ export default function EventDetailScreen() {
           level={event.level || 'Intermediate'}
           currentPlayers={currentPlayers}
           maxPlayers={maxPlayers}
-          status={status}                              // ✅ добавили
+          status={status}
           onPlayersPress={() => setParticipantsVisible(true)}
         />
 
-        <EventProgressBar currentPlayers={currentPlayers} maxPlayers={maxPlayers} />
+        <EventProgressBar
+          currentPlayers={currentPlayers}
+          maxPlayers={maxPlayers}
+        />
 
+        {/* ✅ Фото площадки показывается здесь */}
         <EventLocationCard
           name={event.ground?.name || 'Playground'}
           address={event.ground?.address || 'Address'}
-          avatar={event.ground?.avatar}
+          avatar={event.ground?.avatar ?? null}
           latitude={event.ground?.geolocation?.lat}
           longitude={event.ground?.geolocation?.lng}
         />
@@ -281,7 +285,9 @@ export default function EventDetailScreen() {
           {isJoining ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={[styles.joinButtonText, isJoined && styles.leaveBtnText]}>
+            <Text
+              style={[styles.joinButtonText, isJoined && styles.leaveBtnText]}
+            >
               {buttonText}
             </Text>
           )}
@@ -339,7 +345,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   moreBadgeText: { fontSize: 11, fontWeight: '700', color: '#6080A8' },
-
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -354,7 +359,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  // ✅ Host-карточка
   hostCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -374,22 +378,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  hostAvatarText: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 16,
-  },
-  hostLabel: {
-    fontSize: 11,
-    color: '#BACAD6',
-    fontWeight: '500',
-  },
-  hostName: {
-    fontSize: 14,
-    color: '#334A77',
-    fontWeight: '700',
-    marginTop: 1,
-  },
+  hostAvatarText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 },
+  hostLabel: { fontSize: 11, color: '#BACAD6', fontWeight: '500' },
+  hostName: { fontSize: 14, color: '#334A77', fontWeight: '700', marginTop: 1 },
 
   sectionTitle: {
     fontSize: 16,

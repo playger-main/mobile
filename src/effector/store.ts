@@ -1,12 +1,12 @@
 // src/effector/store.ts
 
 // ==========================================
-// 1. ДОМЕН: ФИЛЬТРЫ И ПОИСК
+// 1. ФИЛЬТРЫ И ПОИСК
 // ==========================================
 export { $searchQuery, $selectedCategory, $selectedDate } from './domains/filter';
 
 // ==========================================
-// 2. ДОМЕН: СЕРВЕРНЫЕ ДАННЫЕ (ПЛОЩАДКИ И СОБЫТИЯ)
+// 2. ДАННЫЕ (ПЛОЩАДКИ, СОБЫТИЯ)
 // ==========================================
 export {
   $grounds,
@@ -23,7 +23,7 @@ export {
   $currentEvent,
   $isEventDetailLoading,
   $currentDayEvents,
-  $upcomingEventsCountByGround,   // ✅
+  $upcomingEventsCountByGround,
 } from './domains/data';
 
 export {
@@ -40,12 +40,12 @@ export {
   fetchEventsByGroundIdFx,
   fetchEventByIdFx,
   createEventFx,
-  updateEventFx, 
+  updateEventFx,
   toggleJoinEventFx,
 } from './events/async/events';
 
 // ==========================================
-// 3. ДОМЕН: АВТОРИЗАЦИЯ, СЕССИЯ И ВЕРИФИКАЦИЯ
+// 3. АВТОРИЗАЦИЯ
 // ==========================================
 export {
   $authStep,
@@ -56,11 +56,17 @@ export {
   hydrateSessionFx,
 } from './domains/auth';
 
-export { verifyCodeFx, signUpFx, signInFx, resendCodeFx } from './events/async/auth';
+export {
+  verifyCodeFx,
+  signUpFx,
+  signInFx,
+  resendCodeFx,
+} from './events/async/auth';
+
 export type { SessionUser } from './domains/auth';
 
 // ==========================================
-// 4. ДОМЕН: НАСТРОЙКИ ПРИЛОЖЕНИЯ
+// 4. НАСТРОЙКИ
 // ==========================================
 export {
   $eventReminders,
@@ -73,7 +79,7 @@ export {
 } from './domains/settings';
 
 // ==========================================
-// 5. ДОМЕН: ГЕОЛОКАЦИЯ И ГОРОД
+// 5. ГЕОЛОКАЦИЯ И ГОРОД
 // ==========================================
 export {
   $userLocation,
@@ -83,14 +89,14 @@ export {
   $isDetectingCity,
   $mapCenter,
   $mapFocusTarget,
-  $clusterSheetVisible,  
+  $clusterSheetVisible,
   requestUserLocationFx,
   checkLocationPermissionFx,
   detectCityFx,
 } from './domains/location';
 
 // ==========================================
-// 6. SYNC-СОБЫТИЯ (для использования в UI)
+// 6. SYNC-СОБЫТИЯ
 // ==========================================
 export {
   setMapFocusTarget,

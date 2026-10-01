@@ -1,19 +1,21 @@
 // src/effector/domains/data.ts
 import { createDomain, combine } from 'effector';
+
 import { ExtendedGroundItem } from '@/components/ui/CardGround';
 import { clearGrounds, toggleFavoriteInStore } from '../events/sync';
 import { $selectedDate } from './filter';
-import { getEventStatus } from '@/utils/eventStatus'; 
+import { getEventStatus } from '@/utils/eventStatus';
 
 import {
   fetchGroundByIdFx,
   fetchGroundsFx,
   createGroundFx,
+  updateGroundFx,
   confirmGroundFx,
   deleteGroundFx,
   GroundDetailItem,
-  updateGroundFx,
 } from '../events/async/grounds';
+
 import {
   fetchAllEventsFx,
   fetchEventsByGroundIdFx,
@@ -22,12 +24,14 @@ import {
   ServerEventItem,
   DetailedEventItem,
   toggleJoinEventFx,
-  updateEventFx,  
+  updateEventFx,
 } from '../events/async/events';
 
 const dataDomain = createDomain('data');
 
-// ================== ПЛОЩАДКИ ==================
+// ==========================================
+// ПЛОЩАДКИ
+// ==========================================
 
 export const $grounds = dataDomain
   .createStore<ExtendedGroundItem[]>([])
@@ -35,30 +39,65 @@ export const $grounds = dataDomain
   .on(fetchGroundsFx.failData, () => [])
   .on(clearGrounds, () => [])
   .on(toggleFavoriteInStore, (state, id) =>
-    state.map((item: any) => (item.id === id ? { ...item, isFavorite: !item.isFavorite } : item)),
+    state.map((item) =>
+      item.id === id ? { ...item, isFavorite: !item.isFavorite } : item,
+    ),
   )
   .on(createGroundFx.doneData, (state, newGround) => {
     const extendedGround: ExtendedGroundItem = {
       ...newGround,
-      // Уже есть: createdAt, updatedAt, creator
       eventsCount: 0,
       isFavorite: false,
       avgRating: 0,
       distanceMeters: undefined,
-      // amenities, confirmed тоже есть
     };
     return [extendedGround, ...state];
   })
+  // ✅ После редактирования — обновляем avatar/photos, сохраняем остальные поля
   .on(updateGroundFx.doneData, (state, updated) =>
-    // Если это currentGround — обновится через отдельный стор ниже
-    state,
+    state.map((g) =>
+      g.id === updated.id
+        ? {
+            ...g,
+            name: updated.name ?? g.name,
+            address: updated.address ?? g.address,
+            confirmed: updated.confirmed ?? g.confirmed,
+            avatar: updated.avatar,
+            avatarPath: updated.avatarPath,
+            photos: updated.photos,
+            photoPaths: updated.photoPaths,
+            photoIds: updated.photoIds,
+            updatedAt: updated.updatedAt,
+          }
+        : g,
+    ),
+  )
+  // ✅ Когда открыли детали — синхронизируем список
+  .on(fetchGroundByIdFx.doneData, (state, fresh) =>
+    state.map((g) =>
+      g.id === fresh.id
+        ? {
+            ...g,
+            name: fresh.name ?? g.name,
+            address: fresh.address ?? g.address,
+            avatar: fresh.avatar,
+            avatarPath: fresh.avatarPath,
+            photos: fresh.photos,
+            photoPaths: fresh.photoPaths,
+            photoIds: fresh.photoIds,
+            updatedAt: fresh.updatedAt,
+          }
+        : g,
+    ),
   )
   .on(confirmGroundFx.doneData, (state, updated) =>
     state.map((item) =>
       item.id === updated.id ? { ...item, confirmed: updated.confirmed } : item,
     ),
   )
-  .on(deleteGroundFx.done, (state, { params: id }) => state.filter((item) => item.id !== id));
+  .on(deleteGroundFx.done, (state, { params: id }) =>
+    state.filter((item) => item.id !== id),
+  );
 
 export const $isGroundsLoading = dataDomain
   .createStore<boolean>(false)
@@ -81,16 +120,26 @@ export const $isGroundDetailLoading = dataDomain
   .on(fetchGroundByIdFx, () => true)
   .on(fetchGroundByIdFx.finally, () => false);
 
+export const $currentGroundEvents = dataDomain
+  .createStore<RealEventItem[]>([])
+  .on(fetchEventsByGroundIdFx.doneData, (_, payload) => payload)
+  .on(fetchEventsByGroundIdFx.failData, () => []);
+
 // ✅ Стор для неподтверждённых площадок (для модерации)
 export const $pendingGrounds = dataDomain
   .createStore<ExtendedGroundItem[]>([])
   .on(fetchGroundsFx.doneData, (_, payload) =>
-    // Фильтруем на клиенте: показываем только неподтверждённые
-    // (сервер отдаёт их модератору в общем списке)
     payload.filter((g) => g.confirmed === false),
   )
+  .on(updateGroundFx.doneData, (state, updated) => {
+    if (updated.confirmed !== false) {
+      return state.filter((item) => item.id !== updated.id);
+    }
+    return state.map((item) =>
+      item.id === updated.id ? { ...item, ...updated } : item,
+    );
+  })
   .on(confirmGroundFx.doneData, (state, updated) =>
-    // После подтверждения убираем из pending
     state.filter((item) => item.id !== updated.id),
   )
   .on(deleteGroundFx.done, (state, { params: id }) =>
@@ -102,12 +151,9 @@ export const $isPendingLoading = dataDomain
   .on(fetchGroundsFx, () => true)
   .on(fetchGroundsFx.finally, () => false);
 
-// ================== СОБЫТИЯ ==================
-
-export const $currentGroundEvents = dataDomain
-  .createStore<RealEventItem[]>([])
-  .on(fetchEventsByGroundIdFx.doneData, (_, payload) => payload)
-  .on(fetchEventsByGroundIdFx.failData, () => []);
+// ==========================================
+// СОБЫТИЯ
+// ==========================================
 
 export const $events = dataDomain
   .createStore<ServerEventItem[]>([])
@@ -139,7 +185,11 @@ export const $currentDayEvents = combine(
   (events, selectedDate) => events.filter((evt) => evt.date === selectedDate),
 );
 
-// ✅ Стор: количество предстоящих/активных событий на каждой площадке
+// ==========================================
+// ПРОИЗВОДНЫЕ СТОРЫ
+// ==========================================
+
+// ✅ Количество предстоящих/активных событий на площадке
 export const $upcomingEventsCountByGround = $events.map((events) => {
   const map: Record<string, number> = {};
   for (const e of events) {
