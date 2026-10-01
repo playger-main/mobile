@@ -11,7 +11,7 @@ export const apiInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    // ✅ Запрещаем кэш GET-ответов (иначе старые avatar/photos/session)
+    // ✅ Запрещаем кэш GET-ответов (иначе старые avatar/photos и сессия)
     'Cache-Control': 'no-cache, no-store, must-revalidate',
     Pragma: 'no-cache',
     Expires: '0',
@@ -20,6 +20,7 @@ export const apiInstance = axios.create({
 
 // ============================================================
 // REQUEST — подставляем Bearer-токен из SecureStore
+// (переживает перезапуск приложения, в отличие от $accessToken)
 // ============================================================
 apiInstance.interceptors.request.use(
   async (config) => {
@@ -38,17 +39,25 @@ apiInstance.interceptors.request.use(
 );
 
 // ============================================================
-// RESPONSE — при 401 (токен протух) — logout + очистка токенов
+// RESPONSE — при 401 (токен протух) → logout + очистка SecureStore
 // ============================================================
 apiInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const status = error?.response?.status;
+    const url = error?.config?.url ?? '';
 
-    if (status === 401) {
+    // Не сбрасываем сессию при 401 на самом signin (там это нормальная ошибка пароля)
+    const isAuthEndpoint =
+      url.includes('/auth/signin') ||
+      url.includes('/auth/signup') ||
+      url.includes('/auth/confirm') ||
+      url.includes('/auth/resend-code');
+
+    if (status === 401 && !isAuthEndpoint) {
       console.log('[api] 401 Unauthorized → logging out');
 
-      // 1. Чистим токены из SecureStore
+      // 1. Чистим токены
       try {
         await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
         await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
