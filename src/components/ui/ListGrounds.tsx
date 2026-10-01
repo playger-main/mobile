@@ -1,6 +1,12 @@
 // src/components/ui/ListGrounds.tsx
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Platform, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
 
@@ -10,13 +16,14 @@ import CardGround, { ExtendedGroundItem } from './CardGround';
 import CategorySport from './CategorySport';
 
 import { fetchGroundsFx } from '@/effector/events/async/grounds';
-import { fetchAllEventsFx } from '@/effector/events/async/events';  // ✅
+import { fetchAllEventsFx } from '@/effector/events/async/events';
 import {
   $grounds,
   $isGroundsLoading,
   $searchQuery,
   $selectedCategory,
-  $events,                                                            // ✅
+  $userSession,
+  $events,
 } from '@/effector/store';
 import { setSelectedCategory } from '@/effector/events/sync';
 
@@ -35,30 +42,35 @@ export default function ListGrounds({ onItemPress, onToggleFavorite }: ListGroun
     searchQuery,
     selectedCategory,
     changeCategory,
-    events,                                                          // ✅
+    user,
+    events,
   } = useUnit({
     grounds: $grounds,
     isLoading: $isGroundsLoading,
     searchQuery: $searchQuery,
     selectedCategory: $selectedCategory,
     changeCategory: setSelectedCategory,
-    events: $events,                                                 // ✅
+    user: $userSession,
+    events: $events,
   });
 
-  // ✅ Загружаем площадки
+  // ✅ Перезапрашиваем площадки при:
+  //  - смене фильтра (category)
+  //  - изменении поискового запроса
+  //  - логине/логауте (user?.id меняется)
   useEffect(() => {
     fetchGroundsFx({
       kindofsport: selectedCategory === 'all' ? undefined : selectedCategory,
       search: searchQuery.trim() || undefined,
     });
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery, user?.id]);
 
-  // ✅ Загружаем события один раз (для счётчика предстоящих)
+  // ✅ Загружаем события один раз при монтировании (для счётчика upcoming)
   useEffect(() => {
     if (events.length === 0) {
       fetchAllEventsFx();
     }
-  }, []); // только при монтировании
+  }, []);
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
@@ -86,7 +98,7 @@ export default function ListGrounds({ onItemPress, onToggleFavorite }: ListGroun
     );
   }
 
-  // Web
+  // Web-версия
   if (isWeb) {
     return (
       <View style={styles.webListContent}>
@@ -128,8 +140,14 @@ export default function ListGrounds({ onItemPress, onToggleFavorite }: ListGroun
 }
 
 const styles = StyleSheet.create({
-  listContent: { paddingHorizontal: 16, paddingTop: 8 },
-  headerContainer: { paddingTop: 0, marginBottom: 8 },
+  listContent: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  headerContainer: {
+    paddingTop: 0,
+    marginBottom: 8,
+  },
   headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
