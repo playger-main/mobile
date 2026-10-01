@@ -125,6 +125,7 @@ export default function RootLayout() {
         */}
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(drawer)" />
+          <Stack.Screen name="user/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="event/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="event/edit" options={{ headerShown: false }} />
           <Stack.Screen name="ground/[id]" options={{ headerShown: false }} />

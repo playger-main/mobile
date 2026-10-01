@@ -12,6 +12,9 @@ export interface ServerEventItem {
   duration: string;    // "1.5 hours"
   createdAt: string;
   updatedAt: string;
+  maxPlayers: number;        // ✅
+  currentPlayers: number;    // ✅
+  level?: string;            // ✅
   creator: {
     id: string;
     name: string;
@@ -51,6 +54,7 @@ export interface DetailedEventItem {
   playersCount?: string; // "12/14"
   maxPlayers?: number;  // 14
   currentPlayers?: number; // 12
+  players?: Array<{ id: string; name: string }>;
   creator: {
     id: string;
     name: string;

@@ -39,13 +39,16 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
     const statusStyle = getEventStatusStyle(status);
     const statusLabel = getEventStatusLabel(status);
 
+    const players = item.currentPlayers ?? 0;
+    const maxPlayers = item.maxPlayers ?? 0;
+    const isFull = maxPlayers > 0 && players >= maxPlayers;
+
     return (
       <Pressable
         style={styles.card}
         onPress={() => router.push(`/event/${item.id}`)}
       >
         <View style={styles.cardHeader}>
-          {/* ✅ 2 тега + +N */}
           <View style={styles.sportsRow}>
             {sportsList.length > 0 ? (
               sportsList.slice(0, 2).map((sportId, idx) => {
@@ -96,10 +99,22 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
               <Ionicons name="time-outline" size={14} color="#6080A8" />
               <Text style={styles.metaText}>{item.duration}</Text>
             </View>
+
+            {/* ✅ Игроки вместо автора */}
             <View style={styles.metaItem}>
-              <Ionicons name="person-outline" size={14} color="#6080A8" />
-              <Text style={styles.metaText} numberOfLines={1}>
-                by {item.creator.name}
+              <Ionicons
+                name={isFull ? 'people' : 'people-outline'}
+                size={14}
+                color={isFull ? '#FF3B30' : '#6080A8'}
+              />
+              <Text
+                style={[
+                  styles.metaText,
+                  isFull && styles.metaTextFull,
+                ]}
+                numberOfLines={1}
+              >
+                {players}/{maxPlayers} players
               </Text>
             </View>
           </View>
@@ -167,7 +182,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     gap: 8,
   },
-
   sportsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -222,7 +236,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6080A8',
     fontWeight: '500',
-    maxWidth: 90,
+    maxWidth: 120,
+  },
+  metaTextFull: {
+    color: '#FF3B30',
+    fontWeight: '700',
   },
 
   spotsBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },

@@ -12,6 +12,7 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
+  Keyboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -62,7 +63,7 @@ export default function CreateEventScreen() {
     }
   }, []);
 
-  // ✅ Проверяем: если initialGroundId ведёт на неподтверждённую площадку — предупреждаем
+  // ✅ Проверяем: если initialGroundId ведёт на неподтверждённую площадку
   useEffect(() => {
     if (!initialGroundId || grounds.length === 0) return;
     const g = grounds.find((x) => x.id === initialGroundId);
@@ -74,6 +75,10 @@ export default function CreateEventScreen() {
       );
     }
   }, [initialGroundId, grounds]);
+
+  // ✅ Определяем selectedGround ДО handlePublish
+  const selectedGround = grounds.find((g) => g.id === selectedGroundId);
+  const isGroundUnconfirmed = selectedGround?.confirmed === false;
 
   const handleOpenDatePicker = () => {
     setTempDate(date);
@@ -122,6 +127,9 @@ export default function CreateEventScreen() {
   };
 
   const handlePublish = async () => {
+    // ✅ Закрываем клавиатуру — предотвращает краш iOS
+    Keyboard.dismiss();
+
     if (!title.trim()) {
       Alert.alert('Error', 'Please enter an event title.');
       return;
@@ -131,7 +139,6 @@ export default function CreateEventScreen() {
       return;
     }
 
-    // ✅ Блокируем создание на неподтверждённой площадке
     if (selectedGround?.confirmed === false) {
       Alert.alert(
         'Ground not available',
@@ -155,18 +162,34 @@ export default function CreateEventScreen() {
       });
 
       Alert.alert('Success', 'Your match has been successfully published!', [
-        { text: 'Awesome', onPress: () => router.replace('/(drawer)/(tabs)/events') },
+        {
+          text: 'Awesome',
+          onPress: () => {
+            // ✅ setTimeout — устраняет краш при навигации сразу из onPress
+            setTimeout(() => {
+              router.replace('/(drawer)/(tabs)/events');
+            }, 150);
+          },
+        },
       ]);
     } catch (err: any) {
-      Alert.alert(
-        'Error',
-        err?.response?.data?.message || 'Failed to create event. Try again.',
+      // ✅ Безопасное извлечение — сервер может вернуть массив строк
+      const raw = err?.response?.data?.message ?? err?.message;
+      const message = Array.isArray(raw)
+        ? raw.join('\n')
+        : typeof raw === 'string'
+          ? raw
+          : 'Failed to create event. Try again.';
+
+      console.log(
+        '[createEvent error]',
+        err?.response?.status,
+        err?.response?.data,
       );
+
+      Alert.alert('Error', message);
     }
   };
-
-  const selectedGround = grounds.find((g) => g.id === selectedGroundId);
-  const isGroundUnconfirmed = selectedGround?.confirmed === false;
 
   const isFormValid =
     title.trim().length > 0 &&
@@ -207,7 +230,7 @@ export default function CreateEventScreen() {
           onChangeText={setTitle}
         />
 
-        {/* ✅ Ground Selector + Pick on map */}
+        {/* Ground Selector + Pick on map */}
         <View style={styles.groundLabelRow}>
           <Text style={styles.inputLabel}>Ground</Text>
           <Pressable
@@ -243,7 +266,6 @@ export default function CreateEventScreen() {
           </Text>
         ) : null}
 
-        {/* ✅ Предупреждение о неподтверждённой площадке */}
         {isGroundUnconfirmed && (
           <View style={styles.warningNotice}>
             <Ionicons name="warning-outline" size={18} color="#FF8000" />
@@ -444,7 +466,7 @@ export default function CreateEventScreen() {
         </Pressable>
       </View>
 
-      {/* ✅ Модалка выбора площадки на карте */}
+      {/* Модалка выбора площадки на карте */}
       <GroundPickerModal
         visible={showGroundPicker}
         initialGroundId={selectedGroundId}
@@ -495,7 +517,6 @@ const styles = StyleSheet.create({
     color: '#334A77',
     backgroundColor: '#FFFFFF',
   },
-
   groundLabelRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -510,7 +531,6 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
   },
   pickOnMapText: { fontSize: 13, fontWeight: '700', color: '#208AEF' },
-
   selectorField: {
     width: '100%',
     height: 48,
@@ -537,8 +557,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginLeft: 2,
   },
-
-  // ✅ Предупреждение
   warningNotice: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -557,7 +575,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 17,
   },
-
   rowContainer: { flexDirection: 'row', gap: 12 },
   flexItem: { flex: 1 },
   iconInputField: {

@@ -1,5 +1,5 @@
 // src/app/ground/[id].tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -31,7 +31,7 @@ import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportLabel } from '@/constants/sports';
 import { getAmenityIcon } from '@/constants/amenities';
 import { getSurfaceLabel } from '@/constants/surface';
-import { getEventStatus, getEventStatusStyle } from '@/utils/eventStatus';
+import { getEventStatus } from '@/utils/eventStatus';
 import { navigateToGroundOnMap } from '@/utils/navigateToGround';
 import { calculateDistance, formatDistance } from '@/utils/distance';
 
@@ -51,6 +51,8 @@ export default function GroundDetailScreen() {
       cityCenter: $cityCenter,
     });
 
+  const [showHistory, setShowHistory] = useState(false);
+
   useEffect(() => {
     if (id) {
       fetchGroundByIdFx(id);
@@ -59,12 +61,31 @@ export default function GroundDetailScreen() {
   }, [id]);
 
   const handleBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/(drawer)/(tabs)');
-    }
+    if (router.canGoBack()) router.back();
+    else router.replace('/(drawer)/(tabs)');
   };
+
+  // ✅ Разбиваем события на 3 группы
+  const { activeEvents, upcomingEvents, pastEvents } = useMemo(() => {
+    const active: typeof events = [];
+    const upcoming: typeof events = [];
+    const past: typeof events = [];
+
+    for (const e of events) {
+      const status = getEventStatus(e.date, e.startTime, e.duration);
+      if (status === 'active') active.push(e);
+      else if (status === 'upcoming') upcoming.push(e);
+      else past.push(e);
+    }
+
+    past.sort((a, b) => {
+      const da = new Date(`${a.date}T${a.startTime}`).getTime();
+      const db = new Date(`${b.date}T${b.startTime}`).getTime();
+      return db - da;
+    });
+
+    return { activeEvents: active, upcomingEvents: upcoming, pastEvents: past };
+  }, [events]);
 
   if (isLoading || !ground) {
     return (
@@ -78,18 +99,14 @@ export default function GroundDetailScreen() {
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return { day: '??', month: 'ED' };
-
       const day = date.getDate().toString();
-      const month = date
-        .toLocaleString('en-US', { month: 'short' })
-        .toUpperCase();
+      const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
       return { day, month };
     } catch {
       return { day: '00', month: 'EVT' };
     }
   };
 
-  // ✅ Дистанция: клиентский расчёт (userLocation → cityCenter → серверная)
   const distanceMeters = (() => {
     const origin = userLocation ?? cityCenter;
     if (!origin || !ground.geolocation?.lat || !ground.geolocation?.lng) {
@@ -102,29 +119,62 @@ export default function GroundDetailScreen() {
       Number(ground.geolocation.lng),
     );
   })();
-
   const displayDistance = formatDistance(distanceMeters);
 
-  const amenitiesList: string[] = Array.isArray(ground.amenities)
-    ? ground.amenities
-    : [];
-
+  const amenitiesList: string[] = Array.isArray(ground.amenities) ? ground.amenities : [];
   const sportsList: string[] =
-    Array.isArray(ground.kindofsport) && ground.kindofsport.length > 0
-      ? ground.kindofsport
-      : [];
+    Array.isArray(ground.kindofsport) && ground.kindofsport.length > 0 ? ground.kindofsport : [];
+  const surfacesList: string[] = Array.isArray(ground.coverage) ? ground.coverage : [];
 
-  const surfacesList: string[] = Array.isArray(ground.coverage)
-    ? ground.coverage
-    : [];
-
-  const hasCoordinates =
-    !!ground.geolocation?.lat && !!ground.geolocation?.lng;
-
+  const hasCoordinates = !!ground.geolocation?.lat && !!ground.geolocation?.lng;
   const isCreator = user?.id === ground.creator?.id;
   const isModerator =
     user?.role?.includes('moderator') || user?.role?.includes('admin');
   const canEdit = isCreator || isModerator;
+
+  // ✅ Рендер карточки события (без бейджа статуса)
+  const renderEventCard = (event: any) => {
+    const dateInfo = formatEventDate(event.date);
+    const players = event.currentPlayers ?? 0;
+    const maxPlayers = event.maxPlayers ?? 0;
+
+    return (
+      <Pressable
+        key={event.id}
+        style={styles.eventCard}
+        onPress={() => router.push(`/event/${event.id}`)}
+      >
+        <View style={styles.eventDateBadge}>
+          <Text style={styles.eventDateText}>{dateInfo.day}</Text>
+          <Text style={styles.eventMonthText}>{dateInfo.month}</Text>
+        </View>
+
+        <View style={styles.eventInfo}>
+          <Text style={styles.eventTitle} numberOfLines={1}>
+            {event.name}
+          </Text>
+
+          <View style={styles.eventMeta}>
+            <Ionicons name="time-outline" size={14} color="#6080A8" />
+            <Text style={styles.eventMetaText}>
+              {event.startTime} • {event.duration || '1.5 hours'}
+            </Text>
+            <Ionicons
+              name="people-outline"
+              size={14}
+              color="#6080A8"
+              style={{ marginLeft: 12 }}
+            />
+            <Text style={styles.eventMetaText}>
+              {players}/{maxPlayers}
+            </Text>
+          </View>
+        </View>
+
+        <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
+      </Pressable>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -139,12 +189,10 @@ export default function GroundDetailScreen() {
             style={styles.image}
             resizeMode="cover"
           />
-
           <View style={[styles.headerOverlay, { top: insets.top + 12 }]}>
             <Pressable onPress={handleBack} style={styles.iconButton} hitSlop={8}>
               <Ionicons name="chevron-back" size={22} color="#334A77" />
             </Pressable>
-
             <View style={styles.headerRight}>
               {canEdit && (
                 <Pressable
@@ -155,7 +203,6 @@ export default function GroundDetailScreen() {
                   <Ionicons name="create-outline" size={22} color="#334A77" />
                 </Pressable>
               )}
-
               <Pressable
                 onPress={() => toggleFavorite(ground.id)}
                 style={styles.iconButton}
@@ -180,7 +227,6 @@ export default function GroundDetailScreen() {
 
         {/* 2. Основная информация */}
         <View style={styles.contentContainer}>
-          {/* Все виды спорта чипами */}
           <View style={styles.sportsRow}>
             {sportsList.length > 0 ? (
               sportsList.map((sportId) => {
@@ -207,7 +253,6 @@ export default function GroundDetailScreen() {
             )}
           </View>
 
-          {/* Рейтинг */}
           <View style={styles.ratingBlock}>
             <Ionicons name="star" size={16} color="#FFCC00" />
             <Text style={styles.ratingText}>
@@ -217,22 +262,17 @@ export default function GroundDetailScreen() {
           </View>
 
           <Text style={styles.title}>{ground.name}</Text>
-
           <Text style={styles.address}>
             <Ionicons name="location-outline" size={14} color="#6080A8" />{' '}
             {ground.address || 'No address provided'}
           </Text>
 
-          {/* ✅ Одна строка: "Show on map" слева, дистанция справа */}
           <View style={styles.mapRow}>
             {hasCoordinates ? (
               <Pressable
                 style={styles.showOnMapButton}
                 onPress={() =>
-                  navigateToGroundOnMap(
-                    ground.geolocation!.lat,
-                    ground.geolocation!.lng,
-                  )
+                  navigateToGroundOnMap(ground.geolocation!.lat, ground.geolocation!.lng)
                 }
               >
                 <Ionicons name="map-outline" size={16} color="#208AEF" />
@@ -241,14 +281,12 @@ export default function GroundDetailScreen() {
             ) : (
               <View />
             )}
-
             <View style={styles.distanceBlock}>
               <Ionicons name="navigate-outline" size={14} color="#6080A8" />
               <Text style={styles.distanceText}>{displayDistance}</Text>
             </View>
           </View>
 
-          {/* Surface — массив покрытий */}
           {surfacesList.length > 0 && (
             <>
               <Text style={styles.sectionTitle}>Surface</Text>
@@ -265,14 +303,12 @@ export default function GroundDetailScreen() {
             </>
           )}
 
-          {/* About */}
           <Text style={styles.sectionTitle}>About</Text>
           <Text style={styles.description}>
             {ground.description ||
               'A community-focused open court for practice and friendly team matches. Check upcoming events to join existing teams.'}
           </Text>
 
-          {/* Amenities */}
           <Text style={styles.sectionTitle}>Amenities</Text>
           {amenitiesList.length > 0 ? (
             <View style={styles.amenitiesContainer}>
@@ -294,72 +330,69 @@ export default function GroundDetailScreen() {
             </Text>
           )}
 
-          {/* Upcoming events */}
-          <Text style={styles.sectionTitle}>Upcoming events ({events.length})</Text>
+          {/* LIVE — заголовок секции вместо бейджа на карточках */}
+          {activeEvents.length > 0 && (
+            <>
+              <View style={styles.sectionHeaderRow}>
+                <View style={styles.liveDot} />
+                <Text style={[styles.sectionTitle, { marginBottom: 0, marginTop: 0 }]}>
+                  Live now ({activeEvents.length})
+                </Text>
+              </View>
+              <View style={{ marginTop: 12 }}>
+                {activeEvents.map(renderEventCard)}
+              </View>
+            </>
+          )}
 
-          {events.length > 0 ? (
-            events.map((event) => {
-              const dateInfo = formatEventDate(event.date);
-              const status = getEventStatus(
-                event.date,
-                event.startTime,
-                event.duration,
-              );
-              const statusStyle = getEventStatusStyle(status);
-
-              return (
-                <Pressable
-                  key={event.id}
-                  style={styles.eventCard}
-                  onPress={() => router.push(`/event/${event.id}`)}
-                >
-                  <View style={styles.eventDateBadge}>
-                    <Text style={styles.eventDateText}>{dateInfo.day}</Text>
-                    <Text style={styles.eventMonthText}>{dateInfo.month}</Text>
-                  </View>
-
-                  <View style={styles.eventInfo}>
-                    <Text style={styles.eventTitle} numberOfLines={1}>
-                      {event.name}
-                    </Text>
-                    <View style={styles.eventMeta}>
-                      <Ionicons name="time-outline" size={14} color="#6080A8" />
-                      <Text style={styles.eventMetaText}>
-                        {event.startTime} • {event.duration || '1.5 hours'}
-                      </Text>
-                      <Ionicons
-                        name="person-outline"
-                        size={14}
-                        color="#6080A8"
-                        style={{ marginLeft: 12 }}
-                      />
-                      <Text style={styles.eventMetaText}>
-                        by {event.creator?.name || 'User'}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View
-                    style={[styles.statusDot, { backgroundColor: statusStyle.text }]}
-                  />
-                  <Ionicons
-                    name="chevron-forward"
-                    size={16}
-                    color="#BACAD6"
-                    style={{ marginLeft: 6 }}
-                  />
-                </Pressable>
-              );
-            })
+          {/* UPCOMING */}
+          <Text style={styles.sectionTitle}>
+            Upcoming events ({upcomingEvents.length})
+          </Text>
+          {upcomingEvents.length > 0 ? (
+            upcomingEvents.map(renderEventCard)
           ) : (
             <Text style={styles.emptyEvents}>
-              No planned events on this court yet. Create one below!
+              No upcoming events scheduled yet.
             </Text>
+          )}
+
+          {/* HISTORY */}
+          {pastEvents.length > 0 && (
+            <>
+              <Pressable
+                style={styles.historyToggle}
+                onPress={() => setShowHistory((v) => !v)}
+              >
+                <View style={styles.historyToggleLeft}>
+                  <Ionicons
+                    name="time-outline"
+                    size={18}
+                    color="#6080A8"
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text style={styles.historyToggleText}>
+                    History ({pastEvents.length})
+                  </Text>
+                </View>
+                <Ionicons
+                  name={showHistory ? 'chevron-up' : 'chevron-down'}
+                  size={18}
+                  color="#6080A8"
+                />
+              </Pressable>
+
+              {showHistory && (
+                <View style={{ marginTop: 4 }}>
+                  {pastEvents.map(renderEventCard)}
+                </View>
+              )}
+            </>
           )}
         </View>
       </ScrollView>
 
-      {/* 7. Нижняя панель с Create event */}
+      {/* Нижняя панель — Create event */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
         <Pressable
           style={styles.createEventButton}
@@ -411,10 +444,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     zIndex: 10,
   },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  headerRight: { flexDirection: 'row', alignItems: 'center' },
   iconButton: {
     width: 40,
     height: 40,
@@ -438,25 +468,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  pendingBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '700',
-  },
+  pendingBadgeText: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
   contentContainer: { paddingHorizontal: 16, paddingTop: 16 },
-
-  sportsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 8,
-  },
+  sportsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
   sportBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -466,20 +481,11 @@ const styles = StyleSheet.create({
   },
   sportDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   sportText: { fontSize: 11, fontWeight: '700' },
-
-  ratingBlock: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 8,
-  },
+  ratingBlock: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 },
   ratingText: { fontSize: 14, fontWeight: '700', color: '#334A77' },
   reviewsText: { color: '#BACAD6', fontWeight: '400' },
-
   title: { fontSize: 24, fontWeight: '800', color: '#334A77', marginTop: 4 },
   address: { fontSize: 14, color: '#6080A8', marginTop: 4 },
-
-  // ✅ Одна строка: show-on-map слева, дистанция справа
   mapRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -499,18 +505,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   showOnMapText: { fontSize: 13, fontWeight: '600', color: '#208AEF' },
-
-  distanceBlock: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  distanceText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6080A8',
-  },
-
+  distanceBlock: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  distanceText: { fontSize: 13, fontWeight: '600', color: '#6080A8' },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
@@ -518,8 +514,20 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 12,
   },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 24,
+    marginBottom: 12,
+  },
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#27AE60',
+  },
   description: { fontSize: 14, color: '#6080A8', lineHeight: 20 },
-
   surfacesWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   surfaceChip: {
     flexDirection: 'row',
@@ -530,12 +538,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 12,
   },
-  surfaceChipText: {
-    fontSize: 13,
-    color: '#334A77',
-    fontWeight: '500',
-  },
-
+  surfaceChipText: { fontSize: 13, color: '#334A77', fontWeight: '500' },
   amenitiesContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   amenityChip: {
     flexDirection: 'row',
@@ -546,12 +549,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   amenityText: { fontSize: 13, color: '#334A77', fontWeight: '500' },
-  emptyAmenities: {
-    fontSize: 13,
-    color: '#BACAD6',
-    fontStyle: 'italic',
-  },
+  emptyAmenities: { fontSize: 13, color: '#BACAD6', fontStyle: 'italic' },
 
+  // ✅ Карточка события — без бейджа статуса
   eventCard: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
@@ -576,13 +576,26 @@ const styles = StyleSheet.create({
   eventTitle: { fontSize: 14, fontWeight: '600', color: '#334A77' },
   eventMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   eventMetaText: { fontSize: 12, color: '#6080A8', marginLeft: 4 },
-  statusDot: { width: 8, height: 8, borderRadius: 4, marginLeft: 8 },
-  emptyEvents: {
-    fontSize: 14,
-    color: '#BACAD6',
-    fontStyle: 'italic',
-    marginTop: 4,
+  emptyEvents: { fontSize: 14, color: '#BACAD6', fontStyle: 'italic', marginTop: 4 },
+
+  // History toggle
+  historyToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    marginTop: 24,
   },
+  historyToggleLeft: { flexDirection: 'row', alignItems: 'center' },
+  historyToggleText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#6080A8',
+  },
+
   bottomBar: {
     position: 'absolute',
     bottom: 0,

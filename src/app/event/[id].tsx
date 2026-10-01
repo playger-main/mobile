@@ -1,5 +1,5 @@
 // src/app/event/[id].tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -25,13 +25,10 @@ import {
 import EventGridInfo from '@/components/ui/EventGridInfo';
 import EventProgressBar from '@/components/ui/EventProgressBar';
 import EventLocationCard from '@/components/ui/EventLocationCard';
+import ParticipantsModal from '@/components/ui/ParticipantsModal';
 import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportLabel } from '@/constants/sports';
-import {
-  getEventStatus,
-  getEventStatusLabel,
-  getEventStatusStyle,
-} from '@/utils/eventStatus';
+import { getEventStatus } from '@/utils/eventStatus';
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -45,6 +42,8 @@ export default function EventDetailScreen() {
     toggleJoin: toggleJoinEventFx,
     isJoining: toggleJoinEventFx.pending,
   });
+
+  const [participantsVisible, setParticipantsVisible] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -79,10 +78,13 @@ export default function EventDetailScreen() {
     try {
       await toggleJoin(event!.id);
     } catch (err: any) {
-      Alert.alert(
-        'Action Failed',
-        err?.response?.data?.message || 'Could not adjust slot metrics.',
-      );
+      const raw = err?.response?.data?.message ?? err?.message;
+      const message = Array.isArray(raw)
+        ? raw.join('\n')
+        : typeof raw === 'string'
+          ? raw
+          : 'Could not adjust slot metrics.';
+      Alert.alert('Action Failed', message);
     }
   };
 
@@ -97,41 +99,58 @@ export default function EventDetailScreen() {
   const maxPlayers = event.maxPlayers || 14;
   const currentPlayers = event.currentPlayers || 0;
 
-  // ✅ Все виды спорта площадки
   const sportsList: string[] =
     Array.isArray(event.ground?.kindofsport) && event.ground.kindofsport.length > 0
       ? event.ground.kindofsport
       : [];
 
   const status = getEventStatus(event.date, event.startTime, event.duration);
-  const statusStyle = getEventStatusStyle(status);
-  const statusLabel = getEventStatusLabel(status);
   const isFinished = status === 'finished';
 
-  const isJoined =
-    Array.isArray(event.currentPlayers) &&
-    event.currentPlayers.some((p: any) => p.id === userSession?.id);
+  const isJoined = Array.isArray(event.players)
+    ? event.players.some((p) => p.id === userSession?.id)
+    : false;
+
   const isFull = currentPlayers >= maxPlayers;
 
-  // ✅ Права на редактирование
   const isCreator = userSession?.id === event.creator?.id;
   const isModerator =
     userSession?.role?.includes('moderator') ||
     userSession?.role?.includes('admin');
   const canEdit = isCreator || isModerator;
 
+  // Список игроков: серверный массив + гарантированно добавляем создателя
+  const playersList = (() => {
+    const list = Array.isArray(event.players) ? [...event.players] : [];
+
+    if (
+      event.creator?.id &&
+      !list.some((p) => p.id === event.creator!.id)
+    ) {
+      list.unshift({
+        id: event.creator.id,
+        name: event.creator.name || 'Creator',
+      });
+    }
+
+    return list;
+  })();
+
   let buttonText = 'Join event';
   let buttonStyle = [styles.joinButton, styles.primaryJoinBg];
+  let buttonDisabled = false;
 
   if (isFinished) {
     buttonText = 'Event finished';
     buttonStyle = [styles.joinButton, styles.disabledBtnBg];
+    buttonDisabled = true;
   } else if (isJoined) {
     buttonText = 'Leave event';
     buttonStyle = [styles.joinButton, styles.leaveBtnBg];
   } else if (isFull) {
     buttonText = 'Game Full';
     buttonStyle = [styles.joinButton, styles.disabledBtnBg];
+    buttonDisabled = true;
   }
 
   return (
@@ -162,7 +181,7 @@ export default function EventDetailScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* ✅ Все спорты + статус */}
+        {/* Спорт + статус */}
         <View style={styles.badgesRow}>
           {sportsList.length > 0 ? (
             sportsList.slice(0, 4).map((sportId, idx) => {
@@ -192,17 +211,39 @@ export default function EventDetailScreen() {
             <View style={styles.moreBadge}>
               <Text style={styles.moreBadgeText}>+{sportsList.length - 4}</Text>
             </View>
-          )}
-
-          <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
-            <Text style={[styles.statusText, { color: statusStyle.text }]}>
-              {statusLabel}
-            </Text>
-          </View>
+          )}         
         </View>
 
         <Text style={styles.title}>{event.name}</Text>
-        <Text style={styles.hostedText}>Hosted by {event.creator?.name || 'User'}</Text>
+
+        {/* ✅ Отдельный блок "Host" — кликабельный */}
+        {event.creator && (
+          <Pressable
+            style={styles.hostCard}
+            onPress={() =>
+              router.push({
+                pathname: '/user/[id]',
+                params: {
+                  id: event.creator.id,
+                  name: event.creator.name,
+                },
+              })
+            }
+          >
+            <View style={styles.hostAvatar}>
+              <Text style={styles.hostAvatarText}>
+                {event.creator.name?.charAt(0).toUpperCase() || '?'}
+              </Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.hostLabel}>Hosted by</Text>
+              <Text style={styles.hostName} numberOfLines={1}>
+                {event.creator.name || 'User'}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
+          </Pressable>
+        )}
 
         <EventGridInfo
           date={event.date}
@@ -211,6 +252,8 @@ export default function EventDetailScreen() {
           level={event.level || 'Intermediate'}
           currentPlayers={currentPlayers}
           maxPlayers={maxPlayers}
+          status={status}                              // ✅ добавили
+          onPlayersPress={() => setParticipantsVisible(true)}
         />
 
         <EventProgressBar currentPlayers={currentPlayers} maxPlayers={maxPlayers} />
@@ -233,7 +276,7 @@ export default function EventDetailScreen() {
         <Pressable
           style={[buttonStyle, isJoining && styles.disabledBtnBg]}
           onPress={handleJoinToggleAction}
-          disabled={isJoining || isFinished || (!isJoined && isFull)}
+          disabled={isJoining || buttonDisabled}
         >
           {isJoining ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
@@ -244,6 +287,14 @@ export default function EventDetailScreen() {
           )}
         </Pressable>
       </View>
+
+      <ParticipantsModal
+        visible={participantsVisible}
+        players={playersList}
+        creatorId={event.creator?.id}
+        maxPlayers={maxPlayers}
+        onClose={() => setParticipantsVisible(false)}
+      />
     </View>
   );
 }
@@ -296,8 +347,50 @@ const styles = StyleSheet.create({
   },
   statusText: { fontSize: 11, fontWeight: '700' },
 
-  title: { fontSize: 24, fontWeight: '800', color: '#334A77', marginBottom: 4 },
-  hostedText: { fontSize: 14, color: '#6080A8', marginBottom: 20 },
+  title: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#334A77',
+    marginBottom: 12,
+  },
+
+  // ✅ Host-карточка
+  hostCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E6F4FE',
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  hostAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#006EE6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hostAvatarText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 16,
+  },
+  hostLabel: {
+    fontSize: 11,
+    color: '#BACAD6',
+    fontWeight: '500',
+  },
+  hostName: {
+    fontSize: 14,
+    color: '#334A77',
+    fontWeight: '700',
+    marginTop: 1,
+  },
+
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',

@@ -3,6 +3,7 @@ import { createDomain, combine } from 'effector';
 import { ExtendedGroundItem } from '@/components/ui/CardGround';
 import { clearGrounds, toggleFavoriteInStore } from '../events/sync';
 import { $selectedDate } from './filter';
+import { getEventStatus } from '@/utils/eventStatus'; 
 
 import {
   fetchGroundByIdFx,
@@ -137,3 +138,17 @@ export const $currentDayEvents = combine(
   $selectedDate,
   (events, selectedDate) => events.filter((evt) => evt.date === selectedDate),
 );
+
+// ✅ Стор: количество предстоящих/активных событий на каждой площадке
+export const $upcomingEventsCountByGround = $events.map((events) => {
+  const map: Record<string, number> = {};
+  for (const e of events) {
+    const groundId = e.ground?.id;
+    if (!groundId) continue;
+    const status = getEventStatus(e.date, e.startTime, e.duration);
+    if (status !== 'finished') {
+      map[groundId] = (map[groundId] || 0) + 1;
+    }
+  }
+  return map;
+});

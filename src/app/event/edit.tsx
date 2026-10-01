@@ -12,6 +12,7 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
+  Keyboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -136,9 +137,17 @@ export default function EditEventScreen() {
   };
 
   const handleSave = async () => {
-    if (!title.trim()) return Alert.alert('Error', 'Please enter an event title.');
-    if (!selectedGroundId)
-      return Alert.alert('Error', 'Please select a playground.');
+    // ✅ Закрываем клавиатуру — предотвращает краш iOS
+    Keyboard.dismiss();
+
+    if (!title.trim()) {
+      Alert.alert('Error', 'Please enter an event title.');
+      return;
+    }
+    if (!selectedGroundId) {
+      Alert.alert('Error', 'Please select a playground.');
+      return;
+    }
 
     const backendDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
@@ -156,18 +165,36 @@ export default function EditEventScreen() {
       });
 
       Alert.alert('Success', 'Event updated successfully!', [
-        { text: 'OK', onPress: () => router.back() },
+        {
+          text: 'OK',
+          onPress: () => {
+            // ✅ setTimeout — устраняет краш при навигации сразу из onPress
+            setTimeout(() => {
+              router.back();
+            }, 150);
+          },
+        },
       ]);
     } catch (err: any) {
-      Alert.alert(
-        'Error',
-        err?.response?.data?.message || 'Failed to update event.',
+      // ✅ Безопасное извлечение — сервер может вернуть массив строк
+      const raw = err?.response?.data?.message ?? err?.message;
+      const message = Array.isArray(raw)
+        ? raw.join('\n')
+        : typeof raw === 'string'
+          ? raw
+          : 'Failed to update event.';
+
+      console.log(
+        '[updateEvent error]',
+        err?.response?.status,
+        err?.response?.data,
       );
+
+      Alert.alert('Error', message);
     }
   };
 
-  const isFormValid =
-    title.trim().length > 0 && selectedGroundId.length > 0;
+  const isFormValid = title.trim().length > 0 && selectedGroundId.length > 0;
 
   if (isLoading && !event) {
     return (

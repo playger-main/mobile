@@ -6,7 +6,11 @@ import { useUnit } from 'effector-react';
 
 import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportLabel } from '@/constants/sports';
-import { $userLocation, $cityCenter } from '@/effector/store';
+import {
+  $userLocation,
+  $cityCenter,
+  $upcomingEventsCountByGround,
+} from '@/effector/store';
 import { calculateDistance, formatDistance } from '@/utils/distance';
 
 export interface ExtendedGroundItem {
@@ -20,10 +24,7 @@ export interface ExtendedGroundItem {
   createdAt: string;
   updatedAt: string;
   address: string | null;
-  geolocation: {
-    lat: string;
-    lng: string;
-  } | null;
+  geolocation: { lat: string; lng: string } | null;
   avatar: string;
   eventsCount: number;
   isFavorite: boolean;
@@ -41,8 +42,8 @@ interface CardGroundProps {
 export default function CardGround({ item, onPress, onToggleFavorite }: CardGroundProps) {
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
+  const upcomingByGround = useUnit($upcomingEventsCountByGround);
 
-  // ✅ Все виды спорта
   const sportsList: string[] = useMemo(() => {
     if (Array.isArray(item.kindofsport) && item.kindofsport.length > 0) {
       return item.kindofsport;
@@ -50,7 +51,9 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
     return [];
   }, [item.kindofsport]);
 
-  // ✅ Расстояние
+  // ✅ Только предстоящие + активные
+  const upcomingCount = upcomingByGround[item.id] ?? 0;
+
   const distanceMeters = useMemo(() => {
     const origin = userLocation ?? cityCenter;
     if (!origin || !item.geolocation?.lat || !item.geolocation?.lng) {
@@ -74,10 +77,11 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
           style={styles.image}
         />
 
-        {item.eventsCount > 0 && (
+        {/* ✅ Только предстоящие/активные события */}
+        {upcomingCount > 0 && (
           <View style={styles.compactEventBadge}>
             <Ionicons name="calendar" size={11} color="#FFFFFF" style={styles.badgeIcon} />
-            <Text style={styles.compactEventText}>{item.eventsCount}</Text>
+            <Text style={styles.compactEventText}>{upcomingCount}</Text>
           </View>
         )}
 
@@ -111,7 +115,6 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
           {item.address || 'No address provided'}
         </Text>
 
-        {/* ✅ 2 тега + +N */}
         {sportsList.length > 0 && (
           <View style={styles.sportsRow}>
             {sportsList.slice(0, 2).map((sportId, idx) => {
@@ -179,11 +182,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#F0F4F8',
   },
-  image: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
+  image: { width: '100%', height: '100%', resizeMode: 'cover' },
   compactEventBadge: {
     position: 'absolute',
     top: 6,
@@ -199,7 +198,6 @@ const styles = StyleSheet.create({
   },
   badgeIcon: { marginRight: 3 },
   compactEventText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
-
   pendingBadge: {
     position: 'absolute',
     top: 6,
@@ -213,17 +211,8 @@ const styles = StyleSheet.create({
     gap: 3,
     zIndex: 1,
   },
-  pendingBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '800',
-  },
-
-  infoContainer: {
-    flex: 1,
-    marginLeft: 12,
-    justifyContent: 'space-between',
-  },
+  pendingBadgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
+  infoContainer: { flex: 1, marginLeft: 12, justifyContent: 'space-between' },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -237,13 +226,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   favoriteButton: { padding: 2 },
-  address: {
-    fontSize: 13,
-    color: '#6080A8',
-    marginTop: -2,
-  },
-
-  // ✅ Ряд с 2 тегами + +N
+  address: { fontSize: 13, color: '#6080A8', marginTop: -2 },
   sportsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -257,16 +240,8 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
   },
-  categoryDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    marginRight: 4,
-  },
-  categoryText: {
-    fontSize: 9,
-    fontWeight: '700',
-  },
+  categoryDot: { width: 5, height: 5, borderRadius: 2.5, marginRight: 4 },
+  categoryText: { fontSize: 9, fontWeight: '700' },
   moreBadge: {
     backgroundColor: '#F0F6FC',
     paddingHorizontal: 6,
@@ -274,12 +249,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     justifyContent: 'center',
   },
-  moreBadgeText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#6080A8',
-  },
-
+  moreBadgeText: { fontSize: 9, fontWeight: '700', color: '#6080A8' },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

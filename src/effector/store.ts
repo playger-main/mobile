@@ -23,6 +23,7 @@ export {
   $currentEvent,
   $isEventDetailLoading,
   $currentDayEvents,
+  $upcomingEventsCountByGround,   // ✅
 } from './domains/data';
 
 export {
