@@ -66,6 +66,24 @@ export {
 export type { SessionUser } from './domains/auth';
 
 // ==========================================
+// 3b. ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ (NEW)
+// ==========================================
+export {
+  fetchMyProfileFx,
+  updateProfileFx,
+  requestEmailChangeFx,
+  confirmEmailChangeFx,
+  updateAvatarFx,
+  uploadUserPhotoFx,
+  deleteUserPhotoFx,
+} from './events/async/users';
+
+export type {
+  ServerUserProfile,
+  UpdateProfilePayload,
+} from './events/async/users';
+
+// ==========================================
 // 4. НАСТРОЙКИ
 // ==========================================
 export {
