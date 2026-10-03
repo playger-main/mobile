@@ -163,7 +163,7 @@ export {
 export {
   fetchGroundReviewsFx,
   fetchMyReviewFx,
-  fetchMyReviewsFx,
+  fetchMyReviewsFx,      // ← без него счётчик не работает
   createReviewFx,
   updateReviewFx,
   deleteReviewFx,
@@ -183,7 +183,7 @@ export {
   $myReview,
   $canCreateReview,
   $hasMyReview,
-  $myReviews,
-  $myReviewsCount,
-  $isMyReviewsLoading,
+  $myReviews,           // ← важно
+  $myReviewsCount,      // ← важно
+  $isMyReviewsLoading,  // ← важно
 } from './domains/reviews';

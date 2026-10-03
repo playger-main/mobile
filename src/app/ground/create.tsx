@@ -112,15 +112,19 @@ export default function CreateGroundScreen() {
     address?: string;
   }) => {
     setLocation({ lat: data.latitude, lng: data.longitude });
-    if (data.address && !address.trim()) setAddress(data.address);
+    // ✅ Заполняем адрес ТОЛЬКО если поле пустое —
+    //    чтобы не затирать ручные правки пользователя
+    if (data.address && !address.trim()) {
+      setAddress(data.address);
+    }
     setLocationPickerVisible(false);
   };
 
   const handlePublish = async () => {
     if (!name.trim()) return Alert.alert('Error', 'Please enter a ground name.');
     if (sports.length === 0) return Alert.alert('Error', 'Please select at least one sport.');
+    if (!location) return Alert.alert('Error', 'Please pick a location on the map.');
     if (!address.trim()) return Alert.alert('Error', 'Please enter an address.');
-    if (!location) return Alert.alert('Error', 'Please select a location on the map.');
 
     try {
       await createGroundFx({
@@ -147,8 +151,8 @@ export default function CreateGroundScreen() {
   const isFormValid =
     name.trim().length > 0 &&
     sports.length > 0 &&
-    address.trim().length > 0 &&
-    location !== null;
+    location !== null &&
+    address.trim().length > 0;
 
   return (
     <KeyboardAvoidingView
@@ -170,6 +174,7 @@ export default function CreateGroundScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 120 }]}
       >
+        {/* ============ NAME ============ */}
         <Text style={styles.inputLabel}>Ground name</Text>
         <TextInput
           style={styles.textField}
@@ -179,6 +184,7 @@ export default function CreateGroundScreen() {
           onChangeText={setName}
         />
 
+        {/* ============ SPORT ============ */}
         <View style={styles.labelWithHintRow}>
           <Text style={styles.inputLabel}>Sport</Text>
           {sports.length > 0 && (
@@ -212,6 +218,42 @@ export default function CreateGroundScreen() {
           })}
         </View>
 
+        {/* ============ LOCATION (перед адресом) ============ */}
+        <View style={styles.labelWithHintRow}>
+          <Text style={styles.inputLabel}>Location on map</Text>
+          {location && (
+            <Text style={styles.selectedCountHint}>✓ Set</Text>
+          )}
+        </View>
+        <Pressable
+          style={styles.mapPickerBox}
+          onPress={() => setLocationPickerVisible(true)}
+        >
+          {location ? (
+            <View style={styles.locationSetContainer}>
+              <Ionicons name="checkmark-circle" size={24} color="#27AE60" />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.locationSetText}>
+                  Coordinates: {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
+                </Text>
+                <Text style={styles.locationChangeHint}>Tap to change</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#BACAD6" />
+            </View>
+          ) : (
+            <View style={styles.mapPlaceholder}>
+              <Ionicons name="map-outline" size={24} color="#208AEF" />
+              <Text style={styles.mapPlaceholderText}>
+                Tap to select location on map
+              </Text>
+            </View>
+          )}
+        </Pressable>
+        <Text style={styles.hintText}>
+          Pick a point first — we'll fill in the address automatically.
+        </Text>
+
+        {/* ============ ADDRESS ============ */}
         <Text style={styles.inputLabel}>Address</Text>
         <TextInput
           style={styles.textField}
@@ -221,6 +263,7 @@ export default function CreateGroundScreen() {
           onChangeText={setAddress}
         />
 
+        {/* ============ SURFACE ============ */}
         <View style={styles.labelWithHintRow}>
           <Text style={styles.inputLabel}>Surface (optional)</Text>
           {surfaces.length > 0 && (
@@ -252,6 +295,7 @@ export default function CreateGroundScreen() {
           })}
         </View>
 
+        {/* ============ DESCRIPTION ============ */}
         <Text style={styles.inputLabel}>Description (optional)</Text>
         <TextInput
           style={styles.textareaField}
@@ -264,6 +308,7 @@ export default function CreateGroundScreen() {
           onChangeText={setDescription}
         />
 
+        {/* ============ AMENITIES ============ */}
         <Text style={styles.inputLabel}>Amenities</Text>
         <View style={styles.amenitiesWrap}>
           {AMENITIES_OPTIONS.map((amenity) => {
@@ -282,6 +327,7 @@ export default function CreateGroundScreen() {
           })}
         </View>
 
+        {/* ============ PHOTOS ============ */}
         <Text style={styles.inputLabel}>Photos</Text>
         <PhotoPicker
           photos={photoInputs}
@@ -290,32 +336,6 @@ export default function CreateGroundScreen() {
           onRemove={removePhoto}
           onSetMain={setMainPhoto}
         />
-
-        <Text style={styles.inputLabel}>Location on map</Text>
-        <Pressable
-          style={styles.mapPickerBox}
-          onPress={() => setLocationPickerVisible(true)}
-        >
-          {location ? (
-            <View style={styles.locationSetContainer}>
-              <Ionicons name="checkmark-circle" size={24} color="#27AE60" />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.locationSetText}>
-                  Coordinates: {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
-                </Text>
-                <Text style={styles.locationChangeHint}>Tap to change</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color="#BACAD6" />
-            </View>
-          ) : (
-            <View style={styles.mapPlaceholder}>
-              <Ionicons name="map-outline" size={24} color="#208AEF" />
-              <Text style={styles.mapPlaceholderText}>
-                Tap to select location on map
-              </Text>
-            </View>
-          )}
-        </Pressable>
       </ScrollView>
 
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
@@ -406,6 +426,13 @@ const styles = StyleSheet.create({
     color: '#334A77',
     backgroundColor: '#FFFFFF',
     lineHeight: 20,
+  },
+  hintText: {
+    fontSize: 11,
+    color: '#BACAD6',
+    fontWeight: '500',
+    marginTop: 6,
+    lineHeight: 15,
   },
   gridContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   sportCard: {

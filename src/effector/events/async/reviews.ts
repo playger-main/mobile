@@ -75,9 +75,20 @@ const reviewApi = {
   },
 
   getMine: async (): Promise<MyReview[]> => {
-    const res = await apiInstance.get<MyReview[]>('/review/mine');
-    return res.data;
-  },
+    try {
+        console.log('[reviews] GET /review/mine');
+        const res = await apiInstance.get<MyReview[]>('/review/mine');
+        console.log('[reviews] /review/mine →', res.data?.length, 'items');
+        return res.data;
+    } catch (e: any) {
+        console.error(
+        '[reviews] /review/mine FAILED:',
+        e?.response?.status,
+        e?.response?.data ?? e?.message,
+        );
+        throw e;
+    }
+    },
 
   create: async (payload: CreateReviewPayload): Promise<GroundReview> => {
     const { groundId, ...body } = payload;

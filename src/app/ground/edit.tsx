@@ -22,7 +22,11 @@ import {
   fetchGroundByIdFx,
   updateGroundFx,
 } from '@/effector/events/async/grounds';
-import { $currentGround, $isGroundDetailLoading, $userSession } from '@/effector/store';
+import {
+  $currentGround,
+  $isGroundDetailLoading,
+  $userSession,
+} from '@/effector/store';
 import LocationPickerModal from '@/components/ui/LocationPickerModal';
 import PhotoPicker, { PhotoInput } from '@/components/ui/PhotoPicker';
 
@@ -50,7 +54,9 @@ export default function EditGroundScreen() {
   const [amenities, setAmenities] = useState<string[]>([]);
   const [photoInputs, setPhotoInputs] = useState<PhotoInput[]>([]);
   const [initialPhotoIds, setInitialPhotoIds] = useState<string[]>([]);
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
   const [locationPickerVisible, setLocationPickerVisible] = useState(false);
 
   useEffect(() => {
@@ -125,24 +131,32 @@ export default function EditGroundScreen() {
   };
 
   const setMainPhoto = (index: number) => {
-    setPhotoInputs((prev) => prev.map((p, i) => ({ ...p, isMain: i === index })));
+    setPhotoInputs((prev) =>
+      prev.map((p, i) => ({ ...p, isMain: i === index })),
+    );
   };
 
   const toggleSport = (sportId: string) => {
     setSports((prev) =>
-      prev.includes(sportId) ? prev.filter((s) => s !== sportId) : [...prev, sportId],
+      prev.includes(sportId)
+        ? prev.filter((s) => s !== sportId)
+        : [...prev, sportId],
     );
   };
 
   const toggleSurface = (surfaceId: string) => {
     setSurfaces((prev) =>
-      prev.includes(surfaceId) ? prev.filter((s) => s !== surfaceId) : [...prev, surfaceId],
+      prev.includes(surfaceId)
+        ? prev.filter((s) => s !== surfaceId)
+        : [...prev, surfaceId],
     );
   };
 
   const toggleAmenity = (amenity: string) => {
     setAmenities((prev) =>
-      prev.includes(amenity) ? prev.filter((a) => a !== amenity) : [...prev, amenity],
+      prev.includes(amenity)
+        ? prev.filter((a) => a !== amenity)
+        : [...prev, amenity],
     );
   };
 
@@ -152,15 +166,22 @@ export default function EditGroundScreen() {
     address?: string;
   }) => {
     setLocation({ lat: data.latitude, lng: data.longitude });
-    if (data.address && !address.trim()) setAddress(data.address);
+    // ✅ Не перезаписываем уже введённый адрес
+    if (data.address && !address.trim()) {
+      setAddress(data.address);
+    }
     setLocationPickerVisible(false);
   };
 
   const handleSave = async () => {
-    if (!name.trim()) return Alert.alert('Error', 'Please enter a ground name.');
-    if (sports.length === 0) return Alert.alert('Error', 'Please select at least one sport.');
-    if (!address.trim()) return Alert.alert('Error', 'Please enter an address.');
-    if (!location) return Alert.alert('Error', 'Please select a location on the map.');
+    if (!name.trim())
+      return Alert.alert('Error', 'Please enter a ground name.');
+    if (sports.length === 0)
+      return Alert.alert('Error', 'Please select at least one sport.');
+    if (!location)
+      return Alert.alert('Error', 'Please pick a location on the map.');
+    if (!address.trim())
+      return Alert.alert('Error', 'Please enter an address.');
 
     // Удалённые существующие фото
     const currentIds = photoInputs
@@ -188,7 +209,8 @@ export default function EditGroundScreen() {
         amenities,
         geolocation: location,
         newPhotoUris: newUris.length > 0 ? newUris : undefined,
-        removedPhotoIds: removedPhotoIds.length > 0 ? removedPhotoIds : undefined,
+        removedPhotoIds:
+          removedPhotoIds.length > 0 ? removedPhotoIds : undefined,
         mainPhotoPath: !currentMainIsNew ? mainExisting?.path ?? null : undefined,
         mainNewPhotoIndex: currentMainIsNew ? mainNewIdx : undefined,
       });
@@ -206,8 +228,8 @@ export default function EditGroundScreen() {
   const isFormValid =
     name.trim().length > 0 &&
     sports.length > 0 &&
-    address.trim().length > 0 &&
-    location !== null;
+    location !== null &&
+    address.trim().length > 0;
 
   if (isLoading && !ground) {
     return (
@@ -223,7 +245,11 @@ export default function EditGroundScreen() {
       style={styles.container}
     >
       <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
-        <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12}>
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backButton}
+          hitSlop={12}
+        >
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
         <View style={styles.headerTitleContainer}>
@@ -235,8 +261,12 @@ export default function EditGroundScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 120 }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom + 120 },
+        ]}
       >
+        {/* ============ NAME ============ */}
         <Text style={styles.inputLabel}>Ground name</Text>
         <TextInput
           style={styles.textField}
@@ -246,10 +276,13 @@ export default function EditGroundScreen() {
           onChangeText={setName}
         />
 
+        {/* ============ SPORT ============ */}
         <View style={styles.labelWithHintRow}>
           <Text style={styles.inputLabel}>Sport</Text>
           {sports.length > 0 && (
-            <Text style={styles.selectedCountHint}>{sports.length} selected</Text>
+            <Text style={styles.selectedCountHint}>
+              {sports.length} selected
+            </Text>
           )}
         </View>
         <View style={styles.gridContainer}>
@@ -259,14 +292,22 @@ export default function EditGroundScreen() {
               <Pressable
                 key={sport.id}
                 onPress={() => toggleSport(sport.id)}
-                style={[styles.sportCard, isSelected && styles.sportCardSelected]}
+                style={[
+                  styles.sportCard,
+                  isSelected && styles.sportCardSelected,
+                ]}
               >
                 <Ionicons
                   name={sport.icon as any}
                   size={24}
                   color={isSelected ? '#208AEF' : '#6080A8'}
                 />
-                <Text style={[styles.sportLabel, isSelected && styles.sportLabelSelected]}>
+                <Text
+                  style={[
+                    styles.sportLabel,
+                    isSelected && styles.sportLabelSelected,
+                  ]}
+                >
                   {sport.label}
                 </Text>
                 {isSelected && (
@@ -279,86 +320,11 @@ export default function EditGroundScreen() {
           })}
         </View>
 
-        <Text style={styles.inputLabel}>Address</Text>
-        <TextInput
-          style={styles.textField}
-          placeholder="Street, area"
-          placeholderTextColor="#BACAD6"
-          value={address}
-          onChangeText={setAddress}
-        />
-
+        {/* ============ LOCATION (перенесено сюда, перед адресом) ============ */}
         <View style={styles.labelWithHintRow}>
-          <Text style={styles.inputLabel}>Surface (optional)</Text>
-          {surfaces.length > 0 && (
-            <Text style={styles.selectedCountHint}>{surfaces.length} selected</Text>
-          )}
+          <Text style={styles.inputLabel}>Location on map</Text>
+          {location && <Text style={styles.selectedCountHint}>✓ Set</Text>}
         </View>
-        <View style={styles.surfaceWrap}>
-          {SURFACE_OPTIONS.map((s) => {
-            const isSelected = surfaces.includes(s.id);
-            return (
-              <Pressable
-                key={s.id}
-                onPress={() => toggleSurface(s.id)}
-                style={[styles.surfaceChip, isSelected && styles.surfaceChipSelected]}
-              >
-                <Ionicons
-                  name={s.icon as any}
-                  size={14}
-                  color={isSelected ? '#FFFFFF' : '#334A77'}
-                  style={{ marginRight: 6 }}
-                />
-                <Text
-                  style={[styles.surfaceChipText, isSelected && styles.surfaceChipTextSelected]}
-                >
-                  {s.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <Text style={styles.inputLabel}>Description (optional)</Text>
-        <TextInput
-          style={styles.textareaField}
-          placeholder="Tell players what makes this spot great..."
-          placeholderTextColor="#BACAD6"
-          multiline
-          numberOfLines={4}
-          textAlignVertical="top"
-          value={description}
-          onChangeText={setDescription}
-        />
-
-        <Text style={styles.inputLabel}>Amenities</Text>
-        <View style={styles.amenitiesWrap}>
-          {AMENITIES_OPTIONS.map((amenity) => {
-            const isSelected = amenities.includes(amenity);
-            return (
-              <Pressable
-                key={amenity}
-                onPress={() => toggleAmenity(amenity)}
-                style={[styles.amenityChip, isSelected && styles.amenityChipSelected]}
-              >
-                <Text style={[styles.amenityText, isSelected && styles.amenityTextSelected]}>
-                  {amenity}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <Text style={styles.inputLabel}>Photos</Text>
-        <PhotoPicker
-          photos={photoInputs}
-          max={MAX_PHOTOS}
-          onAdd={pickImage}
-          onRemove={removePhoto}
-          onSetMain={setMainPhoto}
-        />
-
-        <Text style={styles.inputLabel}>Location on map</Text>
         <Pressable
           style={styles.mapPickerBox}
           onPress={() => setLocationPickerVisible(true)}
@@ -368,7 +334,8 @@ export default function EditGroundScreen() {
               <Ionicons name="checkmark-circle" size={24} color="#27AE60" />
               <View style={{ flex: 1 }}>
                 <Text style={styles.locationSetText}>
-                  Coordinates: {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
+                  Coordinates: {location.lat.toFixed(5)},{' '}
+                  {location.lng.toFixed(5)}
                 </Text>
                 <Text style={styles.locationChangeHint}>Tap to change</Text>
               </View>
@@ -383,22 +350,135 @@ export default function EditGroundScreen() {
             </View>
           )}
         </Pressable>
+        <Text style={styles.hintText}>
+          Move the pin to update — the address won't be overwritten if you've
+          edited it.
+        </Text>
 
-        {!user?.role?.includes('moderator') && !user?.role?.includes('admin') && (
-          <View style={styles.moderationNotice}>
-            <Ionicons name="information-circle-outline" size={18} color="#FF8000" />
-            <Text style={styles.moderationNoticeText}>
-              After editing, your ground will be sent for re-moderation and temporarily hidden from other users.
+        {/* ============ ADDRESS ============ */}
+        <Text style={styles.inputLabel}>Address</Text>
+        <TextInput
+          style={styles.textField}
+          placeholder="Street, area"
+          placeholderTextColor="#BACAD6"
+          value={address}
+          onChangeText={setAddress}
+        />
+
+        {/* ============ SURFACE ============ */}
+        <View style={styles.labelWithHintRow}>
+          <Text style={styles.inputLabel}>Surface (optional)</Text>
+          {surfaces.length > 0 && (
+            <Text style={styles.selectedCountHint}>
+              {surfaces.length} selected
             </Text>
-          </View>
-        )}
+          )}
+        </View>
+        <View style={styles.surfaceWrap}>
+          {SURFACE_OPTIONS.map((s) => {
+            const isSelected = surfaces.includes(s.id);
+            return (
+              <Pressable
+                key={s.id}
+                onPress={() => toggleSurface(s.id)}
+                style={[
+                  styles.surfaceChip,
+                  isSelected && styles.surfaceChipSelected,
+                ]}
+              >
+                <Ionicons
+                  name={s.icon as any}
+                  size={14}
+                  color={isSelected ? '#FFFFFF' : '#334A77'}
+                  style={{ marginRight: 6 }}
+                />
+                <Text
+                  style={[
+                    styles.surfaceChipText,
+                    isSelected && styles.surfaceChipTextSelected,
+                  ]}
+                >
+                  {s.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* ============ DESCRIPTION ============ */}
+        <Text style={styles.inputLabel}>Description (optional)</Text>
+        <TextInput
+          style={styles.textareaField}
+          placeholder="Tell players what makes this spot great..."
+          placeholderTextColor="#BACAD6"
+          multiline
+          numberOfLines={4}
+          textAlignVertical="top"
+          value={description}
+          onChangeText={setDescription}
+        />
+
+        {/* ============ AMENITIES ============ */}
+        <Text style={styles.inputLabel}>Amenities</Text>
+        <View style={styles.amenitiesWrap}>
+          {AMENITIES_OPTIONS.map((amenity) => {
+            const isSelected = amenities.includes(amenity);
+            return (
+              <Pressable
+                key={amenity}
+                onPress={() => toggleAmenity(amenity)}
+                style={[
+                  styles.amenityChip,
+                  isSelected && styles.amenityChipSelected,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.amenityText,
+                    isSelected && styles.amenityTextSelected,
+                  ]}
+                >
+                  {amenity}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* ============ PHOTOS ============ */}
+        <Text style={styles.inputLabel}>Photos</Text>
+        <PhotoPicker
+          photos={photoInputs}
+          max={MAX_PHOTOS}
+          onAdd={pickImage}
+          onRemove={removePhoto}
+          onSetMain={setMainPhoto}
+        />
+
+        {/* ============ MODERATION NOTICE ============ */}
+        {!user?.role?.includes('moderator') &&
+          !user?.role?.includes('admin') && (
+            <View style={styles.moderationNotice}>
+              <Ionicons
+                name="information-circle-outline"
+                size={18}
+                color="#FF8000"
+              />
+              <Text style={styles.moderationNoticeText}>
+                After editing, your ground will be sent for re-moderation and
+                temporarily hidden from other users.
+              </Text>
+            </View>
+          )}
       </ScrollView>
 
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
         <Pressable
           style={[
             styles.publishButton,
-            isFormValid ? styles.publishButtonActive : styles.publishButtonDisabled,
+            isFormValid
+              ? styles.publishButtonActive
+              : styles.publishButtonDisabled,
             isSubmitting && styles.buttonDisabled,
           ]}
           onPress={handleSave}
@@ -439,7 +519,12 @@ const styles = StyleSheet.create({
   backButton: { padding: 4 },
   headerTitleContainer: { flex: 1, alignItems: 'center' },
   headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
-  headerSubtitle: { fontSize: 12, color: '#BACAD6', fontWeight: '500', marginTop: 1 },
+  headerSubtitle: {
+    fontSize: 12,
+    color: '#BACAD6',
+    fontWeight: '500',
+    marginTop: 1,
+  },
   scrollContent: { paddingHorizontal: 16, paddingTop: 20 },
   inputLabel: {
     fontSize: 14,
@@ -483,6 +568,13 @@ const styles = StyleSheet.create({
     color: '#334A77',
     backgroundColor: '#FFFFFF',
     lineHeight: 20,
+  },
+  hintText: {
+    fontSize: 11,
+    color: '#BACAD6',
+    fontWeight: '500',
+    marginTop: 6,
+    lineHeight: 15,
   },
   gridContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   sportCard: {
@@ -564,7 +656,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   locationSetText: { fontSize: 13, color: '#27AE60', fontWeight: '700' },
-  locationChangeHint: { fontSize: 11, color: '#6080A8', fontWeight: '500', marginTop: 2 },
+  locationChangeHint: {
+    fontSize: 11,
+    color: '#6080A8',
+    fontWeight: '500',
+    marginTop: 2,
+  },
   moderationNotice: {
     flexDirection: 'row',
     alignItems: 'flex-start',
