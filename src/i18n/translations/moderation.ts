@@ -3,10 +3,13 @@ import type { TranslationDict } from '../types';
 
 export const moderation: TranslationDict = {
   'moderation.title': { en: 'Moderation', ru: 'Модерация', be: 'Мадэрацыя', lt: 'Moderavimas', pl: 'Moderacja', uk: 'Модерація' },
+
+  // ✅ С плюрализацией — "N площадок на модерации"
   'moderation.pending_one': { en: '{{count}} pending ground', ru: '{{count}} площадка на модерации', be: '{{count}} пляцоўка на мадэрацыі', lt: '{{count}} laukiama aikštelė', pl: '{{count}} oczekujące boisko', uk: '{{count}} майданчик на модерації' },
   'moderation.pending_few': { en: '{{count}} pending grounds', ru: '{{count}} площадки на модерации', be: '{{count}} пляцоўкі на мадэрацыі', lt: '{{count}} laukiamos aikštelės', pl: '{{count}} oczekujące boiska', uk: '{{count}} майданчики на модерації' },
   'moderation.pending_many': { en: '{{count}} pending grounds', ru: '{{count}} площадок на модерации', be: '{{count}} пляцовак на мадэрацыі', lt: '{{count}} laukiamų aikštelių', pl: '{{count}} oczekujących boisk', uk: '{{count}} майданчиків на модерації' },
   'moderation.pending_other': { en: '{{count}} pending grounds', ru: '{{count}} площадок на модерации', be: '{{count}} пляцовак на мадэрацыі', lt: '{{count}} laukiamų aikštelių', pl: '{{count}} oczekujących boisk', uk: '{{count}} майданчиків на модерації' },
+
   'moderation.allClear': { en: 'All clear!', ru: 'Всё чисто!', be: 'Усё чыста!', lt: 'Viskas tvarkoje!', pl: 'Wszystko gotowe!', uk: 'Усе чисто!' },
   'moderation.allClearHint': { en: 'There are no pending grounds waiting for moderation.', ru: 'Нет площадок, ожидающих модерации.', be: 'Няма пляцовак, якія чакаюць мадэрацыі.', lt: 'Nėra aikštelių, laukiančių moderavimo.', pl: 'Brak boisk oczekujących na moderację.', uk: 'Немає майданчиків, що чекають на модерацію.' },
   'moderation.accessDenied': { en: 'Access denied', ru: 'Доступ запрещён', be: 'Доступ забаронены', lt: 'Prieiga uždrausta', pl: 'Dostęp zabroniony', uk: 'Доступ заборонено' },
@@ -22,6 +25,7 @@ export const moderation: TranslationDict = {
   'moderation.rejectConfirmButton': { en: 'Reject & Delete', ru: 'Отклонить и удалить', be: 'Адхіліць і выдаліць', lt: 'Atmesti ir ištrinti', pl: 'Odrzuć i usuń', uk: 'Відхилити й видалити' },
   'moderation.failedApprove': { en: 'Failed to approve ground.', ru: 'Не удалось одобрить.', be: 'Не ўдалося ўхваліць.', lt: 'Nepavyko patvirtinti.', pl: 'Nie udało się zatwierdzić.', uk: 'Не вдалося схвалити.' },
   'moderation.failedDelete': { en: 'Failed to delete ground.', ru: 'Не удалось удалить.', be: 'Не ўдалося выдаліць.', lt: 'Nepavyko ištrinti.', pl: 'Nie udało się usunąć.', uk: 'Не вдалося видалити.' },
+
   'pendingGround.byCreator': {
     en: 'by {{name}}',
     ru: 'от {{name}}',

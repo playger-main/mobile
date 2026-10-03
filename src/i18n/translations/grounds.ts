@@ -4,7 +4,17 @@ import type { TranslationDict } from '../types';
 export const grounds: TranslationDict = {
   // ===== GROUNDS LIST =====
   'grounds.title': { en: 'Grounds', ru: 'Площадки', be: 'Пляцоўкі', lt: 'Aikštelės', pl: 'Boiska', uk: 'Майданчики' },
-  'grounds.count': { en: '{{count}} grounds nearby', ru: '{{count}} площадок рядом', be: '{{count}} пляцовак побач', lt: 'Netoliese: {{count}} aikštelės', pl: 'W pobliżu: {{count}} boisk', uk: 'Поруч: {{count}} майданчиків' },
+
+  // ✅ Без склонений — формат "Площадок рядом (N)"
+  'grounds.count': {
+    en: 'Grounds nearby ({{count}})',
+    ru: 'Площадок рядом ({{count}})',
+    be: 'Пляцовак побач ({{count}})',
+    lt: 'Netoliese aikštelių ({{count}})',
+    pl: 'W pobliżu boisk ({{count}})',
+    uk: 'Майданчиків поруч ({{count}})',
+  },
+
   'grounds.sortByDistance': { en: 'By distance', ru: 'По расстоянию', be: 'Па адлегласці', lt: 'Pagal atstumą', pl: 'Wg odległości', uk: 'За відстанню' },
   'grounds.noAddress': { en: 'No address provided', ru: 'Адрес не указан', be: 'Адрас не пазначаны', lt: 'Adresas nenurodytas', pl: 'Brak adresu', uk: 'Адресу не вказано' },
   'grounds.searchPlaceholder': { en: 'Search grounds or area', ru: 'Поиск площадок или района', be: 'Пошук пляцовак або раёна', lt: 'Ieškoti aikštelių ar vietovių', pl: 'Szukaj boisk lub okolicy', uk: 'Пошук майданчиків або району' },
@@ -22,11 +32,15 @@ export const grounds: TranslationDict = {
   },
   'ground.edit.title': { en: 'Edit ground', ru: 'Редактирование площадки', be: 'Рэдагаванне пляцоўкі', lt: 'Redaguoti aikštelę', pl: 'Edytuj boisko', uk: 'Редагування майданчика' },
   'ground.edit.subtitle': { en: 'Update the info', ru: 'Обновите данные', be: 'Абнавіце дадзеныя', lt: 'Atnaujinkite informaciją', pl: 'Zaktualizuj informacje', uk: 'Оновіть дані' },
+
   // ===== GROUND FORM =====
   'groundForm.name': { en: 'Ground name', ru: 'Название площадки', be: 'Назва пляцоўкі', lt: 'Aikštelės pavadinimas', pl: 'Nazwa boiska', uk: 'Назва майданчика' },
   'groundForm.namePlaceholder': { en: 'e.g. Riverside Court', ru: 'Напр., Riverside Court', be: 'Напр., Riverside Court', lt: 'Pvz., Riverside Court', pl: 'np. Riverside Court', uk: 'Напр., Riverside Court' },
   'groundForm.sport': { en: 'Sport', ru: 'Вид спорта', be: 'Від спорту', lt: 'Sporto šaka', pl: 'Sport', uk: 'Вид спорту' },
-  'groundForm.selected': { en: '{{count}} selected', ru: 'Выбрано: {{count}}', be: 'Абрана: {{count}}', lt: 'Pasirinkta: {{count}}', pl: 'Wybrano: {{count}}', uk: 'Обрано: {{count}}' },
+
+  // ✅ Без склонений — формат "Выбрано: N"
+  'groundForm.selected': { en: 'Selected: {{count}}', ru: 'Выбрано: {{count}}', be: 'Абрана: {{count}}', lt: 'Pasirinkta: {{count}}', pl: 'Wybrano: {{count}}', uk: 'Обрано: {{count}}' },
+
   'groundForm.location': { en: 'Location on map', ru: 'Расположение на карте', be: 'Размяшчэнне на карце', lt: 'Vieta žemėlapyje', pl: 'Lokalizacja na mapie', uk: 'Розташування на карті' },
   'groundForm.locationSet': { en: '✓ Set', ru: '✓ Указано', be: '✓ Пазначана', lt: '✓ Nustatyta', pl: '✓ Ustawiono', uk: '✓ Вказано' },
   'groundForm.coordinates': { en: 'Coordinates: {{lat}}, {{lng}}', ru: 'Координаты: {{lat}}, {{lng}}', be: 'Каардынаты: {{lat}}, {{lng}}', lt: 'Koordinatės: {{lat}}, {{lng}}', pl: 'Współrzędne: {{lat}}, {{lng}}', uk: 'Координати: {{lat}}, {{lng}}' },

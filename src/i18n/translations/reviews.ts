@@ -4,6 +4,13 @@ import type { TranslationDict } from '../types';
 export const reviews: TranslationDict = {
   // ===== REVIEWS SECTION =====
   'reviews.title': { en: 'Reviews', ru: 'Отзывы', be: 'Водгукі', lt: 'Atsiliepimai', pl: 'Opinie', uk: 'Відгуки' },
+
+  // ✅ НОВЫЕ КЛЮЧИ С ПЛЮРАЛИЗАЦИЕЙ — "N отзывов"
+  'reviews.count_one': { en: '{{count}} review', ru: '{{count}} отзыв', be: '{{count}} водгук', lt: '{{count}} atsiliepimas', pl: '{{count}} opinia', uk: '{{count}} відгук' },
+  'reviews.count_few': { en: '{{count}} reviews', ru: '{{count}} отзыва', be: '{{count}} водгукі', lt: '{{count}} atsiliepimai', pl: '{{count}} opinie', uk: '{{count}} відгуки' },
+  'reviews.count_many': { en: '{{count}} reviews', ru: '{{count}} отзывов', be: '{{count}} водгукаў', lt: '{{count}} atsiliepimų', pl: '{{count}} opinii', uk: '{{count}} відгуків' },
+  'reviews.count_other': { en: '{{count}} reviews', ru: '{{count}} отзывов', be: '{{count}} водгукаў', lt: '{{count}} atsiliepimų', pl: '{{count}} opinii', uk: '{{count}} відгуків' },
+
   'reviews.empty': { en: 'No reviews yet', ru: 'Пока нет отзывов', be: 'Пакуль няма водгукаў', lt: 'Kol kas nėra atsiliepimų', pl: 'Brak opinii', uk: 'Поки немає відгуків' },
   'reviews.emptyHint': { en: 'Be the first to share your experience on this ground.', ru: 'Станьте первым, кто поделится опытом о площадке.', be: 'Станьце першым, хто падзеліцца досведам пра пляцоўку.', lt: 'Būkite pirmi, kurie pasidalins patirtimi apie šią aikštelę.', pl: 'Bądź pierwszą osobą, która podzieli się opinią o tym boisku.', uk: 'Станьте першим, хто поділиться досвідом про майданчик.' },
   'reviews.writeButton': { en: 'Write a review', ru: 'Написать отзыв', be: 'Напісаць водгук', lt: 'Parašyti atsiliepimą', pl: 'Napisz opinię', uk: 'Написати відгук' },

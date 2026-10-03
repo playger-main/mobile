@@ -26,16 +26,18 @@ export const location: TranslationDict = {
   'groundPicker.couldNotGet': { en: 'Could not get your current location.', ru: 'Не удалось получить вашу локацию.', be: 'Не ўдалося атрымаць вашу лакацыю.', lt: 'Nepavyko gauti jūsų vietos.', pl: 'Nie udało się pobrać Twojej lokalizacji.', uk: 'Не вдалося отримати вашу локацію.' },
   'groundPicker.locationAccessHint': { en: 'Enable location to see your position.', ru: 'Включите геолокацию, чтобы увидеть ваше положение.', be: 'Уключыце геалакацыю, каб убачыць ваша становішча.', lt: 'Įjunkite vietą, kad matytumėte savo poziciją.', pl: 'Włącz lokalizację, aby zobaczyć swoją pozycję.', uk: 'Увімкніть геолокацію, щоб побачити своє положення.' },
 
-  // ===== MAP =====
+  // ===== MAP LEGEND =====
   'map.legendActive': { en: 'Active today', ru: 'Активна сегодня', be: 'Актыўная сёння', lt: 'Aktyvi šiandien', pl: 'Aktywne dziś', uk: 'Активна сьогодні' },
   'map.legendUpcoming': { en: 'Featured', ru: 'Есть события', be: 'Ёсць падзеі', lt: 'Yra renginių', pl: 'Ma wydarzenia', uk: 'Є події' },
   'map.legendNone': { en: 'Ground', ru: 'Площадка', be: 'Пляцоўка', lt: 'Aikštelė', pl: 'Boisko', uk: 'Майданчик' },
 
   // ===== CLUSTER =====
-  'cluster.count_one': { en: '1 ground', ru: '1 площадка', be: '1 пляцоўка', lt: '1 aikštelė', pl: '1 boisko', uk: '1 майданчик' },
-  'cluster.count_few': { en: '{{count}} grounds', ru: '{{count}} площадки', be: '{{count}} пляцоўкі', lt: '{{count}} aikštelės', pl: '{{count}} boiska', uk: '{{count}} майданчики' },
-  'cluster.count_many': { en: '{{count}} grounds', ru: '{{count}} площадок', be: '{{count}} пляцовак', lt: '{{count}} aikštelių', pl: '{{count}} boisk', uk: '{{count}} майданчиків' },
-  'cluster.count_other': { en: '{{count}} grounds', ru: '{{count}} площадок', be: '{{count}} пляцовак', lt: '{{count}} aikštelių', pl: '{{count}} boisk', uk: '{{count}} майданчиків' },
+  // ✅ С плюрализацией — "N площадок рядом"
+  'cluster.count_one': { en: '{{count}} ground nearby', ru: '{{count}} площадка рядом', be: '{{count}} пляцоўка побач', lt: '{{count}} aikštelė netoliese', pl: '{{count}} boisko w pobliżu', uk: '{{count}} майданчик поруч' },
+  'cluster.count_few': { en: '{{count}} grounds nearby', ru: '{{count}} площадки рядом', be: '{{count}} пляцоўкі побач', lt: '{{count}} aikštelės netoliese', pl: '{{count}} boiska w pobliżu', uk: '{{count}} майданчики поруч' },
+  'cluster.count_many': { en: '{{count}} grounds nearby', ru: '{{count}} площадок рядом', be: '{{count}} пляцовак побач', lt: '{{count}} aikštelių netoliese', pl: '{{count}} boisk w pobliżu', uk: '{{count}} майданчиків поруч' },
+  'cluster.count_other': { en: '{{count}} grounds nearby', ru: '{{count}} площадок рядом', be: '{{count}} пляцовак побач', lt: '{{count}} aikštelių netoliese', pl: '{{count}} boisk w pobliżu', uk: '{{count}} майданчиків поруч' },
+
   'cluster.tapToOpen': { en: 'Tap one to open details', ru: 'Нажмите, чтобы открыть', be: 'Націсніце, каб адкрыць', lt: 'Paspauskite, kad atidarytumėte', pl: 'Dotknij, aby otworzyć', uk: 'Натисніть, щоб відкрити' },
 
   // ===== LOCATION ACCESS =====

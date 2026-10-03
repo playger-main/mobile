@@ -6,15 +6,20 @@ export const events: TranslationDict = {
   'events.title': { en: 'Events', ru: 'События', be: 'Падзеі', lt: 'Renginiai', pl: 'Wydarzenia', uk: 'Події' },
   'events.today': { en: 'Today', ru: 'Сегодня', be: 'Сёння', lt: 'Šiandien', pl: 'Dziś', uk: 'Сьогодні' },
   'events.noEventsForDay': { en: 'No events planned for this day', ru: 'На этот день событий нет', be: 'На гэты дзень падзей няма', lt: 'Šiai dienai renginių nėra', pl: 'Brak wydarzeń na ten dzień', uk: 'На цей день подій немає' },
+
+  // ✅ Плюрализация для "N событий"
   'events.count_one': { en: '{{count}} event', ru: '{{count}} событие', be: '{{count}} падзея', lt: '{{count}} renginys', pl: '{{count}} wydarzenie', uk: '{{count}} подія' },
   'events.count_few': { en: '{{count}} events', ru: '{{count}} события', be: '{{count}} падзеі', lt: '{{count}} renginiai', pl: '{{count}} wydarzenia', uk: '{{count}} події' },
   'events.count_many': { en: '{{count}} events', ru: '{{count}} событий', be: '{{count}} падзей', lt: '{{count}} renginių', pl: '{{count}} wydarzeń', uk: '{{count}} подій' },
   'events.count_other': { en: '{{count}} events', ru: '{{count}} событий', be: '{{count}} падзей', lt: '{{count}} renginių', pl: '{{count}} wydarzeń', uk: '{{count}} подій' },
-  'events.playersCount': { en: '{{current}}/{{max}} players', ru: '{{current}}/{{max}} игроков', be: '{{current}}/{{max}} гульцоў', lt: '{{current}}/{{max}} žaidėjų', pl: '{{current}}/{{max}} graczy', uk: '{{current}}/{{max}} гравців' },
+
+  // ✅ Без склонений — формат "X/Y игроков"
+  'events.playersCount': { en: 'Players: {{current}}/{{max}}', ru: 'Игроков: {{current}}/{{max}}', be: 'Гульцоў: {{current}}/{{max}}', lt: 'Žaidėjų: {{current}}/{{max}}', pl: 'Graczy: {{current}}/{{max}}', uk: 'Гравців: {{current}}/{{max}}' },
+
   'events.unknownGround': { en: 'Unknown Ground', ru: 'Площадка не указана', be: 'Пляцоўка не пазначана', lt: 'Nežinoma aikštelė', pl: 'Nieznane boisko', uk: 'Майданчик не вказано' },
   'events.host': { en: 'HOST', ru: 'ОРГ', be: 'АРГ', lt: 'HOST', pl: 'GOSPODARZ', uk: 'ОРГ' },
 
-    // ===== SKILL LEVELS =====
+  // ===== SKILL LEVELS =====
   'events.level.all': { en: 'All levels', ru: 'Все уровни', be: 'Усе ўзроўні', lt: 'Visi lygiai', pl: 'Wszystkie poziomy', uk: 'Усі рівні' },
   'events.level.beginner': { en: 'Beginner', ru: 'Начинающий', be: 'Пачатковец', lt: 'Pradedantysis', pl: 'Początkujący', uk: 'Початківець' },
   'events.level.intermediate': { en: 'Intermediate', ru: 'Средний', be: 'Сярэдні', lt: 'Vidutinis', pl: 'Średni', uk: 'Середній' },
@@ -33,10 +38,6 @@ export const events: TranslationDict = {
   'events.form.date': { en: 'Date', ru: 'Дата', be: 'Дата', lt: 'Data', pl: 'Data', uk: 'Дата' },
   'events.form.time': { en: 'Time', ru: 'Время', be: 'Час', lt: 'Laikas', pl: 'Godzina', uk: 'Час' },
   'events.form.skillLevel': { en: 'Skill level', ru: 'Уровень', be: 'Узровень', lt: 'Lygis', pl: 'Poziom', uk: 'Рівень' },
-  'events.form.allLevels': { en: 'All levels', ru: 'Все уровни', be: 'Усе ўзроўні', lt: 'Visi lygiai', pl: 'Wszystkie poziomy', uk: 'Усі рівні' },
-  'events.form.beginner': { en: 'Beginner', ru: 'Начинающий', be: 'Пачатковец', lt: 'Pradedantysis', pl: 'Początkujący', uk: 'Початківець' },
-  'events.form.intermediate': { en: 'Intermediate', ru: 'Средний', be: 'Сярэдні', lt: 'Vidutinis', pl: 'Średni', uk: 'Середній' },
-  'events.form.advanced': { en: 'Advanced', ru: 'Продвинутый', be: 'Прасунуты', lt: 'Pažengęs', pl: 'Zaawansowany', uk: 'Просунутий' },
   'events.form.playersNeeded': { en: 'Players needed', ru: 'Игроков нужно', be: 'Гульцоў трэба', lt: 'Reikia žaidėjų', pl: 'Potrzeba graczy', uk: 'Потрібно гравців' },
   'events.form.duration': { en: 'Duration (min)', ru: 'Длительность (мин)', be: 'Працягласць (хв)', lt: 'Trukmė (min)', pl: 'Czas trwania (min)', uk: 'Тривалість (хв)' },
   'events.form.description': { en: 'Description (optional)', ru: 'Описание (необязательно)', be: 'Апісанне (неабавязкова)', lt: 'Aprašymas (neprivaloma)', pl: 'Opis (opcjonalnie)', uk: 'Опис (необовʼязково)' },
@@ -57,6 +58,7 @@ export const events: TranslationDict = {
     pl: 'Zaloguj się lub utwórz konto, aby organizować własne wydarzenia sportowe.',
     uk: 'Увійдіть або створіть акаунт, щоб організовувати власні спортивні події.',
   },
+
   // ===== EVENT DETAIL =====
   'event.detail.header': { en: 'Event', ru: 'Событие', be: 'Падзея', lt: 'Renginys', pl: 'Wydarzenie', uk: 'Подія' },
   'event.detail.hostedBy': { en: 'Hosted by', ru: 'Организатор', be: 'Арганізатар', lt: 'Organizatorius', pl: 'Organizator', uk: 'Організатор' },
@@ -86,7 +88,7 @@ export const events: TranslationDict = {
 
   // ===== PARTICIPANTS =====
   'participants.title': { en: 'Participants', ru: 'Участники', be: 'Удзельнікі', lt: 'Dalyviai', pl: 'Uczestnicy', uk: 'Учасники' },
-  'participants.count': { en: '{{count}}/{{max}} joined', ru: '{{count}}/{{max}} присоединилось', be: '{{count}}/{{max}} далучылася', lt: '{{count}}/{{max}} prisijungė', pl: '{{count}}/{{max}} dołączyło', uk: '{{count}}/{{max}} долучилося' },
+  'participants.count': { en: 'Joined: {{count}}/{{max}}', ru: 'Присоединилось: {{count}}/{{max}}', be: 'Далучылася: {{count}}/{{max}}', lt: 'Prisijungė: {{count}}/{{max}}', pl: 'Dołączyło: {{count}}/{{max}}', uk: 'Долучилося: {{count}}/{{max}}' },
   'participants.creator': { en: 'Creator', ru: 'Организатор', be: 'Арганізатар', lt: 'Organizatorius', pl: 'Organizator', uk: 'Організатор' },
   'participants.empty': { en: 'No participants yet', ru: 'Пока нет участников', be: 'Пакуль няма ўдзельнікаў', lt: 'Kol kas nėra dalyvių', pl: 'Brak uczestników', uk: 'Поки немає учасників' },
   'participants.emptyHint': { en: 'Be the first to join this event', ru: 'Станьте первым участником', be: 'Станьце першым удзельнікам', lt: 'Būkite pirmi, kurie prisijungs', pl: 'Bądź pierwszym uczestnikiem', uk: 'Станьте першим учасником' },
