@@ -19,6 +19,7 @@ import { SessionUser } from '@/effector/domains/auth';
 import { fetchMyProfileFx } from '@/effector/events/async/users';
 import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportLabel } from '@/constants/sports';
+import { $myReviewsCount, fetchMyReviewsFx } from '@/effector/store';
 
 interface UserProfileProps {
   user: SessionUser;
@@ -35,10 +36,14 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
   const fetchProfile = useUnit(fetchMyProfileFx);
   const isRefreshing = useUnit(fetchMyProfileFx.pending);
 
+  const reviewsCount = useUnit($myReviewsCount);
+  const fetchMyReviews = useUnit(fetchMyReviewsFx);
+
   // ✅ Обновляем профиль при каждом фокусе на вкладке
   useFocusEffect(
     useCallback(() => {
       fetchProfile();
+      fetchMyReviews();
     }, []),
   );
 
@@ -167,7 +172,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             style={styles.statsCard}
             onPress={() => router.push('/user/joined')}
           >
-            <Ionicons name="calendar-outline" size={20} color="#208AEF" />
+            <Ionicons name="calendar-outline" size={18} color="#208AEF" />
             <Text style={styles.statsNumber}>{joinedCount}</Text>
             <Text style={styles.statsLabel}>Joined</Text>
           </Pressable>
@@ -176,7 +181,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             style={styles.statsCard}
             onPress={() => router.push('/user/favorites')}
           >
-            <Ionicons name="heart-outline" size={20} color="#208AEF" />
+            <Ionicons name="heart-outline" size={18} color="#208AEF" />
             <Text style={styles.statsNumber}>{savedCount}</Text>
             <Text style={styles.statsLabel}>Saved</Text>
           </Pressable>
@@ -185,9 +190,18 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             style={styles.statsCard}
             onPress={() => router.push('/user/created')}
           >
-            <Ionicons name="trophy-outline" size={20} color="#208AEF" />
+            <Ionicons name="trophy-outline" size={18} color="#208AEF" />
             <Text style={styles.statsNumber}>{gamesCount}</Text>
             <Text style={styles.statsLabel}>Created</Text>
+          </Pressable>
+
+          <Pressable
+            style={styles.statsCard}
+            onPress={() => router.push('/user/reviews')}
+          >
+            <Ionicons name="star-outline" size={18} color="#208AEF" />
+            <Text style={styles.statsNumber}>{reviewsCount}</Text>
+            <Text style={styles.statsLabel}>Reviews</Text>
           </Pressable>
         </View>
 
@@ -388,7 +402,7 @@ const styles = StyleSheet.create({
 
   statsGrid: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
     marginHorizontal: 16,
     marginTop: 20,
     marginBottom: 24,
@@ -399,23 +413,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E6F4FE',
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   statsNumber: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
     color: '#334A77',
     marginTop: 4,
   },
   statsLabel: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#BACAD6',
     fontWeight: '500',
     marginTop: 2,
   },
-
   menuContainer: {
     marginHorizontal: 16,
     backgroundColor: '#FFFFFF',

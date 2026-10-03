@@ -25,6 +25,8 @@ import {
   $userSession,
   $userLocation,
   $cityCenter,
+  $groundReviewStats,
+  fetchGroundReviewsFx,
 } from '@/effector/store';
 import { toggleFavoriteInStore } from '@/effector/events/sync';
 import { getBadgeStyle } from '@/constants/badgeStyle';
@@ -58,6 +60,10 @@ export default function GroundDetailScreen() {
     cityCenter: $cityCenter,
   });
 
+  // ✅ Только статистика отзывов для отображения рейтинга
+  const reviewStats = useUnit($groundReviewStats);
+  const fetchReviews = useUnit(fetchGroundReviewsFx);
+
   const [showHistory, setShowHistory] = useState(false);
 
   useFocusEffect(
@@ -65,6 +71,7 @@ export default function GroundDetailScreen() {
       if (id) {
         fetchGroundByIdFx(id);
         fetchEventsByGroundIdFx(id);
+        fetchReviews(id); // для обновления рейтинга
       }
     }, [id]),
   );
@@ -162,6 +169,8 @@ export default function GroundDetailScreen() {
     user?.role?.includes('moderator') || user?.role?.includes('admin');
   const canEdit = isCreator || isModerator;
 
+  const hasReviews = reviewStats.totalReviews > 0;
+
   const renderEventCard = (event: any) => {
     const dateInfo = formatEventDate(event.date);
     const players = event.currentPlayers ?? 0;
@@ -210,7 +219,7 @@ export default function GroundDetailScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* ✅ Слайдер с key — перемонтирование при смене массива */}
+        {/* Слайдер фото */}
         <View style={styles.imageContainer}>
           <PhotoSlider
             key={photosList.join('|')}
@@ -282,18 +291,47 @@ export default function GroundDetailScreen() {
               })
             ) : (
               <View style={[styles.sportBadge, { backgroundColor: '#F0F4F8' }]}>
-                <Text style={[styles.sportText, { color: '#6080A8' }]}>SPORT</Text>
+                <Text style={[styles.sportText, { color: '#6080A8' }]}>
+                  SPORT
+                </Text>
               </View>
             )}
           </View>
 
-          <View style={styles.ratingBlock}>
+          {/* ✅ Кликабельный рейтинг → экран отзывов */}
+          <Pressable
+            style={styles.ratingBlock}
+            onPress={() =>
+              router.push({
+                pathname: '/reviews/ground/[id]',
+                params: { id: ground.id },
+              })
+            }
+            hitSlop={4}
+          >
             <Ionicons name="star" size={16} color="#FFCC00" />
-            <Text style={styles.ratingText}>
-              {ground.avgRating ? ground.avgRating.toFixed(1) : '0.0'}{' '}
-              <Text style={styles.reviewsText}>({ground.eventsCount || 0})</Text>
-            </Text>
-          </View>
+            {hasReviews ? (
+              <>
+                <Text style={styles.ratingText}>
+                  {reviewStats.avgRating.toFixed(1)}{' '}
+                  <Text style={styles.reviewsText}>
+                    ({reviewStats.totalReviews})
+                  </Text>
+                </Text>
+                <Text style={styles.seeAllText}>· See all</Text>
+              </>
+            ) : (
+              <Text style={styles.noReviewsText}>
+                No reviews yet · Write one
+              </Text>
+            )}
+            <Ionicons
+              name="chevron-forward"
+              size={14}
+              color="#BACAD6"
+              style={{ marginLeft: 4 }}
+            />
+          </Pressable>
 
           <Text style={styles.title}>{ground.name}</Text>
           <Text style={styles.address}>
@@ -372,7 +410,10 @@ export default function GroundDetailScreen() {
               <View style={styles.sectionHeaderRow}>
                 <View style={styles.liveDot} />
                 <Text
-                  style={[styles.sectionTitle, { marginBottom: 0, marginTop: 0 }]}
+                  style={[
+                    styles.sectionTitle,
+                    { marginBottom: 0, marginTop: 0 },
+                  ]}
                 >
                   Live now ({activeEvents.length})
                 </Text>
@@ -520,6 +561,8 @@ const styles = StyleSheet.create({
   },
   sportDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   sportText: { fontSize: 11, fontWeight: '700' },
+
+  // ✅ Rating — кликабельный, с chevron
   ratingBlock: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -528,6 +571,13 @@ const styles = StyleSheet.create({
   },
   ratingText: { fontSize: 14, fontWeight: '700', color: '#334A77' },
   reviewsText: { color: '#BACAD6', fontWeight: '400' },
+  seeAllText: { fontSize: 13, color: '#208AEF', fontWeight: '600' },
+  noReviewsText: {
+    fontSize: 13,
+    color: '#208AEF',
+    fontWeight: '600',
+  },
+
   title: { fontSize: 24, fontWeight: '800', color: '#334A77', marginTop: 4 },
   address: { fontSize: 14, color: '#6080A8', marginTop: 4 },
   mapRow: {

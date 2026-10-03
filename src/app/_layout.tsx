@@ -114,12 +114,18 @@ export default function RootLayout() {
           <Stack.Screen name="ground/create" options={{ headerShown: false }} />
           <Stack.Screen name="ground/edit" options={{ headerShown: false }} />
           <Stack.Screen name="ground/moderation" options={{ headerShown: false }} />
+          <Stack.Screen name="reviews/ground/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="event/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="event/create" options={{ headerShown: false }} />
           <Stack.Screen name="event/edit" options={{ headerShown: false }} />
           <Stack.Screen name="user/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="user/edit" options={{ headerShown: false }} />
           <Stack.Screen name="user/change-email" options={{ headerShown: false }} />
+          <Stack.Screen name="user/joined" options={{ headerShown: false }} />
+          <Stack.Screen name="user/favorites" options={{ headerShown: false }} />
+          <Stack.Screen name="user/created" options={{ headerShown: false }} />
+          <Stack.Screen name="user/reviews" options={{ headerShown: false }} />
+
         </Stack>
       </ThemeProvider>
     </GestureHandlerRootView>

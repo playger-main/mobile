@@ -156,3 +156,34 @@ export {
   clearGrounds,
   toggleFavoriteInStore,
 } from './events/sync';
+
+// ==========================================
+// 7. ОТЗЫВЫ
+// ==========================================
+export {
+  fetchGroundReviewsFx,
+  fetchMyReviewFx,
+  fetchMyReviewsFx,
+  createReviewFx,
+  updateReviewFx,
+  deleteReviewFx,
+} from './events/async/reviews';
+
+export type {
+  GroundReview,
+  ReviewStats,
+  ReviewAuthor,
+  MyReview,
+} from './events/async/reviews';
+
+export {
+  $groundReviews,
+  $groundReviewStats,
+  $isReviewsLoading,
+  $myReview,
+  $canCreateReview,
+  $hasMyReview,
+  $myReviews,
+  $myReviewsCount,
+  $isMyReviewsLoading,
+} from './domains/reviews';
