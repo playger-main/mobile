@@ -103,6 +103,14 @@ export {
   $isMyFavoritesLoading,
 } from './domains/userLists';
 
+export { fetchPublicUserFx } from './events/async/userPublic';
+export type { PublicUserProfile } from './events/async/userPublic';
+
+export {
+  $viewedUser,
+  $isViewedUserLoading,
+} from './domains/userPublic';
+
 // ==========================================
 // 4. НАСТРОЙКИ
 // ==========================================

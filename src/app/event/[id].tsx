@@ -318,6 +318,17 @@ export default function EventDetailScreen() {
         creatorId={event.creator?.id}
         maxPlayers={maxPlayers}
         onClose={() => setParticipantsVisible(false)}
+        onPlayerPress={(player) => {
+          setParticipantsVisible(false);
+          router.push({
+            pathname: '/user/[id]',
+            params: {
+              id: player.id,
+              name: player.name,
+              avatar: player.avatar ?? '',
+            },
+          });
+        }}
       />
     </View>
   );

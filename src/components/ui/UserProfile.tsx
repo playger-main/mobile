@@ -25,8 +25,8 @@ interface UserProfileProps {
   onLogout: () => void;
 }
 
-const COVER_HEIGHT = 180;
-const AVATAR_SIZE = 120;
+const COVER_HEIGHT = 160;
+const AVATAR_SIZE = 140;
 
 export default function UserProfile({ user, onLogout }: UserProfileProps) {
   const insets = useSafeAreaInsets();
@@ -75,14 +75,6 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             end={{ x: 1, y: 1 }}
             style={styles.cover}
           />
-
-          <View
-            style={[styles.overlayHeader, { paddingTop: insets.top + 6 }]}
-          >
-            <View style={styles.headerSpacer} />
-            <Text style={styles.headerTitle}>Profile</Text>
-            <View style={styles.headerSpacer} />
-          </View>
 
           <View style={styles.avatarWrapper}>
             <Pressable onPress={goToEdit} style={styles.avatarShadow}>
@@ -295,27 +287,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   cover: { height: COVER_HEIGHT, width: '100%' },
-  overlayHeader: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingBottom: 12,
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.15)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  headerSpacer: { width: 32 },
   avatarWrapper: {
     position: 'absolute',
     bottom: 0,
