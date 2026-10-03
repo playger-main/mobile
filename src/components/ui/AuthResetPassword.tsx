@@ -1,5 +1,5 @@
-// src/components/ui/AuthSignUp.tsx
-import React, { useState } from 'react';
+// src/components/ui/AuthResetPassword.tsx
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,27 +10,35 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-interface AuthSignUpProps {
-  onSubmit: (fullName: string, email: string, password: string) => void;
-  onSwitchToSignIn: () => void;
-  onContinueAsGuest: () => void;
+interface AuthResetPasswordProps {
+  email: string;
+  onSubmit: (code: string, newPassword: string) => void;
+  onResendCode: () => void;
+  onBackToSignIn: () => void;
   isSubmitting: boolean;
   errorMessage: string | null;
 }
 
-export default function AuthSignUp({
+export default function AuthResetPassword({
+  email,
   onSubmit,
-  onSwitchToSignIn,
-  onContinueAsGuest,
+  onResendCode,
+  onBackToSignIn,
   isSubmitting,
   errorMessage,
-}: AuthSignUpProps) {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
+}: AuthResetPasswordProps) {
+  const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [countdown, setCountdown] = useState(60);
+
+  useEffect(() => {
+    if (countdown === 0) return;
+    const timer = setInterval(() => setCountdown((p) => p - 1), 1000);
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   const passwordsMatch =
     password.length > 0 &&
@@ -41,57 +49,50 @@ export default function AuthSignUp({
     confirmPassword.length > 0 && password !== confirmPassword;
 
   const canSubmit =
-    fullName.trim().length > 0 &&
-    email.trim().length > 0 &&
+    code.length === 6 &&
     password.length >= 6 &&
     passwordsMatch &&
     !isSubmitting;
 
-  const handleSubmit = () => {
-    if (!canSubmit) return;
-    onSubmit(fullName, email, password);
+  const handleResend = () => {
+    onResendCode();
+    setCountdown(60);
   };
 
   return (
     <View style={styles.formContainer}>
       <View style={styles.logoIconBlock}>
-        <Ionicons name="basketball" size={32} color="#FFFFFF" />
+        <Ionicons name="lock-open-outline" size={32} color="#FFFFFF" />
       </View>
 
-      <Text style={styles.formTitle}>Create your account</Text>
+      <Text style={styles.formTitle}>Set new password</Text>
       <Text style={styles.formSubtitle}>
-        Join PlayG to find grounds and play with people near you.
+        We sent a 6-digit code to{' '}
+        <Text style={styles.emailHighlight}>{email}</Text>. Enter it below and
+        choose a new password.
       </Text>
 
       {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
       <View style={styles.inputGroup}>
         <TextInput
-          style={styles.inputField}
-          placeholder="Full name"
+          style={styles.codeInput}
+          placeholder="000000"
           placeholderTextColor="#BACAD6"
-          value={fullName}
-          onChangeText={setFullName}
-          autoCapitalize="words"
-          autoComplete="name"
-        />
-        <TextInput
-          style={styles.inputField}
-          placeholder="Email"
-          placeholderTextColor="#BACAD6"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          autoComplete="email"
+          value={code}
+          onChangeText={(t) => setCode(t.replace(/\D/g, ''))}
+          keyboardType="number-pad"
+          maxLength={6}
+          autoFocus
+          textContentType="oneTimeCode"
+          autoComplete="one-time-code"
         />
 
-        {/* Password */}
+        {/* New password */}
         <View style={styles.inputWithIcon}>
           <TextInput
             style={styles.inputFieldInner}
-            placeholder="Password (min 6 chars)"
+            placeholder="New password (min 6)"
             placeholderTextColor="#BACAD6"
             value={password}
             onChangeText={setPassword}
@@ -115,11 +116,11 @@ export default function AuthSignUp({
           </Pressable>
         </View>
 
-        {/* Confirm password */}
+        {/* Confirm new password */}
         <View style={styles.inputWithIcon}>
           <TextInput
             style={styles.inputFieldInner}
-            placeholder="Confirm password"
+            placeholder="Confirm new password"
             placeholderTextColor="#BACAD6"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
@@ -146,7 +147,7 @@ export default function AuthSignUp({
               name="checkmark-circle"
               size={20}
               color="#27AE60"
-              style={styles.confirmIcon}
+              style={{ marginLeft: 4 }}
             />
           )}
         </View>
@@ -158,32 +159,39 @@ export default function AuthSignUp({
 
       <Pressable
         style={[styles.primaryButton, !canSubmit && styles.buttonDisabled]}
-        onPress={handleSubmit}
+        onPress={() => onSubmit(code.trim(), password)}
         disabled={!canSubmit}
       >
         {isSubmitting ? (
           <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
-          <Text style={styles.primaryButtonText}>Create account</Text>
+          <Text style={styles.primaryButtonText}>Reset password</Text>
         )}
       </Pressable>
 
-      <View style={styles.toggleRow}>
-        <Text style={styles.toggleText}>Already have an account? </Text>
-        <Pressable onPress={onSwitchToSignIn}>
-          <Text style={styles.toggleLink}>Sign in</Text>
-        </Pressable>
+      <View style={styles.resendBlock}>
+        {countdown > 0 ? (
+          <Text style={styles.resendTimer}>Resend code in {countdown}s</Text>
+        ) : (
+          <Pressable onPress={handleResend}>
+            <Text style={styles.resendLink}>Resend code</Text>
+          </Pressable>
+        )}
       </View>
 
-      <Pressable style={styles.guestButton} onPress={onContinueAsGuest}>
-        <Text style={styles.guestButtonText}>Continue browsing as guest</Text>
+      <Pressable style={styles.backButton} onPress={onBackToSignIn}>
+        <Text style={styles.backButtonText}>← Back to sign in</Text>
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  formContainer: { flex: 1, paddingHorizontal: 24, justifyContent: 'center' },
+  formContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: 'center',
+  },
   logoIconBlock: {
     width: 56,
     height: 56,
@@ -205,6 +213,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 20,
   },
+  emailHighlight: { color: '#208AEF', fontWeight: '700' },
   errorText: {
     color: '#FF3B30',
     fontSize: 13,
@@ -212,14 +221,16 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   inputGroup: { gap: 12, marginBottom: 24 },
-  inputField: {
+  codeInput: {
     width: '100%',
-    height: 48,
+    height: 56,
     borderWidth: 1,
     borderColor: '#E6F4FE',
     borderRadius: 12,
-    paddingHorizontal: 16,
-    fontSize: 15,
+    fontSize: 26,
+    fontWeight: '800',
+    letterSpacing: 8,
+    textAlign: 'center',
     color: '#334A77',
     backgroundColor: '#FFFFFF',
   },
@@ -240,7 +251,6 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   eyeButton: { padding: 4, marginLeft: 4 },
-  confirmIcon: { marginLeft: 4 },
   mismatchText: {
     color: '#FF3B30',
     fontSize: 12,
@@ -257,18 +267,14 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   buttonDisabled: { backgroundColor: '#BACAD6' },
-  toggleRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 16,
-  },
-  toggleText: { fontSize: 14, color: '#6080A8' },
-  toggleLink: { fontSize: 14, fontWeight: '700', color: '#208AEF' },
-  guestButton: { alignItems: 'center', marginTop: 24 },
-  guestButtonText: {
+  resendBlock: { alignItems: 'center', marginTop: 16 },
+  resendTimer: { fontSize: 13, color: '#BACAD6', fontWeight: '500' },
+  resendLink: {
     fontSize: 13,
-    color: '#BACAD6',
-    fontWeight: '500',
+    color: '#208AEF',
+    fontWeight: '700',
     textDecorationLine: 'underline',
   },
+  backButton: { alignItems: 'center', marginTop: 24 },
+  backButtonText: { fontSize: 14, color: '#6080A8', fontWeight: '600' },
 });

@@ -1,14 +1,31 @@
 // src/app/(drawer)/(tabs)/profile.tsx
 import React, { useState } from 'react';
-import { StyleSheet, Pressable, KeyboardAvoidingView, Platform, Alert, View } from 'react-native';
+import {
+  StyleSheet,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 // Effector core state bindings
-import { signUpFx, signInFx, verifyCodeFx, resendCodeFx } from '@/effector/events/async/auth';
-import { $authStep, $userSession, $isAuthSubmitting } from '@/effector/store';
+import {
+  signUpFx,
+  signInFx,
+  verifyCodeFx,
+  resendCodeFx,
+  forgotPasswordFx,   // ✅ НОВОЕ
+  resetPasswordFx,    // ✅ НОВОЕ
+} from '@/effector/events/async/auth';
+import {
+  $authStep,
+  $userSession,
+  $isAuthSubmitting,
+} from '@/effector/store';
 import { setAuthStep, logout } from '@/effector/events/sync';
 
 // Decoupled sub-component modules
@@ -16,12 +33,14 @@ import AuthWelcome from '@/components/ui/AuthWelcome';
 import AuthSignIn from '@/components/ui/AuthSignIn';
 import AuthSignUp from '@/components/ui/AuthSignUp';
 import AuthVerifyCode from '@/components/ui/AuthVerifyCode';
+import AuthForgotPassword from '@/components/ui/AuthForgotPassword';   // ✅ НОВОЕ
+import AuthResetPassword from '@/components/ui/AuthResetPassword';     // ✅ НОВОЕ
 import UserProfile from '@/components/ui/UserProfile';
 
 export default function ProfileHubScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  
+
   // Local interface states
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pendingEmail, setPendingEmail] = useState<string>('');
@@ -44,17 +63,32 @@ export default function ProfileHubScreen() {
 
   // 2. BASELINE ONBOARDING OVERLAY MODE (WELCOME SLIDER)
   if (currentStep === 'welcome') {
-    return <AuthWelcome onGetStarted={() => changeStep('signin')} bottomInset={insets.bottom} />;
+    return (
+      <AuthWelcome
+        onGetStarted={() => changeStep('signin')}
+        bottomInset={insets.bottom}
+      />
+    );
   }
 
   // 3. REGISTRATION ENGINE INTERACTION PIPELINE
-  const handleSignUp = async (fullName: string, email: string, password: string) => {
+  const handleSignUp = async (
+    fullName: string,
+    email: string,
+    password: string,
+  ) => {
     try {
       setErrorMessage(null);
-      setPendingEmail(email.trim()); // Save reference context for verification layout steps
-      await signUpFx({ username: fullName.trim(), email: email.trim(), password });
+      setPendingEmail(email.trim());
+      await signUpFx({
+        username: fullName.trim(),
+        email: email.trim(),
+        password,
+      });
     } catch (err: any) {
-      setErrorMessage(err?.response?.data?.message || 'Registration failure encountered.');
+      setErrorMessage(
+        err?.response?.data?.message || 'Registration failure encountered.',
+      );
     }
   };
 
@@ -68,20 +102,21 @@ export default function ProfileHubScreen() {
       const serverMessage = err?.response?.data?.message || '';
       const statusCode = err?.response?.status;
 
-      // Detect unconfirmed profile indicators inside returning network layers
       if (
-        statusCode === 400 || 
-        serverMessage.toLowerCase().includes('confirm') || 
+        statusCode === 400 ||
+        serverMessage.toLowerCase().includes('confirm') ||
         serverMessage.toLowerCase().includes('подтвержд')
       ) {
-        setPendingEmail(email.trim()); // Anchor fallback email target pointer
-        changeStep('verify');          // Pivot screen focus to code inputs immediately
-        setErrorMessage('Your account is unverified. We have dispatched a new secure code.');
-        
-        // Push a fresh verification combination update down via the NestJS dispatch queue
+        setPendingEmail(email.trim());
+        changeStep('verify');
+        setErrorMessage(
+          'Your account is unverified. We have dispatched a new secure code.',
+        );
         resendCodeFx(email.trim()).catch(() => {});
       } else {
-        setErrorMessage(serverMessage || 'Invalid email or security credentials provided.');
+        setErrorMessage(
+          serverMessage || 'Invalid email or security credentials provided.',
+        );
       }
     }
   };
@@ -95,9 +130,15 @@ export default function ProfileHubScreen() {
     try {
       setErrorMessage(null);
       await resendCodeFx(pendingEmail);
-      Alert.alert('Code Dispatched', 'A new 6-digit tracking code has been forwarded to your inbox.');
+      Alert.alert(
+        'Code Dispatched',
+        'A new 6-digit tracking code has been forwarded to your inbox.',
+      );
     } catch (err: any) {
-      setErrorMessage(err?.response?.data?.message || 'Failed to dispatch notification sequence.');
+      setErrorMessage(
+        err?.response?.data?.message ||
+          'Failed to dispatch notification sequence.',
+      );
     }
   };
 
@@ -106,54 +147,137 @@ export default function ProfileHubScreen() {
     try {
       setErrorMessage(null);
       await verifyCodeFx(code);
-      Alert.alert('Verification Success', 'Account activated successfully! Please sign in.', [
-        { text: 'OK', onPress: () => changeStep('signin') }
-      ]);
+      Alert.alert(
+        'Verification Success',
+        'Account activated successfully! Please sign in.',
+        [{ text: 'OK', onPress: () => changeStep('signin') }],
+      );
     } catch (err: any) {
-      setErrorMessage(err?.response?.data?.message || 'Invalid or expired entry code string token.');
+      setErrorMessage(
+        err?.response?.data?.message ||
+          'Invalid or expired entry code string token.',
+      );
     }
   };
 
+  // ✅ 7. FORGOT PASSWORD — запрос кода
+  const handleForgotPassword = async (email: string) => {
+    try {
+      setErrorMessage(null);
+      setPendingEmail(email.trim());
+      await forgotPasswordFx(email.trim());
+      // on(forgotPasswordFx.done) сам переведёт step → 'reset'
+    } catch (err: any) {
+      setErrorMessage(
+        err?.response?.data?.message || 'Could not send reset code.',
+      );
+    }
+  };
+
+  // ✅ 8. RESET PASSWORD — ввод кода + новый пароль
+  const handleResetPassword = async (code: string, newPassword: string) => {
+    try {
+      setErrorMessage(null);
+      await resetPasswordFx({
+        email: pendingEmail,
+        code,
+        newPassword,
+      });
+      Alert.alert('Success', 'Password changed. Please sign in.', [
+        { text: 'OK', onPress: () => changeStep('signin') },
+      ]);
+    } catch (err: any) {
+      setErrorMessage(
+        err?.response?.data?.message || 'Invalid or expired code.',
+      );
+    }
+  };
+
+  const handleBackToSignIn = () => {
+    changeStep('signin');
+    setErrorMessage(null);
+  };
+
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      {/* Universal fallback back-dismiss target button layout */}
-      <Pressable 
-        style={[styles.closeButton, { top: insets.top + 12 }]} 
-        onPress={() => { changeStep('welcome'); setErrorMessage(null); }}
+      {/* Universal close button */}
+      <Pressable
+        style={[styles.closeButton, { top: insets.top + 12 }]}
+        onPress={() => {
+          changeStep('welcome');
+          setErrorMessage(null);
+        }}
         hitSlop={12}
       >
         <Ionicons name="close" size={24} color="#334A77" />
       </Pressable>
 
-      {/* Screen layout choice resolution split routing trees */}
+      {/* ================= SIGN IN ================= */}
       {currentStep === 'signin' && (
-        <AuthSignIn 
+        <AuthSignIn
           onSubmit={handleSignIn}
-          onSwitchToSignUp={() => { changeStep('signup'); setErrorMessage(null); }}
+          onSwitchToSignUp={() => {
+            changeStep('signup');
+            setErrorMessage(null);
+          }}
           onContinueAsGuest={navigateToHome}
+          onForgotPassword={() => {
+            changeStep('forgot');
+            setErrorMessage(null);
+          }}
           isSubmitting={isSubmitting}
           errorMessage={errorMessage}
         />
       )}
 
+      {/* ================= SIGN UP ================= */}
       {currentStep === 'signup' && (
-        <AuthSignUp 
+        <AuthSignUp
           onSubmit={handleSignUp}
-          onSwitchToSignIn={() => { changeStep('signin'); setErrorMessage(null); }}
+          onSwitchToSignIn={() => {
+            changeStep('signin');
+            setErrorMessage(null);
+          }}
           onContinueAsGuest={navigateToHome}
           isSubmitting={isSubmitting}
           errorMessage={errorMessage}
         />
       )}
 
+      {/* ================= VERIFY CODE (регистрация) ================= */}
       {currentStep === 'verify' && (
-        <AuthVerifyCode 
+        <AuthVerifyCode
           onSubmit={handleVerifyCodeSubmit}
           onResendCode={handleResendCodeCall}
-          onBackToSignUp={() => { changeStep('signup'); setErrorMessage(null); }}
+          onBackToSignUp={() => {
+            changeStep('signup');
+            setErrorMessage(null);
+          }}
+          isSubmitting={isSubmitting}
+          errorMessage={errorMessage}
+        />
+      )}
+
+      {/* ================= FORGOT PASSWORD ================= */}
+      {currentStep === 'forgot' && (
+        <AuthForgotPassword
+          onSubmit={handleForgotPassword}
+          onBackToSignIn={handleBackToSignIn}
+          isSubmitting={isSubmitting}
+          errorMessage={errorMessage}
+        />
+      )}
+
+      {/* ================= RESET PASSWORD ================= */}
+      {currentStep === 'reset' && (
+        <AuthResetPassword
+          email={pendingEmail}
+          onSubmit={handleResetPassword}
+          onResendCode={() => handleForgotPassword(pendingEmail)}
+          onBackToSignIn={handleBackToSignIn}
           isSubmitting={isSubmitting}
           errorMessage={errorMessage}
         />
@@ -163,14 +287,14 @@ export default function ProfileHubScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#FFFFFF' 
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-  closeButton: { 
-    position: 'absolute', 
-    right: 16, 
-    padding: 8, 
-    zIndex: 10 
+  closeButton: {
+    position: 'absolute',
+    right: 16,
+    padding: 8,
+    zIndex: 10,
   },
 });

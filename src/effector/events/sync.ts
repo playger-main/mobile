@@ -17,7 +17,9 @@ export const setSelectedDate = createEvent<string>();
 // ==========================================
 // АВТОРИЗАЦИЯ
 // ==========================================
-export const setAuthStep = createEvent<'welcome' | 'signin' | 'signup' | 'verify'>();
+export const setAuthStep = createEvent<
+  'welcome' | 'signin' | 'signup' | 'verify' | 'forgot' | 'reset'
+>();
 export const logout = createEvent();
 
 // ==========================================

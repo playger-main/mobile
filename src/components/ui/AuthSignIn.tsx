@@ -14,7 +14,7 @@ interface AuthSignInProps {
   onSubmit: (email: string, password: string) => void;
   onSwitchToSignUp: () => void;
   onContinueAsGuest: () => void;
-  onForgotPassword: () => void;      // ✅ НОВОЕ
+  onForgotPassword: () => void;
   isSubmitting: boolean;
   errorMessage: string | null;
 }
@@ -23,7 +23,7 @@ export default function AuthSignIn({
   onSubmit,
   onSwitchToSignUp,
   onContinueAsGuest,
-  onForgotPassword,                  // ✅ НОВОЕ
+  onForgotPassword,
   isSubmitting,
   errorMessage,
 }: AuthSignInProps) {
@@ -54,9 +54,9 @@ export default function AuthSignIn({
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
+          autoComplete="email"
         />
 
-        {/* ✅ Password с eye-переключателем */}
         <View style={styles.inputWithIcon}>
           <TextInput
             style={styles.inputFieldInner}
@@ -67,6 +67,9 @@ export default function AuthSignIn({
             secureTextEntry={!showPassword}
             autoCapitalize="none"
             autoCorrect={false}
+            spellCheck={false}
+            textContentType="oneTimeCode"
+            autoComplete="off"
           />
           <Pressable
             onPress={() => setShowPassword((v) => !v)}
@@ -81,7 +84,6 @@ export default function AuthSignIn({
           </Pressable>
         </View>
 
-        {/* ✅ Forgot password link */}
         <Pressable
           onPress={onForgotPassword}
           style={styles.forgotButton}
@@ -175,8 +177,6 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   eyeButton: { padding: 4, marginLeft: 4 },
-
-  // ✅ Forgot password
   forgotButton: {
     alignSelf: 'flex-end',
     marginTop: -4,
@@ -186,7 +186,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#208AEF',
   },
-
   primaryButton: {
     width: '100%',
     height: 50,
