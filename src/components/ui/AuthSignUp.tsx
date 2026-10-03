@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@/i18n';
 
 interface AuthSignUpProps {
   onSubmit: (fullName: string, email: string, password: string) => void;
@@ -25,6 +26,7 @@ export default function AuthSignUp({
   isSubmitting,
   errorMessage,
 }: AuthSignUpProps) {
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -58,17 +60,15 @@ export default function AuthSignUp({
         <Ionicons name="basketball" size={32} color="#FFFFFF" />
       </View>
 
-      <Text style={styles.formTitle}>Create your account</Text>
-      <Text style={styles.formSubtitle}>
-        Join PlayG to find grounds and play with people near you.
-      </Text>
+      <Text style={styles.formTitle}>{t('auth.signUp.title')}</Text>
+      <Text style={styles.formSubtitle}>{t('auth.signUp.subtitle')}</Text>
 
       {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
       <View style={styles.inputGroup}>
         <TextInput
           style={styles.inputField}
-          placeholder="Full name"
+          placeholder={t('auth.fullName')}
           placeholderTextColor="#BACAD6"
           value={fullName}
           onChangeText={setFullName}
@@ -77,7 +77,7 @@ export default function AuthSignUp({
         />
         <TextInput
           style={styles.inputField}
-          placeholder="Email"
+          placeholder={t('auth.email')}
           placeholderTextColor="#BACAD6"
           value={email}
           onChangeText={setEmail}
@@ -91,7 +91,7 @@ export default function AuthSignUp({
         <View style={styles.inputWithIcon}>
           <TextInput
             style={styles.inputFieldInner}
-            placeholder="Password (min 6 chars)"
+            placeholder={t('auth.passwordMin6')}
             placeholderTextColor="#BACAD6"
             value={password}
             onChangeText={setPassword}
@@ -119,7 +119,7 @@ export default function AuthSignUp({
         <View style={styles.inputWithIcon}>
           <TextInput
             style={styles.inputFieldInner}
-            placeholder="Confirm password"
+            placeholder={t('auth.confirmPassword')}
             placeholderTextColor="#BACAD6"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
@@ -152,7 +152,9 @@ export default function AuthSignUp({
         </View>
 
         {showMismatch && (
-          <Text style={styles.mismatchText}>Passwords do not match</Text>
+          <Text style={styles.mismatchText}>
+            {t('auth.passwordsDoNotMatch')}
+          </Text>
         )}
       </View>
 
@@ -164,19 +166,25 @@ export default function AuthSignUp({
         {isSubmitting ? (
           <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
-          <Text style={styles.primaryButtonText}>Create account</Text>
+          <Text style={styles.primaryButtonText}>
+            {t('auth.createAccountButton')}
+          </Text>
         )}
       </Pressable>
 
       <View style={styles.toggleRow}>
-        <Text style={styles.toggleText}>Already have an account? </Text>
+        <Text style={styles.toggleText}>
+          {t('auth.alreadyHaveAccount')}
+        </Text>
         <Pressable onPress={onSwitchToSignIn}>
-          <Text style={styles.toggleLink}>Sign in</Text>
+          <Text style={styles.toggleLink}>{t('auth.signIn.button')}</Text>
         </Pressable>
       </View>
 
       <Pressable style={styles.guestButton} onPress={onContinueAsGuest}>
-        <Text style={styles.guestButtonText}>Continue browsing as guest</Text>
+        <Text style={styles.guestButtonText}>
+          {t('auth.continueAsGuest')}
+        </Text>
       </Pressable>
     </View>
   );

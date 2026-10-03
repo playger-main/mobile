@@ -3,6 +3,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 import { ServerEventItem } from '@/effector/events/async/events';
+import { useTranslation } from '@/i18n';
 
 interface CalendarEventsProps {
   selectedDate: string;
@@ -10,18 +11,23 @@ interface CalendarEventsProps {
   onDateChange: (date: string) => void;
 }
 
-export default function CalendarEvents({ selectedDate, allEvents, onDateChange }: CalendarEventsProps) {
-  
-  // Формируем объект отмеченных точек для дней, в которых есть хотя бы один матч
+export default function CalendarEvents({
+  selectedDate,
+  allEvents,
+  onDateChange,
+}: CalendarEventsProps) {
+  // ✅ Подписываемся на язык, чтобы календарь перерисовался
+  //    при смене (key пересоздаёт компонент)
+  const { lang } = useTranslation();
+
   const markedDates = allEvents.reduce((acc: any, event) => {
     acc[event.date] = {
       marked: true,
-      dotColor: '#208AEF', // Синяя точка под датой с игрой
+      dotColor: '#208AEF',
     };
     return acc;
   }, {});
 
-  // Подсвечиваем синим кружком выбранный пользователем день
   markedDates[selectedDate] = {
     ...markedDates[selectedDate],
     selected: true,
@@ -32,9 +38,14 @@ export default function CalendarEvents({ selectedDate, allEvents, onDateChange }
   return (
     <View style={styles.container}>
       <Calendar
+        // ✅ key заставляет React пересоздать компонент при смене языка.
+        //    Локаль берётся из LocaleConfig.defaultLocale (глобально),
+        //    который устанавливается в _layout.tsx через setCalendarLocale().
+        key={String(lang)}
         current={selectedDate}
         onDayPress={(day: DateData) => onDateChange(day.dateString)}
         markedDates={markedDates}
+        firstDay={1}
         theme={{
           backgroundColor: '#FFFFFF',
           calendarBackground: '#FFFFFF',
@@ -55,7 +66,6 @@ export default function CalendarEvents({ selectedDate, allEvents, onDateChange }
           textMonthFontSize: 16,
           textDayHeaderFontSize: 12,
         }}
-        firstDay={1} // Начинаем неделю с понедельника
       />
     </View>
   );

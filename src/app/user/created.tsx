@@ -20,10 +20,12 @@ import {
   $userSession,
   fetchMyCreatedEventsFx,
 } from '@/effector/store';
+import { useTranslation } from '@/i18n';
 
 export default function CreatedEventsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const events = useUnit($myCreatedEvents);
   const isLoading = useUnit($isMyCreatedLoading);
@@ -45,9 +47,9 @@ export default function CreatedEventsScreen() {
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>My events</Text>
+          <Text style={styles.headerTitle}>{t('created.title')}</Text>
           <Text style={styles.headerSubtitle}>
-            {events.length} created
+            {t('created.subtitle', { count: events.length })}
           </Text>
         </View>
         <View style={{ width: 32 }} />
@@ -62,7 +64,12 @@ export default function CreatedEventsScreen() {
           data={events}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <EventListCard item={item} showDate showCreatorBadge currentUserId={user?.id} />
+            <EventListCard
+              item={item}
+              showDate
+              showCreatorBadge
+              currentUserId={user?.id}
+            />
           )}
           contentContainerStyle={[
             styles.listContent,
@@ -72,16 +79,18 @@ export default function CreatedEventsScreen() {
           ListEmptyComponent={
             <View style={styles.emptyBlock}>
               <Ionicons name="trophy-outline" size={48} color="#BACAD6" />
-              <Text style={styles.emptyTitle}>You haven't created events yet</Text>
+              <Text style={styles.emptyTitle}>{t('created.empty')}</Text>
               <Text style={styles.emptyText}>
-                Host a game and invite the community to play.
+                {t('created.emptyHint')}
               </Text>
               <Pressable
                 style={styles.emptyButton}
                 onPress={() => router.push('/event/create')}
               >
                 <Ionicons name="add" size={18} color="#FFFFFF" />
-                <Text style={styles.emptyButtonText}>Create event</Text>
+                <Text style={styles.emptyButtonText}>
+                  {t('created.createButton')}
+                </Text>
               </Pressable>
             </View>
           }

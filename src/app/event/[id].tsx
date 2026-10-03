@@ -31,17 +31,21 @@ import EventProgressBar from '@/components/ui/EventProgressBar';
 import EventLocationCard from '@/components/ui/EventLocationCard';
 import ParticipantsModal from '@/components/ui/ParticipantsModal';
 import { getBadgeStyle } from '@/constants/badgeStyle';
-import { getSportLabel } from '@/constants/sports';
+import { getSportKey } from '@/constants/sports';
+
 import {
   getEventStatus,
-  getEventStatusLabel,
+  getEventStatusLabelKey,
   getEventStatusStyle,
 } from '@/utils/eventStatus';
+
+import { useTranslation } from '@/i18n';
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const { event, isLoading, userSession, toggleJoin, isJoining } = useUnit({
     event: $currentEvent,
@@ -69,12 +73,12 @@ export default function EventDetailScreen() {
   const handleJoinToggleAction = async () => {
     if (!userSession) {
       Alert.alert(
-        'Authentication Required',
-        'Please create an account or sign in to reserve a spot in this game.',
+        t('event.detail.authRequired'),
+        t('event.detail.authHint'),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Sign In',
+            text: t('common.signIn'),
             onPress: () => router.push('/(drawer)/(tabs)/profile'),
           },
         ],
@@ -90,8 +94,8 @@ export default function EventDetailScreen() {
         ? raw.join('\n')
         : typeof raw === 'string'
           ? raw
-          : 'Could not adjust slot metrics.';
-      Alert.alert('Action Failed', message);
+          : t('common.tryAgain');
+      Alert.alert(t('event.detail.actionFailed'), message);
     }
   };
 
@@ -114,7 +118,7 @@ export default function EventDetailScreen() {
 
   const status = getEventStatus(event.date, event.startTime, event.duration);
   const statusStyle = getEventStatusStyle(status);
-  const statusLabel = getEventStatusLabel(status);
+  const statusLabel = t(getEventStatusLabelKey(status));
   const isFinished = status === 'finished';
 
   const isJoined = Array.isArray(event.players)
@@ -129,35 +133,33 @@ export default function EventDetailScreen() {
     userSession?.role?.includes('admin');
   const canEdit = isCreator || isModerator;
 
-  // ✅ players как есть — создатель автоматически в списке при создании,
-  //    при Leave — его там нет
   const playersList = Array.isArray(event.players) ? [...event.players] : [];
 
-  let buttonText = 'Join event';
+  let buttonText = t('event.detail.join');
   let buttonStyle = [styles.joinButton, styles.primaryJoinBg];
   let buttonDisabled = false;
 
   if (isFinished) {
-    buttonText = 'Event finished';
+    buttonText = t('event.detail.finished');
     buttonStyle = [styles.joinButton, styles.disabledBtnBg];
     buttonDisabled = true;
   } else if (isJoined) {
-    buttonText = 'Leave event';
+    buttonText = t('event.detail.leave');
     buttonStyle = [styles.joinButton, styles.leaveBtnBg];
   } else if (isFull) {
-    buttonText = 'Game Full';
+    buttonText = t('event.detail.full');
     buttonStyle = [styles.joinButton, styles.disabledBtnBg];
     buttonDisabled = true;
   }
 
   return (
     <View style={styles.container}>
-      {/* Обычный хедер — без фото события */}
+      {/* Header */}
       <View style={[styles.customHeader, { paddingTop: insets.top + 6 }]}>
         <Pressable onPress={handleBack} style={styles.backButton} hitSlop={12}>
           <Ionicons name="chevron-back" size={24} color="#208AEF" />
         </Pressable>
-        <Text style={styles.headerTitle}>Event</Text>
+        <Text style={styles.headerTitle}>{t('event.detail.header')}</Text>
         {canEdit ? (
           <Pressable
             onPress={() => router.push(`/event/edit?id=${event.id}`)}
@@ -179,18 +181,16 @@ export default function EventDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.badgesRow}>
-          {sportsList.length > 0 ? (
+          {sportsList.length > 0 ? (            
             sportsList.slice(0, 4).map((sportId, idx) => {
               const style = getBadgeStyle(sportId);
-              const label = getSportLabel(sportId);
+              const label = t(getSportKey(sportId));
               return (
                 <View
                   key={`${sportId}-${idx}`}
                   style={[styles.sportBadge, { backgroundColor: style.bg }]}
                 >
-                  <View
-                    style={[styles.sportDot, { backgroundColor: style.text }]}
-                  />
+                  ...
                   <Text style={[styles.sportText, { color: style.text }]}>
                     {label.toUpperCase()}
                   </Text>
@@ -200,7 +200,7 @@ export default function EventDetailScreen() {
           ) : (
             <View style={[styles.sportBadge, { backgroundColor: '#F0F4F8' }]}>
               <Text style={[styles.sportText, { color: '#6080A8' }]}>
-                SPORT
+                {t('sport.all').toUpperCase()}
               </Text>
             </View>
           )}
@@ -238,7 +238,6 @@ export default function EventDetailScreen() {
               })
             }
           >
-            {/* ✅ Аватар создателя, если есть. Иначе — буква */}
             {event.creator.avatar ? (
               <Image
                 key={event.creator.avatar}
@@ -254,7 +253,7 @@ export default function EventDetailScreen() {
             )}
 
             <View style={{ flex: 1 }}>
-              <Text style={styles.hostLabel}>Hosted by</Text>
+              <Text style={styles.hostLabel}>{t('event.detail.hostedBy')}</Text>
               <Text style={styles.hostName} numberOfLines={1}>
                 {event.creator.name || 'User'}
               </Text>
@@ -267,7 +266,7 @@ export default function EventDetailScreen() {
           date={event.date}
           startTime={event.startTime}
           duration={event.duration || '60m'}
-          level={event.level || 'Intermediate'}
+          level={event.level || 'all'}   // ✅ было 'Intermediate'
           currentPlayers={currentPlayers}
           maxPlayers={maxPlayers}
           status={status}
@@ -279,18 +278,17 @@ export default function EventDetailScreen() {
           maxPlayers={maxPlayers}
         />
 
-        {/* Фото площадки */}
         <EventLocationCard
-          name={event.ground?.name || 'Playground'}
-          address={event.ground?.address || 'Address'}
+          name={event.ground?.name || t('common.ground')}
+          address={event.ground?.address || t('grounds.noAddress')}
           avatar={event.ground?.avatar ?? null}
           latitude={event.ground?.geolocation?.lat}
           longitude={event.ground?.geolocation?.lng}
         />
 
-        <Text style={styles.sectionTitle}>Details</Text>
+        <Text style={styles.sectionTitle}>{t('event.detail.details')}</Text>
         <Text style={styles.descriptionText}>
-          {event.description || 'No additional details provided for this event.'}
+          {event.description || t('event.detail.noDetails')}
         </Text>
       </ScrollView>
 
@@ -407,7 +405,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // ✅ Стиль для картинки-аватара создателя
   hostAvatarImage: {
     width: 40,
     height: 40,

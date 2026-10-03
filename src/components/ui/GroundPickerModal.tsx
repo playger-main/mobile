@@ -6,7 +6,6 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  ActivityIndicator,
   Alert,
   Platform,
   Linking,
@@ -21,6 +20,7 @@ import { $grounds, $userLocation, $cityCenter } from '@/effector/store';
 import { ExtendedGroundItem } from './CardGround';
 import { DEFAULT_CITY_CENTER } from '@/constants/location';
 import { getSportIcon } from '@/constants/sports';
+import { useTranslation } from '@/i18n';
 
 interface GroundPickerModalProps {
   visible: boolean;
@@ -35,6 +35,7 @@ export default function GroundPickerModal({
   onConfirm,
   onClose,
 }: GroundPickerModalProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView | null>(null);
 
@@ -42,9 +43,9 @@ export default function GroundPickerModal({
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
 
-  const [selectedGround, setSelectedGround] = useState<ExtendedGroundItem | null>(null);
+  const [selectedGround, setSelectedGround] =
+    useState<ExtendedGroundItem | null>(null);
 
-  // ✅ Показываем ТОЛЬКО подтверждённые площадки (для создания события)
   const markers = useMemo(
     () =>
       grounds.filter(
@@ -56,7 +57,6 @@ export default function GroundPickerModal({
     [grounds],
   );
 
-  // Стартовый регион
   const initialRegion: Region = {
     latitude:
       userLocation?.latitude ??
@@ -70,7 +70,6 @@ export default function GroundPickerModal({
     longitudeDelta: 0.05,
   };
 
-  // При открытии: восстанавливаем ранее выбранную площадку
   useEffect(() => {
     if (!visible) return;
 
@@ -101,18 +100,17 @@ export default function GroundPickerModal({
     setSelectedGround(ground);
   };
 
-  // Центрировать на пользователе
   const handleLocatePress = async () => {
     try {
       const { status } = await Location.getForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert(
-          'Location Access',
-          'Enable location to see your position.',
+          t('locationPicker.locationAccess'),
+          t('groundPicker.locationAccessHint'),
           [
-            { text: 'Cancel', style: 'cancel' },
+            { text: t('locationPicker.notNow'), style: 'cancel' },
             {
-              text: 'Open Settings',
+              text: t('locationPicker.openSettings'),
               onPress: () => {
                 if (Platform.OS === 'ios') {
                   Linking.openURL('app-settings:');
@@ -140,13 +138,13 @@ export default function GroundPickerModal({
         500,
       );
     } catch {
-      Alert.alert('Error', 'Could not get your current location.');
+      Alert.alert(t('common.error'), t('groundPicker.couldNotGet'));
     }
   };
 
   const handleConfirm = () => {
     if (!selectedGround) {
-      Alert.alert('Pick a ground', 'Tap on a marker to select a ground.');
+      Alert.alert(t('groundPicker.pickGround'), t('groundPicker.tapMarker'));
       return;
     }
     onConfirm(selectedGround);
@@ -217,29 +215,24 @@ export default function GroundPickerModal({
           })}
         </MapView>
 
-        {/* Шапка */}
         <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <Pressable onPress={onClose} style={styles.headerButton} hitSlop={10}>
             <Ionicons name="close" size={22} color="#334A77" />
           </Pressable>
-          <Text style={styles.headerTitle}>Pick a ground</Text>
+          <Text style={styles.headerTitle}>{t('groundPicker.title')}</Text>
           <View style={{ width: 40 }} />
         </View>
 
-        {/* Подсказка сверху */}
         <View
           style={[styles.hintContainer, { top: insets.top + 70 }]}
           pointerEvents="none"
         >
           <View style={styles.hintPill}>
             <Ionicons name="hand-left-outline" size={14} color="#334A77" />
-            <Text style={styles.hintText}>
-              Tap a marker to select a ground
-            </Text>
+            <Text style={styles.hintText}>{t('groundPicker.hint')}</Text>
           </View>
         </View>
 
-        {/* Кнопка «моё местоположение» */}
         <Pressable
           style={[styles.locateButton, { bottom: insets.bottom + 180 }]}
           onPress={handleLocatePress}
@@ -247,12 +240,8 @@ export default function GroundPickerModal({
           <Ionicons name="locate" size={22} color="#208AEF" />
         </Pressable>
 
-        {/* Нижняя панель */}
         <View
-          style={[
-            styles.bottomPanel,
-            { paddingBottom: insets.bottom + 16 },
-          ]}
+          style={[styles.bottomPanel, { paddingBottom: insets.bottom + 16 }]}
         >
           {selectedGround ? (
             <View style={styles.selectedBlock}>
@@ -283,8 +272,14 @@ export default function GroundPickerModal({
             </View>
           ) : (
             <View style={styles.emptyBlock}>
-              <Ionicons name="information-circle-outline" size={20} color="#BACAD6" />
-              <Text style={styles.emptyText}>No ground selected yet</Text>
+              <Ionicons
+                name="information-circle-outline"
+                size={20}
+                color="#BACAD6"
+              />
+              <Text style={styles.emptyText}>
+                {t('groundPicker.noSelection')}
+              </Text>
             </View>
           )}
 
@@ -297,7 +292,9 @@ export default function GroundPickerModal({
             disabled={!selectedGround}
           >
             <Ionicons name="checkmark" size={20} color="#FFFFFF" />
-            <Text style={styles.confirmButtonText}>Select this ground</Text>
+            <Text style={styles.confirmButtonText}>
+              {t('groundPicker.selectButton')}
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -307,7 +304,6 @@ export default function GroundPickerModal({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
-
   header: {
     position: 'absolute',
     left: 0,
@@ -342,7 +338,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
   },
-
   hintContainer: {
     position: 'absolute',
     left: 0,
@@ -364,7 +359,6 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   hintText: { fontSize: 12, color: '#334A77', fontWeight: '500' },
-
   locateButton: {
     position: 'absolute',
     right: 16,
@@ -380,7 +374,6 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
   },
-
   bottomPanel: {
     position: 'absolute',
     left: 0,
@@ -397,7 +390,6 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 16,
   },
-
   selectedBlock: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -418,7 +410,6 @@ const styles = StyleSheet.create({
   },
   selectedName: { fontSize: 14, fontWeight: '700', color: '#334A77' },
   selectedAddress: { fontSize: 12, color: '#6080A8', marginTop: 2 },
-
   emptyBlock: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -430,7 +421,6 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   emptyText: { fontSize: 13, color: '#BACAD6', fontWeight: '500' },
-
   confirmButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -442,11 +432,7 @@ const styles = StyleSheet.create({
   },
   confirmButtonDisabled: { backgroundColor: '#BACAD6' },
   confirmButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-
-  // Маркеры
-  pinWrapper: {
-    position: 'relative',
-  },
+  pinWrapper: { position: 'relative' },
   pin: {
     width: 32,
     height: 32,

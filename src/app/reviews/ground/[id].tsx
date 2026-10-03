@@ -1,5 +1,5 @@
 // src/app/reviews/ground/[id].tsx
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -29,29 +29,47 @@ import {
   fetchMyReviewFx,
   deleteReviewFx,
 } from '@/effector/store';
+import { useTranslation } from '@/i18n';
+import type { Language } from '@/i18n';
 
-const formatRelativeDate = (ts: number): string => {
-  const diff = Date.now() - ts;
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
+// ✅ Относительная дата — с учётом языка
+const useFormatRelativeDate = () => {
+  const { t, lang } = useTranslation();
 
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 30) return `${days}d ago`;
+  return (ts: number): string => {
+    const diff = Date.now() - ts;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
 
-  return new Date(ts).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+    if (minutes < 1) return t('relativeDate.justNow');
+    if (minutes < 60) return t('relativeDate.minutesAgo', { count: minutes });
+    if (hours < 24) return t('relativeDate.hoursAgo', { count: hours });
+    if (days < 30) return t('relativeDate.daysAgo', { count: days });
+
+    const localeMap: Record<Language, string> = {
+      en: 'en-US',
+      ru: 'ru-RU',
+      be: 'be-BY',
+      lt: 'lt-LT',
+      pl: 'pl-PL',
+      uk: 'uk-UA',
+    };
+
+    return new Date(ts).toLocaleDateString(localeMap[lang] ?? 'en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
 };
 
 export default function GroundReviewsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
+  const formatRelativeDate = useFormatRelativeDate();
 
   const ground = useUnit($currentGround);
   const reviews = useUnit($groundReviews);
@@ -82,17 +100,17 @@ export default function GroundReviewsScreen() {
 
   const handleDeleteMyReview = () => {
     if (!myReview) return;
-    Alert.alert('Delete your review?', 'This action cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('reviews.deleteTitle'), t('common.cannotBeUndone'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
             await deleteReview(myReview.id);
-            if (id) fetchReviews(id); // обновить статистику
+            if (id) fetchReviews(id);
           } catch {
-            Alert.alert('Error', 'Could not delete review.');
+            Alert.alert(t('common.error'), t('myReviews.deleteFailed'));
           }
         },
       },
@@ -101,10 +119,10 @@ export default function GroundReviewsScreen() {
 
   const handleOpenReviewForm = () => {
     if (!user) {
-      Alert.alert('Sign in required', 'Please sign in to leave a review.', [
-        { text: 'Cancel', style: 'cancel' },
+      Alert.alert(t('reviews.signInRequired'), t('reviews.signInHint'), [
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Sign In',
+          text: t('common.signIn'),
           onPress: () => router.push('/(drawer)/(tabs)/profile'),
         },
       ]);
@@ -114,22 +132,24 @@ export default function GroundReviewsScreen() {
   };
 
   const hasReviews = reviewStats.totalReviews > 0;
-  const groundTitle = ground?.name ?? 'Reviews';
+  const groundTitle = ground?.name ?? t('reviews.title');
+
+  // Ключ для множественного числа отзывов
+  const reviewsCountKey =
+    reviewStats.totalReviews === 1
+      ? 'reviews.count_one'
+      : 'reviews.count_other';
 
   return (
     <View style={styles.container}>
       {/* HEADER */}
       <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
-        <Pressable
-          onPress={handleBack}
-          style={styles.backButton}
-          hitSlop={12}
-        >
+        <Pressable onPress={handleBack} style={styles.backButton} hitSlop={12}>
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle} numberOfLines={1}>
-            Reviews
+            {t('reviews.title')}
           </Text>
           <Text style={styles.headerSubtitle} numberOfLines={1}>
             {groundTitle}
@@ -147,12 +167,7 @@ export default function GroundReviewsScreen() {
           data={reviews}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <ReviewCard
-              review={item}
-              // На этом экране кнопки edit/delete не нужны —
-              // они есть в footer-карточке моего отзыва
-              isMine={false}
-            />
+            <ReviewCard review={item} isMine={false} />
           )}
           ListHeaderComponent={
             hasReviews ? (
@@ -165,8 +180,7 @@ export default function GroundReviewsScreen() {
                   size={22}
                 />
                 <Text style={styles.summaryCount}>
-                  {reviewStats.totalReviews}{' '}
-                  {reviewStats.totalReviews === 1 ? 'review' : 'reviews'}
+                  {t(reviewsCountKey, { count: reviewStats.totalReviews })}
                 </Text>
               </View>
             ) : null
@@ -179,22 +193,15 @@ export default function GroundReviewsScreen() {
           ListEmptyComponent={
             <View style={styles.emptyBlock}>
               <Ionicons name="star-outline" size={48} color="#BACAD6" />
-              <Text style={styles.emptyTitle}>No reviews yet</Text>
-              <Text style={styles.emptyText}>
-                Be the first to share your experience on this ground.
-              </Text>
+              <Text style={styles.emptyTitle}>{t('reviews.empty')}</Text>
+              <Text style={styles.emptyText}>{t('reviews.emptyHint')}</Text>
             </View>
           }
         />
       )}
 
-      {/* ============ STICKY FOOTER ============ */}
-      <View
-        style={[
-          styles.footer,
-          { paddingBottom: insets.bottom + 12 },
-        ]}
-      >
+      {/* STICKY FOOTER */}
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
         {myReview ? (
           <View style={styles.myReviewCard}>
             <View style={styles.myReviewLeft}>
@@ -210,7 +217,7 @@ export default function GroundReviewsScreen() {
                 </Text>
               ) : (
                 <Text style={styles.myReviewNoComment}>
-                  No comment
+                  {t('reviews.noComment')}
                 </Text>
               )}
             </View>
@@ -233,12 +240,14 @@ export default function GroundReviewsScreen() {
         ) : (
           <Pressable style={styles.writeButton} onPress={handleOpenReviewForm}>
             <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.writeButtonText}>Write a review</Text>
+            <Text style={styles.writeButtonText}>
+              {t('reviews.writeButton')}
+            </Text>
           </Pressable>
         )}
       </View>
 
-      {/* Форма отзыва */}
+      {/* Review form */}
       <ReviewFormModal
         visible={reviewFormVisible}
         groundId={id || ''}
@@ -280,7 +289,6 @@ const styles = StyleSheet.create({
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   listContent: { padding: 16 },
 
-  // Summary (большой рейтинг сверху)
   summaryBlock: {
     alignItems: 'center',
     paddingVertical: 20,
@@ -299,7 +307,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 
-  // Empty state
   emptyBlock: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -320,7 +327,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  // Sticky footer
   footer: {
     position: 'absolute',
     bottom: 0,
@@ -348,7 +354,6 @@ const styles = StyleSheet.create({
   },
   writeButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
 
-  // My review card (в footer)
   myReviewCard: {
     flexDirection: 'row',
     alignItems: 'center',

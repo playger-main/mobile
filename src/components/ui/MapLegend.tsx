@@ -1,18 +1,24 @@
 // src/components/ui/MapLegend.tsx
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { ACTIVITY_COLORS, ACTIVITY_LABELS } from '@/utils/groundActivity';
+import { ACTIVITY_COLORS } from '@/utils/groundActivity';
+import { useTranslation } from '@/i18n';
 
 export default function MapLegend() {
-  const items: Array<{ key: 'active' | 'upcoming' | 'none' }> = [
-    { key: 'active' },
-    { key: 'upcoming' },
-    { key: 'none' },
+  const { t } = useTranslation();
+
+  const items: Array<{
+    key: 'active' | 'upcoming' | 'none';
+    labelKey: string;
+  }> = [
+    { key: 'active', labelKey: 'status.ground.active' },
+    { key: 'upcoming', labelKey: 'status.ground.upcoming' },
+    { key: 'none', labelKey: 'status.ground.none' },
   ];
 
   return (
     <View style={styles.container} pointerEvents="none">
-      {items.map(({ key }) => (
+      {items.map(({ key, labelKey }) => (
         <View key={key} style={styles.row}>
           <View
             style={[
@@ -20,7 +26,7 @@ export default function MapLegend() {
               { backgroundColor: ACTIVITY_COLORS[key].bg },
             ]}
           />
-          <Text style={styles.label}>{ACTIVITY_LABELS[key]}</Text>
+          <Text style={styles.label}>{t(labelKey)}</Text>
         </View>
       ))}
     </View>

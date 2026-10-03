@@ -1,3 +1,4 @@
+// src/app/(drawer)/_layout.tsx
 import React from 'react';
 import { Drawer } from 'expo-router/drawer';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
@@ -6,16 +7,21 @@ import { Ionicons } from '@expo/vector-icons';
 // @ts-ignore
 import { DrawerItemList, DrawerContentScrollView } from 'expo-router/drawer';
 
+import { useTranslation } from '@/i18n';
+
 function CustomDrawerContent(props: any) {
   const insets = useSafeAreaInsets();
   return (
-    <DrawerContentScrollView 
-      {...props} 
-      contentContainerStyle={{ paddingTop: 0 }} 
+    <DrawerContentScrollView
+      {...props}
+      contentContainerStyle={{ paddingTop: 0 }}
     >
-      <SafeAreaView style={[styles.drawerRoot, { paddingTop: insets.top }]} edges={[]}>      
+      <SafeAreaView
+        style={[styles.drawerRoot, { paddingTop: insets.top }]}
+        edges={[]}
+      >
         <View style={styles.appHeader}>
-          <Text style={styles.appName}>PlayG</Text>                     
+          <Text style={styles.appName}>PlayG</Text>
         </View>
         <View style={styles.menuItemsContainer}>
           <DrawerItemList {...props} />
@@ -26,30 +32,32 @@ function CustomDrawerContent(props: any) {
 }
 
 export default function DrawerLayout() {
+  const { t } = useTranslation();
+
   return (
     <Drawer
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={({ navigation }) => ({
         drawerType: 'front',
         drawerStyle: { backgroundColor: '#FFFFFF', width: 255 },
-        drawerActiveTintColor: '#208AEF',   
-        drawerInactiveTintColor: '#6080A8', 
+        drawerActiveTintColor: '#208AEF',
+        drawerInactiveTintColor: '#6080A8',
         drawerItemStyle: { borderRadius: 8 },
         drawerLabelStyle: {
           fontSize: 15,
           fontWeight: '500',
-          marginLeft: -10, 
+          marginLeft: -10,
         },
-        headerShown: true, 
-        headerTransparent: true, 
-        headerTitle: '',         
+        headerShown: true,
+        headerTransparent: true,
+        headerTitle: '',
         headerShadowVisible: false,
         headerLeft: () => (
-          <Pressable 
+          <Pressable
             onPress={() => navigation.openDrawer()}
             style={({ pressed }) => [
               styles.globalMenuButton,
-              { opacity: pressed ? 0.7 : 1 }
+              { opacity: pressed ? 0.7 : 1 },
             ]}
           >
             <Ionicons name="menu-outline" size={24} color="#334A77" />
@@ -57,33 +65,37 @@ export default function DrawerLayout() {
         ),
       })}
     >
-      <Drawer.Screen 
-        name="(tabs)" 
-        options={{ 
-          title: 'Main Hub',
-          headerShown: false, // Отключаем системный хедер, кнопка вшита в поиск на Grounds
+      <Drawer.Screen
+        name="(tabs)"
+        options={{
+          title: t('drawer.mainHub'),
+          headerShown: false,
           drawerIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
           ),
-        }} 
+        }}
       />
-      <Drawer.Screen 
-        name="settings" 
-        options={{ 
-          title: 'Settings',
+      <Drawer.Screen
+        name="settings"
+        options={{
+          title: t('drawer.settings'),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={size} color={color} />
           ),
-        }} 
+        }}
       />
-      <Drawer.Screen 
-        name="about" 
-        options={{ 
-          title: 'About App',
+      <Drawer.Screen
+        name="about"
+        options={{
+          title: t('drawer.about'),
           drawerIcon: ({ color, size }) => (
-            <Ionicons name="information-circle-outline" size={size} color={color} />
+            <Ionicons
+              name="information-circle-outline"
+              size={size}
+              color={color}
+            />
           ),
-        }} 
+        }}
       />
     </Drawer>
   );
@@ -91,19 +103,24 @@ export default function DrawerLayout() {
 
 const styles = StyleSheet.create({
   drawerRoot: { flex: 1 },
-  appHeader: { 
-    marginBottom: 10, 
-    paddingHorizontal: 20, 
+  appHeader: {
+    marginBottom: 10,
+    paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E6F4FE',     
+    borderBottomColor: '#E6F4FE',
   },
   appName: { fontSize: 22, fontWeight: 'bold', color: '#334A77' },
-  appSubtitle: { marginTop: 2, fontSize: 12, color: '#6080A8', fontWeight: '500' },
+  appSubtitle: {
+    marginTop: 2,
+    fontSize: 12,
+    color: '#6080A8',
+    fontWeight: '500',
+  },
   menuItemsContainer: { paddingTop: 12, paddingHorizontal: 8 },
   globalMenuButton: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     width: 48,
     height: 48,
@@ -111,7 +128,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 16, 
+    marginLeft: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

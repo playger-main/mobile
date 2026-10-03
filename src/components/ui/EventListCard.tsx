@@ -5,20 +5,28 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ServerEventItem } from '@/effector/events/async/events';
 import { getBadgeStyle } from '@/constants/badgeStyle';
-import { getSportLabel } from '@/constants/sports';
+import { getSportKey } from '@/constants/sports';
 import {
   getEventStatus,
-  getEventStatusLabel,
+  getEventStatusLabelKey,
   getEventStatusStyle,
 } from '@/utils/eventStatus';
+import { useTranslation } from '@/i18n';
+import type { Language } from '@/i18n';
+
+const LOCALE_MAP: Record<Language, string> = {
+  en: 'en-US',
+  ru: 'ru-RU',
+  be: 'be-BY',
+  lt: 'lt-LT',
+  pl: 'pl-PL',
+  uk: 'uk-UA',
+};
 
 interface EventListCardProps {
   item: ServerEventItem;
-  /** Показывать бейдж "Creator", если ты — автор */
   showCreatorBadge?: boolean;
-  /** ID текущего пользователя (для показа бейджа автора) */
   currentUserId?: string;
-  /** Показать дату в карточке (используется на экранах "мои события") */
   showDate?: boolean;
 }
 
@@ -29,6 +37,7 @@ export default function EventListCard({
   showDate = false,
 }: EventListCardProps) {
   const router = useRouter();
+  const { t, lang } = useTranslation();
 
   const sportsList: string[] =
     Array.isArray(item.ground?.kindofsport) && item.ground.kindofsport.length > 0
@@ -37,7 +46,7 @@ export default function EventListCard({
 
   const status = getEventStatus(item.date, item.startTime, item.duration);
   const statusStyle = getEventStatusStyle(status);
-  const statusLabel = getEventStatusLabel(status);
+  const statusLabel = t(getEventStatusLabelKey(status));
 
   const players = item.currentPlayers ?? 0;
   const maxPlayers = item.maxPlayers ?? 0;
@@ -45,12 +54,13 @@ export default function EventListCard({
 
   const isCreator = showCreatorBadge && item.creator?.id === currentUserId;
 
-  // Форматируем дату для отображения
   const dateLabel = (() => {
     if (!showDate || !item.date) return null;
     try {
       const d = new Date(item.date);
-      const month = d.toLocaleString('en-US', { month: 'short' });
+      const month = d.toLocaleString(LOCALE_MAP[lang] ?? 'en-US', {
+        month: 'short',
+      });
       const day = d.getDate();
       return `${month} ${day}`;
     } catch {
@@ -68,7 +78,7 @@ export default function EventListCard({
           {sportsList.length > 0 ? (
             sportsList.slice(0, 2).map((sportId, idx) => {
               const style = getBadgeStyle(sportId);
-              const label = getSportLabel(sportId);
+              const label = t(getSportKey(sportId));
               return (
                 <View
                   key={`${sportId}-${idx}`}
@@ -86,7 +96,7 @@ export default function EventListCard({
           ) : (
             <View style={[styles.sportBadge, { backgroundColor: '#F0F4F8' }]}>
               <Text style={[styles.sportText, { color: '#6080A8' }]}>
-                SPORT
+                {t('sport.all').toUpperCase()}
               </Text>
             </View>
           )}
@@ -100,7 +110,7 @@ export default function EventListCard({
           {isCreator && (
             <View style={styles.creatorBadge}>
               <Ionicons name="star" size={9} color="#FFFFFF" />
-              <Text style={styles.creatorBadgeText}>HOST</Text>
+              <Text style={styles.creatorBadgeText}>{t('events.host')}</Text>
             </View>
           )}
         </View>
@@ -116,7 +126,7 @@ export default function EventListCard({
       <View style={styles.locationRow}>
         <Ionicons name="location-outline" size={14} color="#6080A8" />
         <Text style={styles.locationText} numberOfLines={1}>
-          {item.ground?.name || 'Unknown Ground'}
+          {item.ground?.name || t('events.unknownGround')}
         </Text>
       </View>
 
@@ -137,7 +147,7 @@ export default function EventListCard({
               style={[styles.metaText, isFull && styles.metaTextFull]}
               numberOfLines={1}
             >
-              {players}/{maxPlayers} players
+              {t('events.playersCount', { current: players, max: maxPlayers })}
             </Text>
           </View>
         </View>
@@ -196,7 +206,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   moreBadgeText: { fontSize: 11, fontWeight: '700', color: '#6080A8' },
-
   creatorBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -212,7 +221,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: 0.4,
   },
-
   rightHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -220,7 +228,6 @@ const styles = StyleSheet.create({
   },
   dateText: { fontSize: 13, fontWeight: '700', color: '#6080A8' },
   timeText: { fontSize: 16, fontWeight: '800', color: '#334A77' },
-
   eventName: {
     fontSize: 16,
     fontWeight: '700',
@@ -234,7 +241,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   locationText: { fontSize: 13, color: '#6080A8', flex: 1 },
-
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -252,7 +258,6 @@ const styles = StyleSheet.create({
     maxWidth: 120,
   },
   metaTextFull: { color: '#FF3B30', fontWeight: '700' },
-
   spotsBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   spotsText: { fontSize: 11, fontWeight: '700' },
 });

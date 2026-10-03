@@ -3,7 +3,8 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { SPORT_CATEGORIES } from '@/constants/sports';
+import { SPORT_CATEGORIES, getSportKey } from '@/constants/sports';
+import { useTranslation } from '@/i18n';
 
 interface CategorySportProps {
   selectedKindofsport: string;
@@ -14,6 +15,8 @@ export default function CategorySport({
   selectedKindofsport,
   onSelectKindofsport,
 }: CategorySportProps) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.wrapper}>
       <ScrollView
@@ -40,7 +43,7 @@ export default function CategorySport({
                 />
               )}
               <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
-                {category.label}
+                {t(getSportKey(category.id))}
               </Text>
             </Pressable>
           );
@@ -75,9 +78,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#208AEF',
     borderColor: '#208AEF',
   },
-  icon: {
-    marginRight: 4,
-  },
+  icon: { marginRight: 4 },
   chipText: {
     fontSize: 13,
     fontWeight: '500',

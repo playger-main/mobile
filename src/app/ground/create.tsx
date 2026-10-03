@@ -23,15 +23,20 @@ import { $userSession } from '@/effector/store';
 import LocationPickerModal from '@/components/ui/LocationPickerModal';
 import PhotoPicker, { PhotoInput } from '@/components/ui/PhotoPicker';
 
-import { SPORT_OPTIONS } from '@/constants/sports';
-import { AMENITIES_OPTIONS } from '@/constants/amenities';
-import { SURFACE_OPTIONS } from '@/constants/surface';
+import { SPORT_OPTIONS, getSportKey } from '@/constants/sports';
+import {
+  AMENITIES_OPTIONS,
+  getAmenityKey,
+} from '@/constants/amenities';
+import { SURFACE_OPTIONS, getSurfaceKey } from '@/constants/surface';
+import { useTranslation } from '@/i18n';
 
 const MAX_PHOTOS = 5;
 
 export default function CreateGroundScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
   const isSubmitting = useUnit(createGroundFx.pending);
   const user = useUnit($userSession);
 
@@ -42,17 +47,23 @@ export default function CreateGroundScreen() {
   const [description, setDescription] = useState('');
   const [amenities, setAmenities] = useState<string[]>([]);
   const [photoInputs, setPhotoInputs] = useState<PhotoInput[]>([]);
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
   const [locationPickerVisible, setLocationPickerVisible] = useState(false);
 
   const pickImage = async () => {
     if (photoInputs.length >= MAX_PHOTOS) {
-      Alert.alert('Maximum photos', `You can add up to ${MAX_PHOTOS} photos.`);
+      Alert.alert(
+        t('photos.maxPhotos'),
+        t('photos.upToN', { count: MAX_PHOTOS }),
+      );
       return;
     }
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const { status } =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'We need access to your photos.');
+      Alert.alert(t('photos.permissionNeeded'), t('photos.accessHint'));
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -85,24 +96,32 @@ export default function CreateGroundScreen() {
   };
 
   const setMainPhoto = (index: number) => {
-    setPhotoInputs((prev) => prev.map((p, i) => ({ ...p, isMain: i === index })));
+    setPhotoInputs((prev) =>
+      prev.map((p, i) => ({ ...p, isMain: i === index })),
+    );
   };
 
   const toggleSport = (sportId: string) => {
     setSports((prev) =>
-      prev.includes(sportId) ? prev.filter((s) => s !== sportId) : [...prev, sportId],
+      prev.includes(sportId)
+        ? prev.filter((s) => s !== sportId)
+        : [...prev, sportId],
     );
   };
 
   const toggleSurface = (surfaceId: string) => {
     setSurfaces((prev) =>
-      prev.includes(surfaceId) ? prev.filter((s) => s !== surfaceId) : [...prev, surfaceId],
+      prev.includes(surfaceId)
+        ? prev.filter((s) => s !== surfaceId)
+        : [...prev, surfaceId],
     );
   };
 
   const toggleAmenity = (amenity: string) => {
     setAmenities((prev) =>
-      prev.includes(amenity) ? prev.filter((a) => a !== amenity) : [...prev, amenity],
+      prev.includes(amenity)
+        ? prev.filter((a) => a !== amenity)
+        : [...prev, amenity],
     );
   };
 
@@ -112,8 +131,6 @@ export default function CreateGroundScreen() {
     address?: string;
   }) => {
     setLocation({ lat: data.latitude, lng: data.longitude });
-    // ✅ Заполняем адрес ТОЛЬКО если поле пустое —
-    //    чтобы не затирать ручные правки пользователя
     if (data.address && !address.trim()) {
       setAddress(data.address);
     }
@@ -121,10 +138,21 @@ export default function CreateGroundScreen() {
   };
 
   const handlePublish = async () => {
-    if (!name.trim()) return Alert.alert('Error', 'Please enter a ground name.');
-    if (sports.length === 0) return Alert.alert('Error', 'Please select at least one sport.');
-    if (!location) return Alert.alert('Error', 'Please pick a location on the map.');
-    if (!address.trim()) return Alert.alert('Error', 'Please enter an address.');
+    if (!name.trim()) {
+      return Alert.alert(t('common.error'), t('groundForm.nameRequired'));
+    }
+    if (sports.length === 0) {
+      return Alert.alert(t('common.error'), t('groundForm.sportRequired'));
+    }
+    if (!location) {
+      return Alert.alert(
+        t('common.error'),
+        t('groundForm.locationRequired'),
+      );
+    }
+    if (!address.trim()) {
+      return Alert.alert(t('common.error'), t('groundForm.addressRequired'));
+    }
 
     try {
       await createGroundFx({
@@ -136,15 +164,18 @@ export default function CreateGroundScreen() {
         amenities,
         geolocation: { lat: location.lat, lng: location.lng },
         photoUris: photoInputs.map((p) => p.uri),
-        mainPhotoIndex: Math.max(0, photoInputs.findIndex((p) => p.isMain)),
+        mainPhotoIndex: Math.max(
+          0,
+          photoInputs.findIndex((p) => p.isMain),
+        ),
       });
-      Alert.alert('Success', 'Ground published!', [
-        { text: 'OK', onPress: () => router.back() },
+      Alert.alert(t('common.success'), t('groundForm.publishSuccess'), [
+        { text: t('common.ok'), onPress: () => router.back() },
       ]);
     } catch (err: any) {
       const raw = err?.response?.data?.message ?? err?.message ?? err;
       const message = Array.isArray(raw) ? raw.join('\n') : String(raw);
-      Alert.alert('Error', message || 'Failed to create ground.');
+      Alert.alert(t('common.error'), message || t('groundForm.publishFailed'));
     }
   };
 
@@ -160,35 +191,46 @@ export default function CreateGroundScreen() {
       style={styles.container}
     >
       <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
-        <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12}>
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backButton}
+          hitSlop={12}
+        >
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Add a ground</Text>
-          <Text style={styles.headerSubtitle}>Share a spot with the community</Text>
+          <Text style={styles.headerTitle}>{t('grounds.addButtonTitle')}</Text>
+          <Text style={styles.headerSubtitle}>
+            {t('grounds.addButtonSubtitle')}
+          </Text>
         </View>
         <View style={{ width: 32 }} />
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 120 }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom + 120 },
+        ]}
       >
-        {/* ============ NAME ============ */}
-        <Text style={styles.inputLabel}>Ground name</Text>
+        {/* NAME */}
+        <Text style={styles.inputLabel}>{t('groundForm.name')}</Text>
         <TextInput
           style={styles.textField}
-          placeholder="e.g. Riverside Court"
+          placeholder={t('groundForm.namePlaceholder')}
           placeholderTextColor="#BACAD6"
           value={name}
           onChangeText={setName}
         />
 
-        {/* ============ SPORT ============ */}
+        {/* SPORT */}
         <View style={styles.labelWithHintRow}>
-          <Text style={styles.inputLabel}>Sport</Text>
+          <Text style={styles.inputLabel}>{t('groundForm.sport')}</Text>
           {sports.length > 0 && (
-            <Text style={styles.selectedCountHint}>{sports.length} selected</Text>
+            <Text style={styles.selectedCountHint}>
+              {t('groundForm.selected', { count: sports.length })}
+            </Text>
           )}
         </View>
         <View style={styles.gridContainer}>
@@ -198,15 +240,24 @@ export default function CreateGroundScreen() {
               <Pressable
                 key={sport.id}
                 onPress={() => toggleSport(sport.id)}
-                style={[styles.sportCard, isSelected && styles.sportCardSelected]}
+                style={[
+                  styles.sportCard,
+                  isSelected && styles.sportCardSelected,
+                ]}
               >
                 <Ionicons
                   name={sport.icon as any}
                   size={24}
                   color={isSelected ? '#208AEF' : '#6080A8'}
                 />
-                <Text style={[styles.sportLabel, isSelected && styles.sportLabelSelected]}>
-                  {sport.label}
+                <Text
+                  style={[
+                    styles.sportLabel,
+                    isSelected && styles.sportLabelSelected,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t(getSportKey(sport.id))}
                 </Text>
                 {isSelected && (
                   <View style={styles.sportCheckmark}>
@@ -218,11 +269,13 @@ export default function CreateGroundScreen() {
           })}
         </View>
 
-        {/* ============ LOCATION (перед адресом) ============ */}
+        {/* LOCATION */}
         <View style={styles.labelWithHintRow}>
-          <Text style={styles.inputLabel}>Location on map</Text>
+          <Text style={styles.inputLabel}>{t('groundForm.location')}</Text>
           {location && (
-            <Text style={styles.selectedCountHint}>✓ Set</Text>
+            <Text style={styles.selectedCountHint}>
+              {t('groundForm.locationSet')}
+            </Text>
           )}
         </View>
         <Pressable
@@ -234,9 +287,14 @@ export default function CreateGroundScreen() {
               <Ionicons name="checkmark-circle" size={24} color="#27AE60" />
               <View style={{ flex: 1 }}>
                 <Text style={styles.locationSetText}>
-                  Coordinates: {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
+                  {t('groundForm.coordinates', {
+                    lat: location.lat.toFixed(5),
+                    lng: location.lng.toFixed(5),
+                  })}
                 </Text>
-                <Text style={styles.locationChangeHint}>Tap to change</Text>
+                <Text style={styles.locationChangeHint}>
+                  {t('groundForm.tapToChange')}
+                </Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color="#BACAD6" />
             </View>
@@ -244,30 +302,30 @@ export default function CreateGroundScreen() {
             <View style={styles.mapPlaceholder}>
               <Ionicons name="map-outline" size={24} color="#208AEF" />
               <Text style={styles.mapPlaceholderText}>
-                Tap to select location on map
+                {t('groundForm.tapToSelect')}
               </Text>
             </View>
           )}
         </Pressable>
-        <Text style={styles.hintText}>
-          Pick a point first — we'll fill in the address automatically.
-        </Text>
+        <Text style={styles.hintText}>{t('groundForm.locationHint')}</Text>
 
-        {/* ============ ADDRESS ============ */}
-        <Text style={styles.inputLabel}>Address</Text>
+        {/* ADDRESS */}
+        <Text style={styles.inputLabel}>{t('groundForm.address')}</Text>
         <TextInput
           style={styles.textField}
-          placeholder="Street, area"
+          placeholder={t('groundForm.addressPlaceholder')}
           placeholderTextColor="#BACAD6"
           value={address}
           onChangeText={setAddress}
         />
 
-        {/* ============ SURFACE ============ */}
+        {/* SURFACE */}
         <View style={styles.labelWithHintRow}>
-          <Text style={styles.inputLabel}>Surface (optional)</Text>
+          <Text style={styles.inputLabel}>{t('groundForm.surface')}</Text>
           {surfaces.length > 0 && (
-            <Text style={styles.selectedCountHint}>{surfaces.length} selected</Text>
+            <Text style={styles.selectedCountHint}>
+              {t('groundForm.selected', { count: surfaces.length })}
+            </Text>
           )}
         </View>
         <View style={styles.surfaceWrap}>
@@ -277,7 +335,10 @@ export default function CreateGroundScreen() {
               <Pressable
                 key={s.id}
                 onPress={() => toggleSurface(s.id)}
-                style={[styles.surfaceChip, isSelected && styles.surfaceChipSelected]}
+                style={[
+                  styles.surfaceChip,
+                  isSelected && styles.surfaceChipSelected,
+                ]}
               >
                 <Ionicons
                   name={s.icon as any}
@@ -286,20 +347,23 @@ export default function CreateGroundScreen() {
                   style={{ marginRight: 6 }}
                 />
                 <Text
-                  style={[styles.surfaceChipText, isSelected && styles.surfaceChipTextSelected]}
+                  style={[
+                    styles.surfaceChipText,
+                    isSelected && styles.surfaceChipTextSelected,
+                  ]}
                 >
-                  {s.label}
+                  {t(getSurfaceKey(s.id))}
                 </Text>
               </Pressable>
             );
           })}
         </View>
 
-        {/* ============ DESCRIPTION ============ */}
-        <Text style={styles.inputLabel}>Description (optional)</Text>
+        {/* DESCRIPTION */}
+        <Text style={styles.inputLabel}>{t('groundForm.description')}</Text>
         <TextInput
           style={styles.textareaField}
-          placeholder="Tell players what makes this spot great..."
+          placeholder={t('groundForm.descriptionPlaceholder')}
           placeholderTextColor="#BACAD6"
           multiline
           numberOfLines={4}
@@ -308,8 +372,8 @@ export default function CreateGroundScreen() {
           onChangeText={setDescription}
         />
 
-        {/* ============ AMENITIES ============ */}
-        <Text style={styles.inputLabel}>Amenities</Text>
+        {/* AMENITIES */}
+        <Text style={styles.inputLabel}>{t('groundForm.amenities')}</Text>
         <View style={styles.amenitiesWrap}>
           {AMENITIES_OPTIONS.map((amenity) => {
             const isSelected = amenities.includes(amenity);
@@ -317,18 +381,26 @@ export default function CreateGroundScreen() {
               <Pressable
                 key={amenity}
                 onPress={() => toggleAmenity(amenity)}
-                style={[styles.amenityChip, isSelected && styles.amenityChipSelected]}
+                style={[
+                  styles.amenityChip,
+                  isSelected && styles.amenityChipSelected,
+                ]}
               >
-                <Text style={[styles.amenityText, isSelected && styles.amenityTextSelected]}>
-                  {amenity}
+                <Text
+                  style={[
+                    styles.amenityText,
+                    isSelected && styles.amenityTextSelected,
+                  ]}
+                >
+                  {t(getAmenityKey(amenity))}
                 </Text>
               </Pressable>
             );
           })}
         </View>
 
-        {/* ============ PHOTOS ============ */}
-        <Text style={styles.inputLabel}>Photos</Text>
+        {/* PHOTOS */}
+        <Text style={styles.inputLabel}>{t('groundForm.photos')}</Text>
         <PhotoPicker
           photos={photoInputs}
           max={MAX_PHOTOS}
@@ -342,7 +414,9 @@ export default function CreateGroundScreen() {
         <Pressable
           style={[
             styles.publishButton,
-            isFormValid ? styles.publishButtonActive : styles.publishButtonDisabled,
+            isFormValid
+              ? styles.publishButtonActive
+              : styles.publishButtonDisabled,
             isSubmitting && styles.buttonDisabled,
           ]}
           onPress={handlePublish}
@@ -351,7 +425,9 @@ export default function CreateGroundScreen() {
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={styles.publishButtonText}>Publish ground</Text>
+            <Text style={styles.publishButtonText}>
+              {t('groundForm.publishButton')}
+            </Text>
           )}
         </Pressable>
       </View>
@@ -382,7 +458,12 @@ const styles = StyleSheet.create({
   backButton: { padding: 4 },
   headerTitleContainer: { flex: 1, alignItems: 'center' },
   headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
-  headerSubtitle: { fontSize: 12, color: '#BACAD6', fontWeight: '500', marginTop: 1 },
+  headerSubtitle: {
+    fontSize: 12,
+    color: '#BACAD6',
+    fontWeight: '500',
+    marginTop: 1,
+  },
   scrollContent: { paddingHorizontal: 16, paddingTop: 20 },
   inputLabel: {
     fontSize: 14,
@@ -446,6 +527,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
     position: 'relative',
+    paddingHorizontal: 4,
   },
   sportCardSelected: { borderColor: '#208AEF', backgroundColor: '#F0F6FC' },
   sportLabel: {
@@ -514,7 +596,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   locationSetText: { fontSize: 13, color: '#27AE60', fontWeight: '700' },
-  locationChangeHint: { fontSize: 11, color: '#6080A8', fontWeight: '500', marginTop: 2 },
+  locationChangeHint: {
+    fontSize: 11,
+    color: '#6080A8',
+    fontWeight: '500',
+    marginTop: 2,
+  },
   bottomBar: {
     position: 'absolute',
     bottom: 0,

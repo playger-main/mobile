@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { navigateToGroundOnMap } from '@/utils/navigateToGround';
+import { useTranslation } from '@/i18n';
 
 interface EventLocationCardProps {
   name: string;
@@ -21,6 +22,7 @@ export default function EventLocationCard({
   longitude,
   onPress,
 }: EventLocationCardProps) {
+  const { t } = useTranslation();
   const [imageError, setImageError] = useState(false);
   const showImage = !!avatar && !imageError;
 
@@ -37,7 +39,6 @@ export default function EventLocationCard({
       <View style={styles.locationImageContainer}>
         {showImage ? (
           <Image
-            // ✅ key — при смене URL картинка перезагрузится
             key={avatar!}
             source={{ uri: avatar! }}
             style={styles.locationImage}
@@ -52,7 +53,9 @@ export default function EventLocationCard({
       </View>
 
       <View style={styles.locationInfo}>
-        <Text style={styles.locationSubtitle}>Location</Text>
+        <Text style={styles.locationSubtitle}>
+          {t('eventLocation.subtitle')}
+        </Text>
         <Text style={styles.locationName} numberOfLines={1}>
           {name}
         </Text>

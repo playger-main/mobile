@@ -21,10 +21,12 @@ import {
   requestEmailChangeFx,
   confirmEmailChangeFx,
 } from '@/effector/store';
+import { useTranslation } from '@/i18n';
 
 export default function ChangeEmailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const user = useUnit($userSession);
   const isRequesting = useUnit(requestEmailChangeFx.pending);
@@ -39,7 +41,6 @@ export default function ChangeEmailScreen() {
   const [countdown, setCountdown] = useState(60);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // ✅ Обратный отсчёт для кнопки "Resend"
   useEffect(() => {
     if (step !== 'code') return;
     if (countdown === 0) return;
@@ -51,15 +52,15 @@ export default function ChangeEmailScreen() {
     const trimmed = newEmail.trim().toLowerCase();
 
     if (!trimmed) {
-      setErrorMessage('Please enter a new email address.');
+      setErrorMessage(t('profile.changeEmail.enterEmail'));
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      setErrorMessage('Please enter a valid email.');
+      setErrorMessage(t('profile.changeEmail.invalidEmail'));
       return;
     }
     if (trimmed === (user?.email ?? '').toLowerCase()) {
-      setErrorMessage('This is already your current email.');
+      setErrorMessage(t('profile.changeEmail.sameEmail'));
       return;
     }
 
@@ -76,14 +77,14 @@ export default function ChangeEmailScreen() {
       setErrorMessage(
         Array.isArray(raw)
           ? raw.join('\n')
-          : String(raw || 'Failed to send code.'),
+          : String(raw || t('common.tryAgain')),
       );
     }
   };
 
   const handleConfirm = async () => {
     if (code.length !== 6) {
-      setErrorMessage('Please enter the 6-digit code.');
+      setErrorMessage(t('profile.changeEmail.enterCode'));
       return;
     }
 
@@ -91,15 +92,17 @@ export default function ChangeEmailScreen() {
 
     try {
       await confirmChange(code.trim());
-      Alert.alert('Success', 'Your email has been updated.', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      Alert.alert(
+        t('profile.changeEmail.successTitle'),
+        t('profile.changeEmail.successMessage'),
+        [{ text: t('common.ok'), onPress: () => router.back() }],
+      );
     } catch (e: any) {
       const raw = e?.response?.data?.message ?? e?.message;
       setErrorMessage(
         Array.isArray(raw)
           ? raw.join('\n')
-          : String(raw || 'Invalid or expired code.'),
+          : String(raw || t('auth.error.invalidCode')),
       );
     }
   };
@@ -110,13 +113,13 @@ export default function ChangeEmailScreen() {
       await requestChange(newEmail);
       setCountdown(60);
       setErrorMessage(null);
-      Alert.alert('Sent', 'A new code has been sent to your email.');
+      Alert.alert(t('auth.error.codeSent'), t('auth.error.newCodeSent'));
     } catch (e: any) {
       const raw = e?.response?.data?.message ?? e?.message;
       setErrorMessage(
         Array.isArray(raw)
           ? raw.join('\n')
-          : String(raw || 'Failed to resend.'),
+          : String(raw || t('common.tryAgain')),
       );
     }
   };
@@ -138,7 +141,6 @@ export default function ChangeEmailScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
     >
-      {/* =============== HEADER =============== */}
       <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
         <Pressable
           onPress={handleBack}
@@ -148,16 +150,19 @@ export default function ChangeEmailScreen() {
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Change email</Text>
+          <Text style={styles.headerTitle}>
+            {t('profile.changeEmail.title')}
+          </Text>
           <Text style={styles.headerSubtitle}>
-            {step === 'email' ? 'Step 1 of 2' : 'Step 2 of 2'}
+            {step === 'email'
+              ? t('profile.changeEmail.step1')
+              : t('profile.changeEmail.step2')}
           </Text>
         </View>
         <View style={{ width: 32 }} />
       </View>
 
       <View style={styles.content}>
-        {/* Icon */}
         <View style={styles.iconBlock}>
           <Ionicons
             name={step === 'email' ? 'mail-outline' : 'mail-open-outline'}
@@ -168,10 +173,11 @@ export default function ChangeEmailScreen() {
 
         {step === 'email' ? (
           <>
-            <Text style={styles.formTitle}>Enter new email</Text>
+            <Text style={styles.formTitle}>
+              {t('profile.changeEmail.enterNew')}
+            </Text>
             <Text style={styles.formSubtitle}>
-              We'll send a verification code to this address. Your current email
-              stays active until you confirm the change.
+              {t('profile.changeEmail.enterNewHint')}
             </Text>
 
             {errorMessage && (
@@ -181,8 +187,8 @@ export default function ChangeEmailScreen() {
             <TextInput
               style={styles.inputField}
               value={newEmail}
-              onChangeText={(t) => {
-                setNewEmail(t);
+              onChangeText={(v) => {
+                setNewEmail(v);
                 setErrorMessage(null);
               }}
               placeholder="newemail@gmail.com"
@@ -204,16 +210,19 @@ export default function ChangeEmailScreen() {
               {isRequesting ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <Text style={styles.primaryButtonText}>Send code</Text>
+                <Text style={styles.primaryButtonText}>
+                  {t('profile.changeEmail.sendButton')}
+                </Text>
               )}
             </Pressable>
           </>
         ) : (
           <>
-            <Text style={styles.formTitle}>Verify new email</Text>
+            <Text style={styles.formTitle}>
+              {t('profile.changeEmail.verifyTitle')}
+            </Text>
             <Text style={styles.formSubtitle}>
-              We sent a 6-digit code to{' '}
-              <Text style={styles.emailHighlight}>{newEmail}</Text>
+              {t('profile.changeEmail.verifyHint', { email: newEmail })}
             </Text>
 
             {errorMessage && (
@@ -223,8 +232,8 @@ export default function ChangeEmailScreen() {
             <TextInput
               style={styles.codeInput}
               value={code}
-              onChangeText={(t) => {
-                setCode(t.replace(/\D/g, ''));
+              onChangeText={(v) => {
+                setCode(v.replace(/\D/g, ''));
                 setErrorMessage(null);
               }}
               placeholder="000000"
@@ -245,18 +254,22 @@ export default function ChangeEmailScreen() {
               {isConfirming ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <Text style={styles.primaryButtonText}>Confirm change</Text>
+                <Text style={styles.primaryButtonText}>
+                  {t('profile.changeEmail.confirmButton')}
+                </Text>
               )}
             </Pressable>
 
             <View style={styles.resendBlock}>
               {countdown > 0 ? (
                 <Text style={styles.resendTimer}>
-                  Resend code in {countdown}s
+                  {t('auth.verify.resendIn', { count: countdown })}
                 </Text>
               ) : (
                 <Pressable onPress={handleResend}>
-                  <Text style={styles.resendLink}>Resend code</Text>
+                  <Text style={styles.resendLink}>
+                    {t('auth.reset.resend')}
+                  </Text>
                 </Pressable>
               )}
             </View>
@@ -269,7 +282,6 @@ export default function ChangeEmailScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
-
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -289,13 +301,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 1,
   },
-
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 40,
-  },
-
+  content: { flex: 1, paddingHorizontal: 24, paddingTop: 40 },
   iconBlock: {
     width: 56,
     height: 56,
@@ -305,7 +311,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 24,
   },
-
   formTitle: {
     fontSize: 24,
     fontWeight: '800',
@@ -318,17 +323,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 20,
   },
-  emailHighlight: {
-    color: '#208AEF',
-    fontWeight: '700',
-  },
+  emailHighlight: { color: '#208AEF', fontWeight: '700' },
   errorText: {
     color: '#FF3B30',
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 12,
   },
-
   inputField: {
     width: '100%',
     height: 48,
@@ -356,7 +357,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     marginBottom: 20,
   },
-
   primaryButton: {
     width: '100%',
     height: 50,
@@ -367,16 +367,8 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   buttonDisabled: { backgroundColor: '#BACAD6' },
-
-  resendBlock: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  resendTimer: {
-    fontSize: 14,
-    color: '#BACAD6',
-    fontWeight: '500',
-  },
+  resendBlock: { alignItems: 'center', marginTop: 20 },
+  resendTimer: { fontSize: 14, color: '#BACAD6', fontWeight: '500' },
   resendLink: {
     fontSize: 14,
     color: '#208AEF',

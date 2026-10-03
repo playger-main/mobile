@@ -19,6 +19,7 @@ import { useUnit } from 'effector-react';
 
 import { $userLocation, $cityCenter } from '@/effector/store';
 import { DEFAULT_CITY_CENTER } from '@/constants/location';
+import { useTranslation } from '@/i18n';
 
 interface LocationPickerModalProps {
   visible: boolean;
@@ -39,6 +40,7 @@ export default function LocationPickerModal({
   onConfirm,
   onClose,
 }: LocationPickerModalProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView | null>(null);
 
@@ -52,7 +54,6 @@ export default function LocationPickerModal({
 
   const [isGeocoding, setIsGeocoding] = useState(false);
 
-  // Стартовый регион
   const initialRegion: Region = {
     latitude:
       initialLatitude ??
@@ -68,7 +69,6 @@ export default function LocationPickerModal({
     longitudeDelta: 0.01,
   };
 
-  // Сброс/инициализация при открытии
   useEffect(() => {
     if (visible) {
       if (initialLatitude != null && initialLongitude != null) {
@@ -82,24 +82,22 @@ export default function LocationPickerModal({
     }
   }, [visible, initialLatitude, initialLongitude]);
 
-  // Тап по карте → поставить флаг
   const handleMapPress = (e: any) => {
     const { latitude, longitude } = e.nativeEvent.coordinate;
     setSelectedCoords({ latitude, longitude });
   };
 
-  // Центрировать на пользователе
   const handleLocatePress = async () => {
     try {
       const { status } = await Location.getForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert(
-          'Location Access',
-          'Enable location to use your current position.',
+          t('locationPicker.locationAccess'),
+          t('locationPicker.enableLocation'),
           [
-            { text: 'Cancel', style: 'cancel' },
+            { text: t('locationPicker.notNow'), style: 'cancel' },
             {
-              text: 'Open Settings',
+              text: t('locationPicker.openSettings'),
               onPress: () => {
                 if (Platform.OS === 'ios') {
                   Linking.openURL('app-settings:');
@@ -133,14 +131,16 @@ export default function LocationPickerModal({
         500,
       );
     } catch {
-      Alert.alert('Error', 'Could not get your current location.');
+      Alert.alert(t('common.error'), t('locationPicker.couldNotGet'));
     }
   };
 
-  // Подтвердить
   const handleConfirm = async () => {
     if (!selectedCoords) {
-      Alert.alert('Choose a spot', 'Tap on the map to set the location.');
+      Alert.alert(
+        t('locationPicker.chooseSpot'),
+        t('locationPicker.tapHint'),
+      );
       return;
     }
 
@@ -214,29 +214,29 @@ export default function LocationPickerModal({
           )}
         </MapView>
 
-        {/* Шапка */}
+        {/* Header */}
         <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <Pressable onPress={onClose} style={styles.headerButton} hitSlop={10}>
             <Ionicons name="close" size={22} color="#334A77" />
           </Pressable>
-          <Text style={styles.headerTitle}>Pick location</Text>
+          <Text style={styles.headerTitle}>
+            {t('locationPicker.title')}
+          </Text>
           <View style={{ width: 40 }} />
         </View>
 
-        {/* Подсказка сверху по центру */}
+        {/* Hint */}
         <View
           style={[styles.hintContainer, { top: insets.top + 70 }]}
           pointerEvents="none"
         >
           <View style={styles.hintPill}>
             <Ionicons name="hand-left-outline" size={14} color="#334A77" />
-            <Text style={styles.hintText}>
-              Tap on the map or drag the pin
-            </Text>
+            <Text style={styles.hintText}>{t('locationPicker.hint')}</Text>
           </View>
         </View>
 
-        {/* Кнопка «моё местоположение» */}
+        {/* Locate button */}
         <Pressable
           style={[styles.locateButton, { bottom: insets.bottom + 130 }]}
           onPress={handleLocatePress}
@@ -244,22 +244,23 @@ export default function LocationPickerModal({
           <Ionicons name="locate" size={22} color="#208AEF" />
         </Pressable>
 
-        {/* Нижняя панель с координатами и кнопкой Confirm */}
+        {/* Bottom panel */}
         <View
-          style={[
-            styles.bottomPanel,
-            { paddingBottom: insets.bottom + 16 },
-          ]}
+          style={[styles.bottomPanel, { paddingBottom: insets.bottom + 16 }]}
         >
           <View style={styles.coordsRow}>
             <View style={styles.coordBlock}>
-              <Text style={styles.coordLabel}>Latitude</Text>
+              <Text style={styles.coordLabel}>
+                {t('locationPicker.latitude')}
+              </Text>
               <Text style={styles.coordValue}>
                 {selectedCoords?.latitude.toFixed(5) ?? '—'}
               </Text>
             </View>
             <View style={styles.coordBlock}>
-              <Text style={styles.coordLabel}>Longitude</Text>
+              <Text style={styles.coordLabel}>
+                {t('locationPicker.longitude')}
+              </Text>
               <Text style={styles.coordValue}>
                 {selectedCoords?.longitude.toFixed(5) ?? '—'}
               </Text>
@@ -279,7 +280,9 @@ export default function LocationPickerModal({
             ) : (
               <>
                 <Ionicons name="checkmark" size={20} color="#FFFFFF" />
-                <Text style={styles.confirmButtonText}>Confirm location</Text>
+                <Text style={styles.confirmButtonText}>
+                  {t('locationPicker.confirmButton')}
+                </Text>
               </>
             )}
           </Pressable>
@@ -291,7 +294,6 @@ export default function LocationPickerModal({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
-
   header: {
     position: 'absolute',
     left: 0,
@@ -326,7 +328,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
   },
-
   hintContainer: {
     position: 'absolute',
     left: 0,
@@ -348,7 +349,6 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   hintText: { fontSize: 12, color: '#334A77', fontWeight: '500' },
-
   locateButton: {
     position: 'absolute',
     right: 16,
@@ -364,7 +364,6 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
   },
-
   bottomPanel: {
     position: 'absolute',
     left: 0,
@@ -406,7 +405,6 @@ const styles = StyleSheet.create({
     color: '#334A77',
     fontWeight: '700',
   },
-
   confirmButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -418,8 +416,6 @@ const styles = StyleSheet.create({
   },
   confirmButtonDisabled: { backgroundColor: '#BACAD6' },
   confirmButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-
-  // Маркер-флаг
   pinWrapper: { alignItems: 'center' },
   pin: {
     width: 36,

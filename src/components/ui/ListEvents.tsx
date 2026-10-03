@@ -4,6 +4,17 @@ import { FlatList, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ServerEventItem } from '@/effector/events/async/events';
 import EventListCard from './EventListCard';
+import { useTranslation } from '@/i18n';
+import type { Language } from '@/i18n';
+
+const LOCALE_MAP: Record<Language, string> = {
+  en: 'en-US',
+  ru: 'ru-RU',
+  be: 'be-BY',
+  lt: 'lt-LT',
+  pl: 'pl-PL',
+  uk: 'uk-UA',
+};
 
 interface ListEventsProps {
   events: ServerEventItem[];
@@ -11,14 +22,24 @@ interface ListEventsProps {
 }
 
 export default function ListEvents({ events, selectedDate }: ListEventsProps) {
+  const { t, lang } = useTranslation();
+
   const getHeaderDateTitle = (dateStr: string) => {
     const eventDate = new Date(dateStr);
     const today = new Date();
     const isToday = eventDate.toDateString() === today.toDateString();
-    const month = eventDate.toLocaleString('en-US', { month: 'short' });
+
+    const locale = LOCALE_MAP[lang] ?? 'en-US';
+    const weekday = eventDate.toLocaleString(locale, { weekday: 'short' });
+    const month = eventDate.toLocaleString(locale, { month: 'short' });
     const day = eventDate.getDate();
-    return `${isToday ? 'Today' : eventDate.toLocaleString('en-US', { weekday: 'short' })} • ${month} ${day}`;
+
+    const dayLabel = isToday ? t('events.today') : weekday;
+    return `${dayLabel} • ${month} ${day}`;
   };
+
+  const countKey =
+    events.length === 1 ? 'events.count_one' : 'events.count_other';
 
   return (
     <FlatList
@@ -32,7 +53,7 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
           <Text style={styles.headerTitle}>
             {getHeaderDateTitle(selectedDate)}{' '}
             <Text style={styles.countText}>
-              · {events.length} {events.length === 1 ? 'event' : 'events'}
+              · {t(countKey, { count: events.length })}
             </Text>
           </Text>
         </View>
@@ -40,7 +61,7 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
       ListEmptyComponent={
         <View style={styles.emptyContainer}>
           <Ionicons name="calendar-outline" size={48} color="#BACAD6" />
-          <Text style={styles.emptyText}>No events planned for this day</Text>
+          <Text style={styles.emptyText}>{t('events.noEventsForDay')}</Text>
         </View>
       }
     />

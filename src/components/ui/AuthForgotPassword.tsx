@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@/i18n';
 
 interface AuthForgotPasswordProps {
   onSubmit: (email: string) => void;
@@ -23,6 +24,7 @@ export default function AuthForgotPassword({
   isSubmitting,
   errorMessage,
 }: AuthForgotPasswordProps) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
 
   const canSubmit = email.trim().length > 0 && !isSubmitting;
@@ -33,17 +35,15 @@ export default function AuthForgotPassword({
         <Ionicons name="key-outline" size={32} color="#FFFFFF" />
       </View>
 
-      <Text style={styles.formTitle}>Forgot password?</Text>
-      <Text style={styles.formSubtitle}>
-        Enter your email — we'll send a 6-digit code to reset your password.
-      </Text>
+      <Text style={styles.formTitle}>{t('auth.forgot.title')}</Text>
+      <Text style={styles.formSubtitle}>{t('auth.forgot.subtitle')}</Text>
 
       {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
       <View style={styles.inputGroup}>
         <TextInput
           style={styles.inputField}
-          placeholder="Email"
+          placeholder={t('auth.email')}
           placeholderTextColor="#BACAD6"
           value={email}
           onChangeText={setEmail}
@@ -62,12 +62,16 @@ export default function AuthForgotPassword({
         {isSubmitting ? (
           <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
-          <Text style={styles.primaryButtonText}>Send reset code</Text>
+          <Text style={styles.primaryButtonText}>
+            {t('auth.forgot.sendCode')}
+          </Text>
         )}
       </Pressable>
 
       <Pressable style={styles.backButton} onPress={onBackToSignIn}>
-        <Text style={styles.backButtonText}>← Back to sign in</Text>
+        <Text style={styles.backButtonText}>
+          {t('auth.forgot.backToSignIn')}
+        </Text>
       </Pressable>
     </View>
   );
@@ -106,10 +110,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 12,
   },
-  inputGroup: {
-    gap: 12,
-    marginBottom: 24,
-  },
+  inputGroup: { gap: 12, marginBottom: 24 },
   inputField: {
     width: '100%',
     height: 48,
@@ -134,13 +135,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  buttonDisabled: {
-    backgroundColor: '#BACAD6',
-  },
-  backButton: {
-    alignItems: 'center',
-    marginTop: 24,
-  },
+  buttonDisabled: { backgroundColor: '#BACAD6' },
+  backButton: { alignItems: 'center', marginTop: 24 },
   backButtonText: {
     fontSize: 14,
     color: '#6080A8',

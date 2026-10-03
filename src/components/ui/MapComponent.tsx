@@ -39,6 +39,7 @@ import {
   USER_ZOOM_LNG_DELTA,
   DEFAULT_CITY_CENTER,
 } from '@/constants/location';
+import { useTranslation } from '@/i18n';
 
 interface MapComponentProps {
   region: {
@@ -49,7 +50,6 @@ interface MapComponentProps {
   };
   grounds: ExtendedGroundItem[];
   onMarkerPress?: (ground: ExtendedGroundItem) => void;
-  /** ✅ Отступ сверху для кнопки locate (под поиском) */
   topOffset?: number;
 }
 
@@ -66,10 +66,6 @@ interface ClusterPoint {
   };
 }
 
-/**
- * Рекурсивно находит максимальный зум, при котором кластер полностью
- * разбивается на одиночные точки (включая вложенные кластеры).
- */
 const getFullExpansionZoom = (
   index: Supercluster,
   clusterId: number,
@@ -90,9 +86,6 @@ const getFullExpansionZoom = (
   return zoom;
 };
 
-/**
- * Конвертирует зум (уровень) в deltas для animateToRegion.
- */
 const zoomToRegionDeltas = (
   zoom: number,
   latitude: number,
@@ -114,6 +107,7 @@ export default function MapComponent({
   onMarkerPress,
   topOffset = 76,
 }: MapComponentProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const events = useUnit($events);
   const userLocation = useUnit($userLocation);
@@ -129,7 +123,6 @@ export default function MapComponent({
   const [currentRegion, setCurrentRegion] = useState<Region>(region);
   const [isLocating, setIsLocating] = useState(false);
 
-  // ✅ Флаг: стартовое центрирование уже сделано
   const initialCenteringDoneRef = useRef(false);
 
   // ✅ Автозапрос локации при монтировании
@@ -140,12 +133,12 @@ export default function MapComponent({
 
         if (status === 'denied') {
           Alert.alert(
-            'Location Access',
-            'PlayG works best with your location to show nearby grounds and events. Enable it in Settings?',
+            t('location.accessTitle'),
+            t('location.enableHint'),
             [
-              { text: 'Not now', style: 'cancel' },
+              { text: t('location.notNow'), style: 'cancel' },
               {
-                text: 'Open Settings',
+                text: t('location.openSettings'),
                 onPress: () => {
                   if (Platform.OS === 'ios') {
                     Linking.openURL('app-settings:');
@@ -164,7 +157,7 @@ export default function MapComponent({
           detectCityFx(result.location);
         }
       } catch {
-        // Игнорируем
+        // ignore
       }
     })();
   }, []);
@@ -193,7 +186,6 @@ export default function MapComponent({
       return () => clearTimeout(timer);
     }
 
-    // Fallback через 2 секунды
     const fallbackTimer = setTimeout(() => {
       if (initialCenteringDoneRef.current) return;
       if (!userLocation && cityCenter) {
@@ -244,12 +236,12 @@ export default function MapComponent({
 
       if (status === 'denied') {
         Alert.alert(
-          'Location Access',
-          'Enable location to center the map on your position.',
+          t('location.accessTitle'),
+          t('location.enableHintShort'),
           [
-            { text: 'Not now', style: 'cancel' },
+            { text: t('location.notNow'), style: 'cancel' },
             {
-              text: 'Open Settings',
+              text: t('location.openSettings'),
               onPress: () => {
                 if (Platform.OS === 'ios') {
                   Linking.openURL('app-settings:');
@@ -315,7 +307,7 @@ export default function MapComponent({
           activityLevel,
           sportId,
           sportsCount: sports.length,
-          avatar: g.avatar,
+          avatar: g.avatar ?? undefined,
           raw: g,
         };
       });
@@ -390,7 +382,7 @@ export default function MapComponent({
           sportId: m.sportId,
           sportsCount: m.sportsCount,
           address: m.address,
-          avatar: m.avatar,
+          avatar: m.avatar ?? undefined,
         }));
 
       if (items.length === 0) return;
@@ -491,7 +483,7 @@ export default function MapComponent({
         })}
       </MapView>
 
-      {/* ✅ Кнопка «Моё местоположение» — в правом ВЕРХНЕМ углу */}
+      {/* Кнопка «Моё местоположение» — в правом ВЕРХНЕМ углу */}
       <Pressable
         style={({ pressed }) => [
           styles.locateButton,
@@ -526,11 +518,9 @@ export default function MapComponent({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   map: { width: '100%', height: '100%' },
-
   locateButton: {
     position: 'absolute',
     right: 16,
-    // ❌ bottom: 16 — убрано
     width: 48,
     height: 48,
     borderRadius: 24,

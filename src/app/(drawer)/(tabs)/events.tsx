@@ -1,5 +1,5 @@
 // src/app/(drawer)/(tabs)/events.tsx
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -16,6 +16,8 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import CalendarEvents from '@/components/ui/CalendarEvents';
 import ListEvents from '@/components/ui/ListEvents';
 
+import { useTranslation } from '@/i18n';
+
 import { fetchAllEventsFx } from '@/effector/events/async/events';
 import {
   $events,
@@ -29,17 +31,18 @@ import { setSelectedDate } from '@/effector/events/sync';
 export default function EventsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
 
-  const { allEvents, dayEvents, selectedDate, isLoading, changeDate, user } = useUnit({
-    allEvents: $events,
-    dayEvents: $currentDayEvents,
-    selectedDate: $selectedDate,
-    isLoading: $isEventsLoading,
-    changeDate: setSelectedDate,
-    user: $userSession,
-  });
+  const { allEvents, dayEvents, selectedDate, isLoading, changeDate, user } =
+    useUnit({
+      allEvents: $events,
+      dayEvents: $currentDayEvents,
+      selectedDate: $selectedDate,
+      isLoading: $isEventsLoading,
+      changeDate: setSelectedDate,
+      user: $userSession,
+    });
 
-  // ✅ Перезапрашиваем события ПРИ КАЖДОМ заходе на вкладку
   useFocusEffect(
     useCallback(() => {
       fetchAllEventsFx();
@@ -51,12 +54,12 @@ export default function EventsScreen() {
       router.push('/event/create');
     } else {
       Alert.alert(
-        'Authentication Required',
-        'Please sign in or create an account to organize your own sports events.',
+        t('event.detail.authRequired'),
+        t('events.form.authRequiredHint'),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Sign In',
+            text: t('common.signIn'),
             onPress: () => router.push('/(drawer)/(tabs)/profile'),
           },
         ],
@@ -68,7 +71,7 @@ export default function EventsScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View style={styles.headerSpacer} />
-        <Text style={styles.headerTitle}>Events</Text>
+        <Text style={styles.headerTitle}>{t('events.title')}</Text>
         <View style={styles.headerSpacer} />
       </View>
 

@@ -5,34 +5,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import StarRating from './StarRating';
 import { GroundReview } from '@/effector/events/async/reviews';
+import { useTranslation, useRelativeDate } from '@/i18n';
 
 interface ReviewCardProps {
   review: GroundReview;
-  /** Показать кнопки edit/delete (для моего отзыва) */
   isMine?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
 }
-
-const formatRelativeDate = (ts: number): string => {
-  const now = Date.now();
-  const diff = now - ts;
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 30) return `${days}d ago`;
-
-  const date = new Date(ts);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-};
 
 export default function ReviewCard({
   review,
@@ -41,6 +21,8 @@ export default function ReviewCard({
   onDelete,
 }: ReviewCardProps) {
   const router = useRouter();
+  const { t } = useTranslation();
+  const formatRelativeDate = useRelativeDate();
 
   const authorName = review.author?.name || 'Anonymous';
   const initial = authorName.charAt(0).toUpperCase();
@@ -48,7 +30,6 @@ export default function ReviewCard({
 
   return (
     <View style={[styles.card, isMine && styles.cardMine]}>
-      {/* Header */}
       <View style={styles.header}>
         <Pressable
           style={styles.authorRow}
@@ -80,7 +61,9 @@ export default function ReviewCard({
               </Text>
               {isMine && (
                 <View style={styles.myBadge}>
-                  <Text style={styles.myBadgeText}>YOU</Text>
+                  <Text style={styles.myBadgeText}>
+                    {t('reviewCard.you')}
+                  </Text>
                 </View>
               )}
             </View>
@@ -106,12 +89,10 @@ export default function ReviewCard({
         )}
       </View>
 
-      {/* Stars */}
       <View style={styles.starsRow}>
         <StarRating value={review.rating} size={16} />
       </View>
 
-      {/* Comment */}
       {review.comment && (
         <Text style={styles.comment}>{review.comment}</Text>
       )}

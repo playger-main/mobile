@@ -5,6 +5,8 @@ import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useTranslation } from '@/i18n';
+
 interface Player {
   id: string;
   name: string;
@@ -28,6 +30,7 @@ export default function ParticipantsModal({
   onClose,
   onPlayerPress,
 }: ParticipantsModalProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [isExpanded, setIsExpanded] = React.useState(false);
@@ -47,7 +50,6 @@ export default function ParticipantsModal({
 
   if (!visible) return null;
 
-  // Создатель всегда первым
   const sorted = [...players].sort((a, b) => {
     if (a.id === creatorId) return -1;
     if (b.id === creatorId) return 1;
@@ -75,9 +77,7 @@ export default function ParticipantsModal({
         onPress={() => onPlayerPress?.(item)}
         disabled={!onPlayerPress}
       >
-        <View
-          style={[styles.avatar, isCreator && styles.avatarCreator]}
-        >
+        <View style={[styles.avatar, isCreator && styles.avatarCreator]}>
           {hasAvatar ? (
             <Image
               key={item.avatar!}
@@ -97,7 +97,9 @@ export default function ParticipantsModal({
             {isCreator && (
               <View style={styles.creatorBadge}>
                 <Ionicons name="star" size={10} color="#FFFFFF" />
-                <Text style={styles.creatorBadgeText}>Creator</Text>
+                <Text style={styles.creatorBadgeText}>
+                  {t('participants.creator')}
+                </Text>
               </View>
             )}
           </View>
@@ -128,9 +130,12 @@ export default function ParticipantsModal({
     >
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.headerTitle}>Participants</Text>
+          <Text style={styles.headerTitle}>{t('participants.title')}</Text>
           <Text style={styles.headerSubtitle}>
-            {players.length}/{maxPlayers} joined
+            {t('participants.count', {
+              count: players.length,
+              max: maxPlayers,
+            })}
           </Text>
         </View>
 
@@ -166,9 +171,9 @@ export default function ParticipantsModal({
       ) : (
         <View style={styles.emptyContainer}>
           <Ionicons name="people-outline" size={42} color="#BACAD6" />
-          <Text style={styles.emptyText}>No participants yet</Text>
+          <Text style={styles.emptyText}>{t('participants.empty')}</Text>
           <Text style={styles.emptySubtext}>
-            Be the first to join this event
+            {t('participants.emptyHint')}
           </Text>
         </View>
       )}
@@ -243,7 +248,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E6F4FE',
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden', // ✅ чтобы Image обрезался по кругу
+    overflow: 'hidden',
   },
   avatarCreator: { backgroundColor: '#006EE6' },
   avatarImage: {

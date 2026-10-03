@@ -14,6 +14,12 @@ export const events: TranslationDict = {
   'events.unknownGround': { en: 'Unknown Ground', ru: 'Площадка не указана', be: 'Пляцоўка не пазначана', lt: 'Nežinoma aikštelė', pl: 'Nieznane boisko', uk: 'Майданчик не вказано' },
   'events.host': { en: 'HOST', ru: 'ОРГ', be: 'АРГ', lt: 'HOST', pl: 'GOSPODARZ', uk: 'ОРГ' },
 
+    // ===== SKILL LEVELS =====
+  'events.level.all': { en: 'All levels', ru: 'Все уровни', be: 'Усе ўзроўні', lt: 'Visi lygiai', pl: 'Wszystkie poziomy', uk: 'Усі рівні' },
+  'events.level.beginner': { en: 'Beginner', ru: 'Начинающий', be: 'Пачатковец', lt: 'Pradedantysis', pl: 'Początkujący', uk: 'Початківець' },
+  'events.level.intermediate': { en: 'Intermediate', ru: 'Средний', be: 'Сярэдні', lt: 'Vidutinis', pl: 'Średni', uk: 'Середній' },
+  'events.level.advanced': { en: 'Advanced', ru: 'Продвинутый', be: 'Прасунуты', lt: 'Pažengęs', pl: 'Zaawansowany', uk: 'Просунутий' },
+
   // ===== CREATE / EDIT EVENT =====
   'events.create.title': { en: 'Create event', ru: 'Создать событие', be: 'Стварыць падзею', lt: 'Sukurti renginį', pl: 'Utwórz wydarzenie', uk: 'Створити подію' },
   'events.create.subtitle': { en: 'Organise a game', ru: 'Организуйте игру', be: 'Арганізуйце гульню', lt: 'Organizuokite žaidimą', pl: 'Zorganizuj grę', uk: 'Організуйте гру' },
@@ -43,7 +49,14 @@ export const events: TranslationDict = {
   'events.form.groundRequired': { en: 'Please select a playground.', ru: 'Выберите площадку.', be: 'Выберыце пляцоўку.', lt: 'Pasirinkite aikštelę.', pl: 'Wybierz boisko.', uk: 'Виберіть майданчик.' },
   'events.form.groundPending': { en: 'Ground not available', ru: 'Площадка недоступна', be: 'Пляцоўка недаступная', lt: 'Aikštelė nepasiekiama', pl: 'Boisko niedostępne', uk: 'Майданчик недоступний' },
   'events.form.groundPendingHint': { en: 'This ground is pending moderation. Events cannot be created on it yet.', ru: 'Площадка на модерации. События пока нельзя создавать.', be: 'Пляцоўка на мадэрацыі. Падзеі пакуль нельга ствараць.', lt: 'Aikštelė laukia moderavimo. Renginių dar negalima kurti.', pl: 'Boisko oczekuje na moderację. Wydarzenia nie mogą być jeszcze tworzone.', uk: 'Майданчик на модерації. Події поки не можна створювати.' },
-
+  'events.form.authRequiredHint': {
+    en: 'Please sign in or create an account to organize your own sports events.',
+    ru: 'Войдите или создайте аккаунт, чтобы организовывать свои спортивные события.',
+    be: 'Увайдзіце або стварыце акаўнт, каб арганізоўваць свае спартыўныя падзеі.',
+    lt: 'Prisijunkite arba susikurkite paskyrą, kad galėtumėte organizuoti savo sporto renginius.',
+    pl: 'Zaloguj się lub utwórz konto, aby organizować własne wydarzenia sportowe.',
+    uk: 'Увійдіть або створіть акаунт, щоб організовувати власні спортивні події.',
+  },
   // ===== EVENT DETAIL =====
   'event.detail.header': { en: 'Event', ru: 'Событие', be: 'Падзея', lt: 'Renginys', pl: 'Wydarzenie', uk: 'Подія' },
   'event.detail.hostedBy': { en: 'Hosted by', ru: 'Организатор', be: 'Арганізатар', lt: 'Organizatorius', pl: 'Organizator', uk: 'Організатор' },

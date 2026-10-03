@@ -24,29 +24,13 @@ import {
   deleteReviewFx,
 } from '@/effector/store';
 import { MyReview } from '@/effector/events/async/reviews';
-
-const formatRelativeDate = (ts: number): string => {
-  const now = Date.now();
-  const diff = now - ts;
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 30) return `${days}d ago`;
-
-  return new Date(ts).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-};
+import { useTranslation, useRelativeDate } from '@/i18n';
 
 export default function MyReviewsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
+  const formatRelativeDate = useRelativeDate();
 
   const reviews = useUnit($myReviews);
   const isLoading = useUnit($isMyReviewsLoading);
@@ -60,16 +44,16 @@ export default function MyReviewsScreen() {
   }, []);
 
   const handleDelete = (reviewId: string) => {
-    Alert.alert('Delete this review?', 'This action cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('myReviews.deleteTitle'), t('myReviews.deleteHint'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
             await deleteReview(reviewId);
           } catch {
-            Alert.alert('Error', 'Could not delete review.');
+            Alert.alert(t('common.error'), t('myReviews.deleteFailed'));
           }
         },
       },
@@ -77,7 +61,7 @@ export default function MyReviewsScreen() {
   };
 
   const renderItem = ({ item }: { item: MyReview }) => {
-    const groundName = item.ground?.name || 'Unknown ground';
+    const groundName = item.ground?.name || t('events.unknownGround');
     const groundAddress = item.ground?.address || '';
     const hasPhoto = !!item.ground?.avatar;
 
@@ -86,11 +70,11 @@ export default function MyReviewsScreen() {
         <Pressable
           style={styles.cardTop}
           onPress={() =>
-            item.ground?.id && 
+            item.ground?.id &&
             router.push({
-							pathname: '/ground/[id]',
-							params: { id: item.ground.id },
-						})
+              pathname: '/ground/[id]',
+              params: { id: item.ground.id },
+            })
           }
         >
           {hasPhoto ? (
@@ -137,7 +121,9 @@ export default function MyReviewsScreen() {
             onPress={() => setEditingReview(item)}
           >
             <Ionicons name="create-outline" size={16} color="#208AEF" />
-            <Text style={[styles.actionText, { color: '#208AEF' }]}>Edit</Text>
+            <Text style={[styles.actionText, { color: '#208AEF' }]}>
+              {t('common.edit')}
+            </Text>
           </Pressable>
 
           <View style={styles.actionsDivider} />
@@ -148,7 +134,7 @@ export default function MyReviewsScreen() {
           >
             <Ionicons name="trash-outline" size={16} color="#FF3B30" />
             <Text style={[styles.actionText, { color: '#FF3B30' }]}>
-              Delete
+              {t('common.delete')}
             </Text>
           </Pressable>
         </View>
@@ -156,9 +142,11 @@ export default function MyReviewsScreen() {
     );
   };
 
+  const countKey =
+    reviews.length === 1 ? 'myReviews.count_one' : 'myReviews.count_other';
+
   return (
     <View style={styles.container}>
-      {/* HEADER */}
       <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
         <Pressable
           onPress={() => router.back()}
@@ -168,9 +156,9 @@ export default function MyReviewsScreen() {
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>My reviews</Text>
+          <Text style={styles.headerTitle}>{t('myReviews.title')}</Text>
           <Text style={styles.headerSubtitle}>
-            {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
+            {t(countKey, { count: reviews.length })}
           </Text>
         </View>
         <View style={{ width: 32 }} />
@@ -193,22 +181,23 @@ export default function MyReviewsScreen() {
           ListEmptyComponent={
             <View style={styles.emptyBlock}>
               <Ionicons name="star-outline" size={48} color="#BACAD6" />
-              <Text style={styles.emptyTitle}>No reviews yet</Text>
+              <Text style={styles.emptyTitle}>{t('myReviews.empty')}</Text>
               <Text style={styles.emptyText}>
-                Share your experience on the grounds you've visited.
+                {t('myReviews.emptyHint')}
               </Text>
               <Pressable
                 style={styles.emptyButton}
                 onPress={() => router.push('/(drawer)/(tabs)')}
               >
-                <Text style={styles.emptyButtonText}>Browse grounds</Text>
+                <Text style={styles.emptyButtonText}>
+                  {t('myReviews.browseButton')}
+                </Text>
               </Pressable>
             </View>
           }
         />
       )}
 
-      {/* Форма редактирования — открывается с текущими данными через initialReview */}
       {editingReview && (
         <ReviewFormModal
           visible={!!editingReview}
@@ -248,7 +237,6 @@ const styles = StyleSheet.create({
   },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   listContent: { padding: 16 },
-
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
@@ -287,10 +275,8 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   dateText: { fontSize: 11, color: '#BACAD6', fontWeight: '500' },
-
   commentBlock: { paddingHorizontal: 12, paddingBottom: 12 },
   commentText: { fontSize: 13, color: '#334A77', lineHeight: 19 },
-
   actions: {
     flexDirection: 'row',
     borderTopWidth: 1,
@@ -306,7 +292,6 @@ const styles = StyleSheet.create({
   },
   actionsDivider: { width: 1, backgroundColor: '#F0F6FC' },
   actionText: { fontSize: 13, fontWeight: '700' },
-
   emptyBlock: {
     alignItems: 'center',
     justifyContent: 'center',

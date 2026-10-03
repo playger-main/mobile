@@ -5,11 +5,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from '@/i18n';
+
 export default function AboutScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
 
-  // Безопасный возврат назад на мобильных устройствах и в Web
   const handleBack = () => {
     if (router.canGoBack()) {
       router.back();
@@ -20,47 +22,49 @@ export default function AboutScreen() {
 
   return (
     <View style={styles.container}>
-      {/* 1. Кастомный Toolbar Шапки */}
+      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <Pressable onPress={handleBack} style={styles.backButton} hitSlop={12}>
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
-        <Text style={styles.headerTitle}>About</Text>
+        <Text style={styles.headerTitle}>{t('about.title')}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom + 24 },
+        ]}
       >
-        {/* 2. Логотип приложения (Волейбольный мяч в синем квадрате) */}
+        {/* Logo */}
         <View style={styles.logoContainer}>
           <View style={styles.logoBox}>
             <Ionicons name="basketball-outline" size={36} color="#FFFFFF" />
           </View>
         </View>
 
-        {/* 3. Описание проекта */}
+        {/* Title + tagline */}
         <Text style={styles.title}>PlayG</Text>
-        <Text style={styles.tagline}>Find grounds. Join the game.</Text>
-        
-        <Text style={styles.description}>
-          PlayG helps you discover outdoor sports grounds near you and join local games. 
-          Explore the map, find a court or pitch, and jump into events hosted by your 
-          community — or start your own in a few taps.
-        </Text>
+        <Text style={styles.tagline}>{t('about.tagline')}</Text>
 
-        {/* 4. Блок карточек преимуществ */}
+        <Text style={styles.description}>{t('about.description')}</Text>
+
+        {/* Features */}
         <View style={styles.featuresList}>
-          
           {/* Discover grounds */}
           <View style={styles.featureCard}>
             <View style={[styles.iconBadge, { backgroundColor: '#EBF3FF' }]}>
               <Ionicons name="location" size={22} color="#006EE6" />
             </View>
             <View style={styles.featureInfo}>
-              <Text style={styles.featureTitle}>Discover grounds</Text>
-              <Text style={styles.featureSubtitle}>Maps, search and ratings for spots near you.</Text>
+              <Text style={styles.featureTitle}>
+                {t('about.feature.discover.title')}
+              </Text>
+              <Text style={styles.featureSubtitle}>
+                {t('about.feature.discover.subtitle')}
+              </Text>
             </View>
           </View>
 
@@ -70,8 +74,12 @@ export default function AboutScreen() {
               <Ionicons name="information-circle" size={22} color="#006EE6" />
             </View>
             <View style={styles.featureInfo}>
-              <Text style={styles.featureTitle}>Join events</Text>
-              <Text style={styles.featureSubtitle}>Find games by day, sport and skill level.</Text>
+              <Text style={styles.featureTitle}>
+                {t('about.feature.join.title')}
+              </Text>
+              <Text style={styles.featureSubtitle}>
+                {t('about.feature.join.subtitle')}
+              </Text>
             </View>
           </View>
 
@@ -81,27 +89,26 @@ export default function AboutScreen() {
               <Ionicons name="shield-checkmark" size={20} color="#006EE6" />
             </View>
             <View style={styles.featureInfo}>
-              <Text style={styles.featureTitle}>Play together</Text>
-              <Text style={styles.featureSubtitle}>A friendly, community-first experience.</Text>
+              <Text style={styles.featureTitle}>
+                {t('about.feature.play.title')}
+              </Text>
+              <Text style={styles.featureSubtitle}>
+                {t('about.feature.play.subtitle')}
+              </Text>
             </View>
           </View>
-
         </View>
 
-        {/* 5. Подпись Версии сборки внизу */}
-        <Text style={styles.versionText}>Version 1.0.0 · Made for players</Text>
+        {/* Version */}
+        <Text style={styles.versionText}>{t('about.version')}</Text>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#FFFFFF' 
-  },
-  
-  // Стили шапки навигации
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -112,70 +119,57 @@ const styles = StyleSheet.create({
     borderColor: '#F0F6FC',
     backgroundColor: '#FFFFFF',
   },
-  backButton: { 
-    padding: 4 
-  },
-  headerTitle: { 
-    fontSize: 17, 
+  backButton: { padding: 4 },
+  headerTitle: {
+    fontSize: 17,
     lineHeight: 48,
-    fontWeight: '700', 
+    fontWeight: '700',
     color: '#334A77',
-    textAlign: 'center'
+    textAlign: 'center',
   },
-  headerSpacer: { 
-    width: 32 
-  },
+  headerSpacer: { width: 32 },
 
-  scrollContent: { 
-    paddingHorizontal: 24, 
-    paddingTop: 32 
-  },
+  scrollContent: { paddingHorizontal: 24, paddingTop: 32 },
 
-  // Блок логотипа
-  logoContainer: { 
+  logoContainer: {
     alignItems: 'flex-start',
-    marginBottom: 20 
+    marginBottom: 20,
   },
-  logoBox: { 
-    width: 64, 
-    height: 64, 
-    backgroundColor: '#006EE6', // Оригинальный синий цвет из вашего Welcome
-    borderRadius: 16, 
-    alignItems: 'center', 
+  logoBox: {
+    width: 64,
+    height: 64,
+    backgroundColor: '#006EE6',
+    borderRadius: 16,
+    alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#006EE6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
-    elevation: 3
+    elevation: 3,
   },
 
-  // Текстовые блоки заголовков
-  title: { 
-    fontSize: 26, 
-    fontWeight: '800', 
+  title: {
+    fontSize: 26,
+    fontWeight: '800',
     color: '#000000',
-    letterSpacing: -0.5
+    letterSpacing: -0.5,
   },
-  tagline: { 
-    fontSize: 15, 
+  tagline: {
+    fontSize: 15,
     fontWeight: '500',
-    color: '#6080A8', 
+    color: '#6080A8',
     marginTop: 4,
-    marginBottom: 20
+    marginBottom: 20,
   },
-  description: { 
-    fontSize: 14, 
-    color: '#6080A8', 
+  description: {
+    fontSize: 14,
+    color: '#6080A8',
     lineHeight: 22,
-    marginBottom: 28
+    marginBottom: 28,
   },
 
-  // Сетка карточек возможностей
-  featuresList: { 
-    gap: 12,
-    marginBottom: 40
-  },
+  featuresList: { gap: 12, marginBottom: 40 },
   featureCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -185,34 +179,30 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
   },
-  iconBadge: { 
-    width: 36, 
-    height: 36, 
-    borderRadius: 10, 
-    alignItems: 'center', 
-    justifyContent: 'center' 
+  iconBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  featureInfo: { 
-    flex: 1, 
-    marginLeft: 14 
+  featureInfo: { flex: 1, marginLeft: 14 },
+  featureTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#334A77',
   },
-  featureTitle: { 
-    fontSize: 14, 
-    fontWeight: '700', 
-    color: '#334A77' 
-  },
-  featureSubtitle: { 
-    fontSize: 12, 
-    color: '#6080A8', 
-    marginTop: 2 
+  featureSubtitle: {
+    fontSize: 12,
+    color: '#6080A8',
+    marginTop: 2,
   },
 
-  // Текст футера
-  versionText: { 
-    fontSize: 12, 
-    color: '#BACAD6', 
+  versionText: {
+    fontSize: 12,
+    color: '#BACAD6',
     fontWeight: '500',
     textAlign: 'center',
-    marginTop: 10
+    marginTop: 10,
   },
 });

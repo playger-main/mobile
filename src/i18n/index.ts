@@ -3,3 +3,5 @@ export { translations } from './translations';
 export { SUPPORTED_LANGUAGES } from './languages';
 export type { Language, TranslationDict } from './types';
 export { useTranslation } from './useTranslation';
+export { useRelativeDate } from './useRelativeDate';
+export { registerCalendarLocales, setCalendarLocale } from './calendarLocales';

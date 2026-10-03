@@ -12,14 +12,16 @@ import { useUnit } from 'effector-react';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+import { useTranslation } from '@/i18n';
+
 // Effector core state bindings
 import {
   signUpFx,
   signInFx,
   verifyCodeFx,
   resendCodeFx,
-  forgotPasswordFx,   // ✅ НОВОЕ
-  resetPasswordFx,    // ✅ НОВОЕ
+  forgotPasswordFx,
+  resetPasswordFx,
 } from '@/effector/events/async/auth';
 import {
   $authStep,
@@ -33,19 +35,18 @@ import AuthWelcome from '@/components/ui/AuthWelcome';
 import AuthSignIn from '@/components/ui/AuthSignIn';
 import AuthSignUp from '@/components/ui/AuthSignUp';
 import AuthVerifyCode from '@/components/ui/AuthVerifyCode';
-import AuthForgotPassword from '@/components/ui/AuthForgotPassword';   // ✅ НОВОЕ
-import AuthResetPassword from '@/components/ui/AuthResetPassword';     // ✅ НОВОЕ
+import AuthForgotPassword from '@/components/ui/AuthForgotPassword';
+import AuthResetPassword from '@/components/ui/AuthResetPassword';
 import UserProfile from '@/components/ui/UserProfile';
 
 export default function ProfileHubScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
 
-  // Local interface states
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pendingEmail, setPendingEmail] = useState<string>('');
 
-  // Global store parameter resolution hooks
   const { currentStep, user, isSubmitting, changeStep, handleLogout } = useUnit({
     currentStep: $authStep,
     user: $userSession,
@@ -56,12 +57,12 @@ export default function ProfileHubScreen() {
 
   const navigateToHome = () => router.replace('/(drawer)/(tabs)');
 
-  // 1. AUTHORIZED USER MODE (PROFILE PANEL)
+  // 1. AUTHORIZED
   if (user) {
     return <UserProfile user={user} onLogout={handleLogout} />;
   }
 
-  // 2. BASELINE ONBOARDING OVERLAY MODE (WELCOME SLIDER)
+  // 2. WELCOME
   if (currentStep === 'welcome') {
     return (
       <AuthWelcome
@@ -71,7 +72,7 @@ export default function ProfileHubScreen() {
     );
   }
 
-  // 3. REGISTRATION ENGINE INTERACTION PIPELINE
+  // 3. SIGN UP
   const handleSignUp = async (
     fullName: string,
     email: string,
@@ -87,12 +88,12 @@ export default function ProfileHubScreen() {
       });
     } catch (err: any) {
       setErrorMessage(
-        err?.response?.data?.message || 'Registration failure encountered.',
+        err?.response?.data?.message || t('auth.error.registrationFailed'),
       );
     }
   };
 
-  // 4. SMART LOGIN TRAPPING & INTERCEPTION INTERACTIVE RULES
+  // 4. SIGN IN
   const handleSignIn = async (email: string, password: string) => {
     try {
       setErrorMessage(null);
@@ -109,72 +110,64 @@ export default function ProfileHubScreen() {
       ) {
         setPendingEmail(email.trim());
         changeStep('verify');
-        setErrorMessage(
-          'Your account is unverified. We have dispatched a new secure code.',
-        );
+        setErrorMessage(t('auth.error.accountUnverified'));
         resendCodeFx(email.trim()).catch(() => {});
       } else {
         setErrorMessage(
-          serverMessage || 'Invalid email or security credentials provided.',
+          serverMessage || t('auth.error.invalidCredentials'),
         );
       }
     }
   };
 
-  // 5. SECURE DIGITAL RESEND TRIGGER PIPELINE
+  // 5. RESEND CODE
   const handleResendCodeCall = async () => {
     if (!pendingEmail) {
-      setErrorMessage('Missing target contextual email token references.');
+      setErrorMessage(t('auth.error.missingEmail'));
       return;
     }
     try {
       setErrorMessage(null);
       await resendCodeFx(pendingEmail);
-      Alert.alert(
-        'Code Dispatched',
-        'A new 6-digit tracking code has been forwarded to your inbox.',
-      );
+      Alert.alert(t('auth.error.codeSent'), t('auth.error.newCodeSent'));
     } catch (err: any) {
       setErrorMessage(
-        err?.response?.data?.message ||
-          'Failed to dispatch notification sequence.',
+        err?.response?.data?.message || t('auth.error.couldNotSendCode'),
       );
     }
   };
 
-  // 6. CODE VALIDATION TRANSACTION HANDLER
+  // 6. VERIFY CODE
   const handleVerifyCodeSubmit = async (code: string) => {
     try {
       setErrorMessage(null);
       await verifyCodeFx(code);
       Alert.alert(
-        'Verification Success',
-        'Account activated successfully! Please sign in.',
-        [{ text: 'OK', onPress: () => changeStep('signin') }],
+        t('auth.verify.successTitle'),
+        t('auth.verify.successMessage'),
+        [{ text: t('common.ok'), onPress: () => changeStep('signin') }],
       );
     } catch (err: any) {
       setErrorMessage(
-        err?.response?.data?.message ||
-          'Invalid or expired entry code string token.',
+        err?.response?.data?.message || t('auth.error.invalidCode'),
       );
     }
   };
 
-  // ✅ 7. FORGOT PASSWORD — запрос кода
+  // 7. FORGOT PASSWORD
   const handleForgotPassword = async (email: string) => {
     try {
       setErrorMessage(null);
       setPendingEmail(email.trim());
       await forgotPasswordFx(email.trim());
-      // on(forgotPasswordFx.done) сам переведёт step → 'reset'
     } catch (err: any) {
       setErrorMessage(
-        err?.response?.data?.message || 'Could not send reset code.',
+        err?.response?.data?.message || t('auth.error.couldNotSendCode'),
       );
     }
   };
 
-  // ✅ 8. RESET PASSWORD — ввод кода + новый пароль
+  // 8. RESET PASSWORD
   const handleResetPassword = async (code: string, newPassword: string) => {
     try {
       setErrorMessage(null);
@@ -183,12 +176,12 @@ export default function ProfileHubScreen() {
         code,
         newPassword,
       });
-      Alert.alert('Success', 'Password changed. Please sign in.', [
-        { text: 'OK', onPress: () => changeStep('signin') },
+      Alert.alert(t('auth.reset.successTitle'), t('auth.reset.successMessage'), [
+        { text: t('common.ok'), onPress: () => changeStep('signin') },
       ]);
     } catch (err: any) {
       setErrorMessage(
-        err?.response?.data?.message || 'Invalid or expired code.',
+        err?.response?.data?.message || t('auth.error.invalidCode'),
       );
     }
   };
@@ -203,7 +196,6 @@ export default function ProfileHubScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      {/* Universal close button */}
       <Pressable
         style={[styles.closeButton, { top: insets.top + 12 }]}
         onPress={() => {
@@ -215,7 +207,6 @@ export default function ProfileHubScreen() {
         <Ionicons name="close" size={24} color="#334A77" />
       </Pressable>
 
-      {/* ================= SIGN IN ================= */}
       {currentStep === 'signin' && (
         <AuthSignIn
           onSubmit={handleSignIn}
@@ -233,7 +224,6 @@ export default function ProfileHubScreen() {
         />
       )}
 
-      {/* ================= SIGN UP ================= */}
       {currentStep === 'signup' && (
         <AuthSignUp
           onSubmit={handleSignUp}
@@ -247,7 +237,6 @@ export default function ProfileHubScreen() {
         />
       )}
 
-      {/* ================= VERIFY CODE (регистрация) ================= */}
       {currentStep === 'verify' && (
         <AuthVerifyCode
           onSubmit={handleVerifyCodeSubmit}
@@ -261,7 +250,6 @@ export default function ProfileHubScreen() {
         />
       )}
 
-      {/* ================= FORGOT PASSWORD ================= */}
       {currentStep === 'forgot' && (
         <AuthForgotPassword
           onSubmit={handleForgotPassword}
@@ -271,7 +259,6 @@ export default function ProfileHubScreen() {
         />
       )}
 
-      {/* ================= RESET PASSWORD ================= */}
       {currentStep === 'reset' && (
         <AuthResetPassword
           email={pendingEmail}

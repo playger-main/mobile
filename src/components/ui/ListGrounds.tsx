@@ -27,10 +27,10 @@ import {
   $events,
 } from '@/effector/store';
 import { setSelectedCategory } from '@/effector/events/sync';
+import { useTranslation } from '@/i18n';
 
 interface ListGroundsProps {
   onItemPress: (item: ExtendedGroundItem) => void;
-  // ✅ Новая сигнатура
   onToggleFavorite: (groundId: string, isFavorite: boolean) => void;
 }
 
@@ -40,6 +40,7 @@ export default function ListGrounds({
 }: ListGroundsProps) {
   const isWeb = Platform.OS === 'web';
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const {
     grounds,
@@ -77,8 +78,10 @@ export default function ListGrounds({
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       <View style={styles.headerTopRow}>
-        <Text style={styles.countText}>{grounds.length} grounds nearby</Text>
-        <Text style={styles.sortText}>By distance</Text>
+        <Text style={styles.countText}>
+          {t('grounds.count', { count: grounds.length })}
+        </Text>
+        <Text style={styles.sortText}>{t('grounds.sortByDistance')}</Text>
       </View>
 
       {!isWeb && (
@@ -140,14 +143,8 @@ export default function ListGrounds({
 }
 
 const styles = StyleSheet.create({
-  listContent: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  headerContainer: {
-    paddingTop: 0,
-    marginBottom: 8,
-  },
+  listContent: { paddingHorizontal: 16, paddingTop: 8 },
+  headerContainer: { paddingTop: 0, marginBottom: 8 },
   headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

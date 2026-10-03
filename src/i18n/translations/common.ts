@@ -30,4 +30,38 @@ export const common: TranslationDict = {
   'error.network': { en: 'Network error. Check your connection.', ru: 'Ошибка сети. Проверьте соединение.', be: 'Памылка сеткі. Праверце злучэнне.', lt: 'Tinklo klaida. Patikrinkite ryšį.', pl: 'Błąd sieci. Sprawdź połączenie.', uk: 'Помилка мережі. Перевірте з’єднання.' },
   'error.unauthorized': { en: 'Please sign in again.', ru: 'Войдите заново.', be: 'Увайдзіце зноў.', lt: 'Prisijunkite iš naujo.', pl: 'Zaloguj się ponownie.', uk: 'Увійдіть знову.' },
   'error.notFound': { en: 'Not found.', ru: 'Не найдено.', be: 'Не знойдзена.', lt: 'Nerasta.', pl: 'Nie znaleziono.', uk: 'Не знайдено.' },
+
+    // ===== RELATIVE DATE =====
+  'relativeDate.justNow': {
+    en: 'just now',
+    ru: 'только что',
+    be: 'толькі што',
+    lt: 'ką tik',
+    pl: 'przed chwilą',
+    uk: 'щойно',
+  },
+  'relativeDate.minutesAgo': {
+    en: '{{count}}m ago',
+    ru: '{{count}} мин назад',
+    be: '{{count}} хв таму',
+    lt: 'prieš {{count}} min.',
+    pl: '{{count}} min temu',
+    uk: '{{count}} хв тому',
+  },
+  'relativeDate.hoursAgo': {
+    en: '{{count}}h ago',
+    ru: '{{count}} ч назад',
+    be: '{{count}} г таму',
+    lt: 'prieš {{count}} val.',
+    pl: '{{count}} godz. temu',
+    uk: '{{count}} год тому',
+  },
+  'relativeDate.daysAgo': {
+    en: '{{count}}d ago',
+    ru: '{{count}} дн назад',
+    be: '{{count}} д таму',
+    lt: 'prieš {{count}} d.',
+    pl: '{{count}} dni temu',
+    uk: '{{count}} дн тому',
+  },
 };

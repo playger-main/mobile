@@ -9,9 +9,7 @@ import {
   Alert,
   Keyboard,
 } from 'react-native';
-import BottomSheet, {
-  BottomSheetTextInput,
-} from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
@@ -23,14 +21,11 @@ import {
   updateReviewFx,
 } from '@/effector/store';
 import { GroundReview } from '@/effector/events/async/reviews';
+import { useTranslation } from '@/i18n';
 
 interface ReviewFormModalProps {
   visible: boolean;
   groundId: string;
-  /**
-   * ✅ Опционально: если передан — форма работает с ним (для экрана "My reviews").
-   * Если не передан — берёт из глобального $myReview (для детальной площадки).
-   */
   initialReview?: GroundReview | null;
   onClose: () => void;
   onSuccess?: () => void;
@@ -43,6 +38,7 @@ export default function ReviewFormModal({
   onClose,
   onSuccess,
 }: ReviewFormModalProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['60%', '90%'], []);
@@ -53,7 +49,6 @@ export default function ReviewFormModal({
   const createReview = useUnit(createReviewFx);
   const updateReview = useUnit(updateReviewFx);
 
-  // ✅ Приоритет: initialReview > storeReview
   const myReview = initialReview ?? storeReview;
   const isEditing = !!myReview;
 
@@ -62,7 +57,6 @@ export default function ReviewFormModal({
 
   const isSubmitting = isCreating || isUpdating;
 
-  // ✅ Заполняем форму при открытии
   useEffect(() => {
     if (!visible) return;
     if (myReview) {
@@ -91,7 +85,10 @@ export default function ReviewFormModal({
     Keyboard.dismiss();
 
     if (rating < 1) {
-      Alert.alert('Rating required', 'Please select at least 1 star.');
+      Alert.alert(
+        t('reviewForm.ratingRequired'),
+        t('reviewForm.selectAtLeast1'),
+      );
       return;
     }
 
@@ -114,11 +111,20 @@ export default function ReviewFormModal({
     } catch (e: any) {
       const raw = e?.response?.data?.message ?? e?.message;
       Alert.alert(
-        'Error',
-        Array.isArray(raw) ? raw.join('\n') : String(raw || 'Try again.'),
+        t('common.error'),
+        Array.isArray(raw) ? raw.join('\n') : String(raw || t('common.tryAgain')),
       );
     }
   };
+
+  const ratingHintText = (() => {
+    if (rating === 0) return t('reviewForm.tapToRate');
+    if (rating === 1) return t('reviewForm.poor');
+    if (rating === 2) return t('reviewForm.fair');
+    if (rating === 3) return t('reviewForm.good');
+    if (rating === 4) return t('reviewForm.veryGood');
+    return t('reviewForm.excellent');
+  })();
 
   return (
     <BottomSheet
@@ -141,32 +147,27 @@ export default function ReviewFormModal({
       <View style={styles.content}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>
-            {isEditing ? 'Edit your review' : 'Write a review'}
+            {isEditing
+              ? t('reviewForm.editTitle')
+              : t('reviewForm.title')}
           </Text>
           <Pressable onPress={onClose} hitSlop={10} style={styles.closeBtn}>
             <Ionicons name="close" size={20} color="#6080A8" />
           </Pressable>
         </View>
 
-        <Text style={styles.label}>Your rating</Text>
+        <Text style={styles.label}>{t('reviewForm.yourRating')}</Text>
         <View style={styles.ratingRow}>
           <StarRating value={rating} size={36} onChange={setRating} />
         </View>
-        <Text style={styles.ratingHint}>
-          {rating === 0 && 'Tap a star to rate'}
-          {rating === 1 && 'Poor'}
-          {rating === 2 && 'Fair'}
-          {rating === 3 && 'Good'}
-          {rating === 4 && 'Very good'}
-          {rating === 5 && 'Excellent!'}
-        </Text>
+        <Text style={styles.ratingHint}>{ratingHintText}</Text>
 
-        <Text style={styles.label}>Comment (optional)</Text>
+        <Text style={styles.label}>{t('reviewForm.comment')}</Text>
         <BottomSheetTextInput
           style={styles.textarea}
           value={comment}
           onChangeText={setComment}
-          placeholder="Share your experience with other players…"
+          placeholder={t('reviewForm.commentPlaceholder')}
           placeholderTextColor="#BACAD6"
           multiline
           maxLength={500}
@@ -186,7 +187,9 @@ export default function ReviewFormModal({
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
             <Text style={styles.submitBtnText}>
-              {isEditing ? 'Save changes' : 'Post review'}
+              {isEditing
+                ? t('common.saveChanges')
+                : t('reviewForm.postButton')}
             </Text>
           )}
         </Pressable>
@@ -226,7 +229,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#F0F6FC',
   },
-
   label: {
     fontSize: 13,
     fontWeight: '700',
@@ -243,7 +245,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginBottom: 16,
   },
-
   textarea: {
     minHeight: 100,
     borderWidth: 1,
@@ -264,7 +265,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 16,
   },
-
   submitBtn: {
     height: 50,
     borderRadius: 14,
@@ -274,4 +274,4 @@ const styles = StyleSheet.create({
   },
   submitBtnDisabled: { backgroundColor: '#BACAD6' },
   submitBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-}); 
+});

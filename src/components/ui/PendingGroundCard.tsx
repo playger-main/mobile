@@ -10,8 +10,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getBadgeStyle } from '@/constants/badgeStyle';
-import { getSportLabel } from '@/constants/sports';
+import { getSportKey } from '@/constants/sports';
 import { ExtendedGroundItem } from './CardGround';
+import { useTranslation } from '@/i18n';
 
 interface PendingGroundCardProps {
   item: ExtendedGroundItem;
@@ -28,6 +29,8 @@ export default function PendingGroundCard({
   onPress,
   isProcessing = false,
 }: PendingGroundCardProps) {
+  const { t } = useTranslation();
+
   const sportsList: string[] =
     Array.isArray(item.kindofsport) && item.kindofsport.length > 0
       ? item.kindofsport
@@ -45,15 +48,14 @@ export default function PendingGroundCard({
             {item.name}
           </Text>
           <Text style={styles.address} numberOfLines={1}>
-            {item.address || 'No address provided'}
+            {item.address || t('grounds.noAddress')}
           </Text>
 
-          {/* ✅ 2 тега + +N */}
           {sportsList.length > 0 && (
             <View style={styles.sportsRow}>
               {sportsList.slice(0, 2).map((sportId, idx) => {
                 const style = getBadgeStyle(sportId);
-                const label = getSportLabel(sportId);
+                const label = t(getSportKey(sportId));
                 return (
                   <View
                     key={`${sportId}-${idx}`}
@@ -70,14 +72,18 @@ export default function PendingGroundCard({
               })}
               {sportsList.length > 2 && (
                 <View style={styles.moreBadge}>
-                  <Text style={styles.moreBadgeText}>+{sportsList.length - 2}</Text>
+                  <Text style={styles.moreBadgeText}>
+                    +{sportsList.length - 2}
+                  </Text>
                 </View>
               )}
             </View>
           )}
 
           {item.creator?.name && (
-            <Text style={styles.creatorText}>by {item.creator.name}</Text>
+            <Text style={styles.creatorText}>
+              {t('pendingGround.byCreator', { name: item.creator.name })}
+            </Text>
           )}
         </View>
       </Pressable>
@@ -93,7 +99,7 @@ export default function PendingGroundCard({
           ) : (
             <>
               <Ionicons name="close-circle-outline" size={18} color="#FF3B30" />
-              <Text style={styles.rejectText}>Reject</Text>
+              <Text style={styles.rejectText}>{t('moderation.reject')}</Text>
             </>
           )}
         </Pressable>
@@ -108,7 +114,7 @@ export default function PendingGroundCard({
           ) : (
             <>
               <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />
-              <Text style={styles.approveText}>Approve</Text>
+              <Text style={styles.approveText}>{t('moderation.approve')}</Text>
             </>
           )}
         </Pressable>
@@ -141,7 +147,6 @@ const styles = StyleSheet.create({
   info: { flex: 1, marginLeft: 12, justifyContent: 'center' },
   title: { fontSize: 15, fontWeight: '700', color: '#334A77' },
   address: { fontSize: 12, color: '#6080A8', marginTop: 2 },
-
   sportsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -164,7 +169,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   moreBadgeText: { fontSize: 9, fontWeight: '700', color: '#6080A8' },
-
   creatorText: {
     fontSize: 11,
     color: '#BACAD6',

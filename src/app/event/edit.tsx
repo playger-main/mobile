@@ -29,10 +29,14 @@ import {
 } from '@/effector/store';
 
 import GroundPickerModal from '@/components/ui/GroundPickerModal';
+import { useTranslation } from '@/i18n';
+import { SKILL_LEVELS, getSkillLevelKey } from '@/constants/skillLevels';
+
 
 export default function EditEventScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const event = useUnit($currentEvent);
@@ -45,7 +49,7 @@ export default function EditEventScreen() {
   const [selectedGroundId, setSelectedGroundId] = useState('');
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
-  const [skillLevel, setSkillLevel] = useState('All levels');
+  const [skillLevel, setSkillLevel] = useState<string>('all');
   const [playersNeeded, setPlayersNeeded] = useState(10);
   const [duration, setDuration] = useState(90);
   const [description, setDescription] = useState('');
@@ -66,7 +70,7 @@ export default function EditEventScreen() {
     setTitle(event.name || '');
     setSelectedGroundId(event.ground?.id || '');
     setDescription(event.description || '');
-    setSkillLevel(event.level || 'All levels');
+    setSkillLevel(event.level || 'all');
     setPlayersNeeded(event.maxPlayers || 10);
 
     if (event.date) {
@@ -131,9 +135,14 @@ export default function EditEventScreen() {
   const handleSave = async () => {
     Keyboard.dismiss();
 
-    if (!title.trim()) return Alert.alert('Error', 'Please enter an event title.');
-    if (!selectedGroundId)
-      return Alert.alert('Error', 'Please select a playground.');
+    if (!title.trim()) {
+      Alert.alert(t('common.error'), t('events.form.titleRequired'));
+      return;
+    }
+    if (!selectedGroundId) {
+      Alert.alert(t('common.error'), t('events.form.groundRequired'));
+      return;
+    }
 
     const backendDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
@@ -150,9 +159,9 @@ export default function EditEventScreen() {
         groundId: selectedGroundId,
       });
 
-      Alert.alert('Success', 'Event updated successfully!', [
+      Alert.alert(t('common.success'), t('events.form.updateSuccess'), [
         {
-          text: 'OK',
+          text: t('common.ok'),
           onPress: () => {
             setTimeout(() => router.back(), 150);
           },
@@ -164,8 +173,8 @@ export default function EditEventScreen() {
         ? raw.join('\n')
         : typeof raw === 'string'
           ? raw
-          : 'Failed to update event.';
-      Alert.alert('Error', message);
+          : t('common.tryAgain');
+      Alert.alert(t('common.error'), message);
     }
   };
 
@@ -191,8 +200,8 @@ export default function EditEventScreen() {
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Edit event</Text>
-          <Text style={styles.headerSubtitle}>Update details</Text>
+          <Text style={styles.headerTitle}>{t('events.edit.title')}</Text>
+          <Text style={styles.headerSubtitle}>{t('events.edit.subtitle')}</Text>
         </View>
         <View style={{ width: 32 }} />
       </View>
@@ -203,24 +212,24 @@ export default function EditEventScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 120 }]}
       >
-        <Text style={styles.inputLabel}>Event title</Text>
+        <Text style={styles.inputLabel}>{t('events.form.titleLabel')}</Text>
         <TextInput
           style={styles.textField}
-          placeholder="e.g. Evening pickup basketball"
+          placeholder={t('events.form.titlePlaceholder')}
           placeholderTextColor="#BACAD6"
           value={title}
           onChangeText={setTitle}
         />
 
         <View style={styles.groundLabelRow}>
-          <Text style={styles.inputLabel}>Ground</Text>
+          <Text style={styles.inputLabel}>{t('events.form.ground')}</Text>
           <Pressable
             style={styles.pickOnMapLink}
             onPress={() => setShowGroundPicker(true)}
             hitSlop={6}
           >
             <Ionicons name="map-outline" size={14} color="#208AEF" />
-            <Text style={styles.pickOnMapText}>Pick on map</Text>
+            <Text style={styles.pickOnMapText}>{t('events.form.pickOnMap')}</Text>
           </Pressable>
         </View>
 
@@ -232,14 +241,14 @@ export default function EditEventScreen() {
             style={[styles.selectorText, !selectedGround && styles.selectorPlaceholder]}
             numberOfLines={1}
           >
-            {selectedGround?.name || 'Select playground court'}
+            {selectedGround?.name || t('events.form.selectGround')}
           </Text>
           <Ionicons name="chevron-down" size={18} color="#6080A8" />
         </Pressable>
 
         <View style={styles.rowContainer}>
           <View style={styles.flexItem}>
-            <Text style={styles.inputLabel}>Date</Text>
+            <Text style={styles.inputLabel}>{t('events.form.date')}</Text>
             <Pressable style={styles.iconInputField} onPress={handleOpenDatePicker}>
               <Text style={styles.iconInputText}>{formattedDate}</Text>
               <Ionicons name="calendar-outline" size={16} color="#334A77" />
@@ -247,7 +256,7 @@ export default function EditEventScreen() {
           </View>
 
           <View style={styles.flexItem}>
-            <Text style={styles.inputLabel}>Time</Text>
+            <Text style={styles.inputLabel}>{t('events.form.time')}</Text>
             <Pressable style={styles.iconInputField} onPress={handleOpenTimePicker}>
               <Text style={styles.iconInputText}>{formattedTime}</Text>
               <Ionicons name="time-outline" size={16} color="#334A77" />
@@ -255,9 +264,9 @@ export default function EditEventScreen() {
           </View>
         </View>
 
-        <Text style={styles.inputLabel}>Skill level</Text>
+        <Text style={styles.inputLabel}>{t('events.form.skillLevel')}</Text>
         <View style={styles.chipsWrapContainer}>
-          {['All levels', 'Beginner', 'Intermediate', 'Advanced'].map((level) => {
+          {SKILL_LEVELS.map((level) => {
             const isSelected = skillLevel === level;
             return (
               <Pressable
@@ -266,7 +275,7 @@ export default function EditEventScreen() {
                 style={[styles.chipItem, isSelected && styles.chipItemSelected]}
               >
                 <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                  {level}
+                  {t(getSkillLevelKey(level))}
                 </Text>
               </Pressable>
             );
@@ -275,7 +284,7 @@ export default function EditEventScreen() {
 
         <View style={styles.rowContainer}>
           <View style={styles.flexItem}>
-            <Text style={styles.inputLabel}>Players needed</Text>
+            <Text style={styles.inputLabel}>{t('events.form.playersNeeded')}</Text>
             <View style={styles.counterBlock}>
               <Pressable
                 style={styles.counterButton}
@@ -294,7 +303,7 @@ export default function EditEventScreen() {
           </View>
 
           <View style={styles.flexItem}>
-            <Text style={styles.inputLabel}>Duration (min)</Text>
+            <Text style={styles.inputLabel}>{t('events.form.duration')}</Text>
             <View style={styles.counterBlock}>
               <Pressable
                 style={styles.counterButton}
@@ -313,10 +322,10 @@ export default function EditEventScreen() {
           </View>
         </View>
 
-        <Text style={styles.inputLabel}>Description (optional)</Text>
+        <Text style={styles.inputLabel}>{t('events.form.description')}</Text>
         <TextInput
           style={styles.textareaField}
-          placeholder="Format, what to bring, meeting point..."
+          placeholder={t('events.form.descriptionPlaceholder')}
           placeholderTextColor="#BACAD6"
           multiline
           numberOfLines={4}
@@ -339,7 +348,7 @@ export default function EditEventScreen() {
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={styles.publishButtonText}>Save changes</Text>
+            <Text style={styles.publishButtonText}>{t('common.saveChanges')}</Text>
           )}
         </Pressable>
       </View>
@@ -358,7 +367,7 @@ export default function EditEventScreen() {
               <View style={styles.iosModalContent}>
                 <View style={styles.iosModalHeaderRow}>
                   <Pressable onPress={() => setShowDatePicker(false)}>
-                    <Text style={styles.iosCancelText}>Cancel</Text>
+                    <Text style={styles.iosCancelText}>{t('common.cancel')}</Text>
                   </Pressable>
                   <Pressable
                     onPress={() => {
@@ -366,7 +375,7 @@ export default function EditEventScreen() {
                       setShowDatePicker(false);
                     }}
                   >
-                    <Text style={styles.iosConfirmText}>Done</Text>
+                    <Text style={styles.iosConfirmText}>{t('common.ok')}</Text>
                   </Pressable>
                 </View>
                 <DateTimePicker
@@ -384,7 +393,7 @@ export default function EditEventScreen() {
               <View style={styles.iosModalContent}>
                 <View style={styles.iosModalHeaderRow}>
                   <Pressable onPress={() => setShowTimePicker(false)}>
-                    <Text style={styles.iosCancelText}>Cancel</Text>
+                    <Text style={styles.iosCancelText}>{t('common.cancel')}</Text>
                   </Pressable>
                   <Pressable
                     onPress={() => {
@@ -392,7 +401,7 @@ export default function EditEventScreen() {
                       setShowTimePicker(false);
                     }}
                   >
-                    <Text style={styles.iosConfirmText}>Done</Text>
+                    <Text style={styles.iosConfirmText}>{t('common.ok')}</Text>
                   </Pressable>
                 </View>
                 <DateTimePicker

@@ -5,12 +5,16 @@ import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
 import { useUnit } from 'effector-react';
 
-import { ACTIVITY_COLORS, ACTIVITY_LABELS } from '@/utils/groundActivity';
+import {
+  ACTIVITY_COLORS,
+  getActivityLabelKey,
+} from '@/utils/groundActivity';
 import { getBadgeStyle } from '@/constants/badgeStyle';
-import { getSportLabel, getSportIcon } from '@/constants/sports';
+import { getSportKey, getSportIcon } from '@/constants/sports';
 import { GroundMapMarker } from '@/types/map';
 import { $userLocation, $cityCenter } from '@/effector/store';
 import { calculateDistance, formatDistance } from '@/utils/distance';
+import { useTranslation } from '@/i18n';
 
 interface ClusterGroundsSheetProps {
   visible: boolean;
@@ -25,6 +29,7 @@ export default function ClusterGroundsSheet({
   onClose,
   onSelect,
 }: ClusterGroundsSheetProps) {
+  const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['50%', '85%'], []);
 
@@ -42,6 +47,9 @@ export default function ClusterGroundsSheet({
   }, [visible]);
 
   if (!visible) return null;
+
+  const countKey =
+    grounds.length === 1 ? 'cluster.count_one' : 'cluster.count_other';
 
   return (
     <BottomSheet
@@ -67,9 +75,11 @@ export default function ClusterGroundsSheet({
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <Text style={styles.headerTitle}>
-                {grounds.length} {grounds.length === 1 ? 'ground' : 'grounds'} nearby
+                {t(countKey, { count: grounds.length })}
               </Text>
-              <Text style={styles.headerSubtitle}>Tap one to open details</Text>
+              <Text style={styles.headerSubtitle}>
+                {t('cluster.tapToOpen')}
+              </Text>
             </View>
 
             <Pressable onPress={onClose} style={styles.closeButton} hitSlop={10}>
@@ -79,11 +89,10 @@ export default function ClusterGroundsSheet({
         }
         renderItem={({ item }: { item: GroundMapMarker }) => {
           const activityColors = ACTIVITY_COLORS[item.activityLevel];
-          const activityLabel = ACTIVITY_LABELS[item.activityLevel];
+          const activityLabel = t(getActivityLabelKey(item.activityLevel));
 
-          // ✅ Один спорт для иконки (в маркере всегда один sportId)
           const sportIcon = getSportIcon(item.sportId);
-          const sportLabel = getSportLabel(item.sportId);
+          const sportLabel = t(getSportKey(item.sportId));
 
           const origin = userLocation ?? cityCenter;
           const distanceMeters = origin
@@ -94,7 +103,8 @@ export default function ClusterGroundsSheet({
                 item.longitude,
               )
             : undefined;
-          const displayDistance = formatDistance(distanceMeters);
+          const displayDistance =
+            formatDistance(distanceMeters) ?? t('distance.nearby');
 
           return (
             <Pressable style={styles.row} onPress={() => onSelect(item)}>
@@ -164,7 +174,10 @@ export default function ClusterGroundsSheet({
                       ]}
                     />
                     <Text
-                      style={[styles.activityTagText, { color: activityColors.bg }]}
+                      style={[
+                        styles.activityTagText,
+                        { color: activityColors.bg },
+                      ]}
                     >
                       {activityLabel}
                     </Text>
@@ -231,7 +244,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   listContent: { paddingHorizontal: 16, paddingBottom: 32 },
-
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -279,11 +291,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
   },
-  sportTagText: {
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
+  sportTagText: { fontSize: 9, fontWeight: '700', letterSpacing: 0.3 },
   activityTag: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -300,9 +308,5 @@ const styles = StyleSheet.create({
     gap: 4,
     marginTop: 4,
   },
-  distanceText: {
-    fontSize: 11,
-    color: '#6080A8',
-    fontWeight: '500',
-  },
+  distanceText: { fontSize: 11, color: '#6080A8', fontWeight: '500' },
 });

@@ -21,10 +21,12 @@ import {
   fetchMyFavoriteGroundsFx,
   removeFavoriteFx,
 } from '@/effector/store';
+import { useTranslation } from '@/i18n';
 
 export default function FavoriteGroundsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const grounds = useUnit($myFavoriteGrounds);
   const isLoading = useUnit($isMyFavoritesLoading);
@@ -35,27 +37,25 @@ export default function FavoriteGroundsScreen() {
     fetchFavorites();
   }, []);
 
-  const handleToggleFavorite = (groundId: string, isFavorite: boolean) => {
-    // На этом экране все площадки уже в избранном, поэтому удаляем
+  const handleToggleFavorite = (groundId: string) => {
     Alert.alert(
-      'Remove from favourites?',
-      'This ground will no longer appear in your favourites list.',
+      t('favorites.removeTitle'),
+      t('favorites.removeHint'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Remove',
+          text: t('common.remove'),
           style: 'destructive',
           onPress: async () => {
             try {
               await removeFavorite(groundId);
-              // Список обновится сам через $myFavoriteGrounds
             } catch (e: any) {
               const raw = e?.response?.data?.message ?? e?.message;
               Alert.alert(
-                'Error',
+                t('common.error'),
                 Array.isArray(raw)
                   ? raw.join('\n')
-                  : String(raw || 'Try again.'),
+                  : String(raw || t('common.tryAgain')),
               );
             }
           },
@@ -75,8 +75,10 @@ export default function FavoriteGroundsScreen() {
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Favourite grounds</Text>
-          <Text style={styles.headerSubtitle}>{grounds.length} saved</Text>
+          <Text style={styles.headerTitle}>{t('favorites.title')}</Text>
+          <Text style={styles.headerSubtitle}>
+            {t('favorites.count', { count: grounds.length })}
+          </Text>
         </View>
         <View style={{ width: 32 }} />
       </View>
@@ -104,15 +106,17 @@ export default function FavoriteGroundsScreen() {
           ListEmptyComponent={
             <View style={styles.emptyBlock}>
               <Ionicons name="heart-outline" size={48} color="#BACAD6" />
-              <Text style={styles.emptyTitle}>No favourites yet</Text>
+              <Text style={styles.emptyTitle}>{t('favorites.empty')}</Text>
               <Text style={styles.emptyText}>
-                Tap the heart icon on any ground to save it here.
+                {t('favorites.emptyHint')}
               </Text>
               <Pressable
                 style={styles.emptyButton}
                 onPress={() => router.push('/(drawer)/(tabs)')}
               >
-                <Text style={styles.emptyButtonText}>Browse grounds</Text>
+                <Text style={styles.emptyButtonText}>
+                  {t('favorites.browseButton')}
+                </Text>
               </Pressable>
             </View>
           }

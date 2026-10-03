@@ -27,10 +27,12 @@ import {
   $isPendingLoading,
   $userSession,
 } from '@/effector/store';
+import { useTranslation } from '@/i18n';
 
 export default function ModerationScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { pendingGrounds, isLoading, user } = useUnit({
     pendingGrounds: $pendingGrounds,
@@ -38,13 +40,11 @@ export default function ModerationScreen() {
     user: $userSession,
   });
 
-  // ✅ Проверка роли: только модератор/админ
   const isModerator =
     user?.role?.includes('moderator') || user?.role?.includes('admin');
 
   useEffect(() => {
     if (isModerator) {
-      // Запрашиваем площадки (сервер для модератора отдаст все, включая pending)
       fetchGroundsFx({
         kindofsport: undefined,
         search: undefined,
@@ -52,59 +52,75 @@ export default function ModerationScreen() {
     }
   }, [isModerator]);
 
-  // ✅ ЗАЩИТА: если не модератор — выкидываем
+  // Guard
   if (!isModerator) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <Pressable
-            onPress={() => (router.canGoBack() ? router.back() : router.replace('/(drawer)/(tabs)'))}
+            onPress={() =>
+              router.canGoBack()
+                ? router.back()
+                : router.replace('/(drawer)/(tabs)')
+            }
             style={styles.backButton}
             hitSlop={12}
           >
             <Ionicons name="chevron-back" size={24} color="#006EE6" />
           </Pressable>
-          <Text style={styles.headerTitle}>Moderation</Text>
+          <Text style={styles.headerTitle}>{t('moderation.title')}</Text>
           <View style={styles.headerSpacer} />
         </View>
 
         <View style={styles.forbiddenContainer}>
           <Ionicons name="lock-closed-outline" size={48} color="#BACAD6" />
-          <Text style={styles.forbiddenTitle}>Access denied</Text>
+          <Text style={styles.forbiddenTitle}>
+            {t('moderation.accessDenied')}
+          </Text>
           <Text style={styles.forbiddenText}>
-            You don't have permission to access this screen.
+            {t('moderation.accessDeniedHint')}
           </Text>
         </View>
       </View>
     );
   }
 
-  // ✅ Обработчик Approve
   const handleApprove = async (id: string) => {
     try {
       await confirmGroundFx({ id, confirmed: true });
-      Alert.alert('Approved', 'The ground is now visible to all users.');
+      Alert.alert(
+        t('moderation.approvedTitle'),
+        t('moderation.approvedMessage'),
+      );
     } catch (err: any) {
-      Alert.alert('Error', err?.response?.data?.message || 'Failed to approve ground.');
+      Alert.alert(
+        t('common.error'),
+        err?.response?.data?.message || t('moderation.failedApprove'),
+      );
     }
   };
 
-  // ✅ Обработчик Reject = удаление
   const handleReject = (id: string) => {
     Alert.alert(
-      'Reject ground?',
-      'This will permanently delete the ground. This action cannot be undone.',
+      t('moderation.rejectConfirmTitle'),
+      t('moderation.rejectConfirmHint'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Reject & Delete',
+          text: t('moderation.rejectConfirmButton'),
           style: 'destructive',
           onPress: async () => {
             try {
               await deleteGroundFx(id);
-              Alert.alert('Rejected', 'The ground has been removed.');
+              Alert.alert(
+                t('moderation.rejectedTitle'),
+                t('moderation.rejectedMessage'),
+              );
             } catch (err: any) {
-              Alert.alert('Error', err?.response?.data?.message || 'Failed to delete ground.');
+              Alert.alert(
+                t('common.error'),
+                err?.response?.data?.message || t('moderation.failedDelete'),
+              );
             }
           },
         },
@@ -116,27 +132,34 @@ export default function ModerationScreen() {
     router.push(`/ground/${item.id}`);
   };
 
+  const pendingKey =
+    pendingGrounds.length === 1
+      ? 'moderation.pending_one'
+      : 'moderation.pending_other';
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header */}
       <View style={styles.header}>
         <Pressable
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/(drawer)/(tabs)'))}
+          onPress={() =>
+            router.canGoBack()
+              ? router.back()
+              : router.replace('/(drawer)/(tabs)')
+          }
           style={styles.backButton}
           hitSlop={12}
         >
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Moderation</Text>
+          <Text style={styles.headerTitle}>{t('moderation.title')}</Text>
           <Text style={styles.headerSubtitle}>
-            {pendingGrounds.length} pending {pendingGrounds.length === 1 ? 'ground' : 'grounds'}
+            {t(pendingKey, { count: pendingGrounds.length })}
           </Text>
         </View>
         <View style={styles.headerSpacer} />
       </View>
 
-      {/* List */}
       {isLoading && pendingGrounds.length === 0 ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#208AEF" />
@@ -160,10 +183,14 @@ export default function ModerationScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="shield-checkmark-outline" size={48} color="#27AE60" />
-              <Text style={styles.emptyTitle}>All clear!</Text>
+              <Ionicons
+                name="shield-checkmark-outline"
+                size={48}
+                color="#27AE60"
+              />
+              <Text style={styles.emptyTitle}>{t('moderation.allClear')}</Text>
               <Text style={styles.emptyText}>
-                There are no pending grounds waiting for moderation.
+                {t('moderation.allClearHint')}
               </Text>
             </View>
           }
@@ -188,7 +215,12 @@ const styles = StyleSheet.create({
   backButton: { padding: 4, width: 32 },
   headerTitleContainer: { flex: 1, alignItems: 'center' },
   headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
-  headerSubtitle: { fontSize: 12, color: '#BACAD6', fontWeight: '500', marginTop: 1 },
+  headerSubtitle: {
+    fontSize: 12,
+    color: '#BACAD6',
+    fontWeight: '500',
+    marginTop: 1,
+  },
   headerSpacer: { width: 32 },
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   listContent: { paddingHorizontal: 16, paddingTop: 16 },
@@ -199,7 +231,12 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 32,
   },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#334A77', marginTop: 8 },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#334A77',
+    marginTop: 8,
+  },
   emptyText: {
     fontSize: 14,
     color: '#6080A8',

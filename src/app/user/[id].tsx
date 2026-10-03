@@ -22,7 +22,8 @@ import {
   fetchPublicUserFx,
 } from '@/effector/store';
 import { getBadgeStyle } from '@/constants/badgeStyle';
-import { getSportLabel } from '@/constants/sports';
+import { getSportKey } from '@/constants/sports';
+import { useTranslation } from '@/i18n';
 
 const COVER_HEIGHT = 160;
 const AVATAR_SIZE = 110;
@@ -31,6 +32,7 @@ export default function UserPublicProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const user = useUnit($viewedUser);
   const isLoading = useUnit($isViewedUserLoading);
@@ -48,7 +50,7 @@ export default function UserPublicProfileScreen() {
 
   const isMe = me?.id === id;
 
-  // =============== LOADING ===============
+  // LOADING
   if (isLoading && !user) {
     return (
       <View style={styles.loaderRoot}>
@@ -61,9 +63,13 @@ export default function UserPublicProfileScreen() {
     return (
       <View style={styles.notFoundRoot}>
         <Ionicons name="person-outline" size={48} color="#BACAD6" />
-        <Text style={styles.notFoundTitle}>User not found</Text>
+        <Text style={styles.notFoundTitle}>
+          {t('publicProfile.notFound')}
+        </Text>
         <Pressable style={styles.notFoundBtn} onPress={handleBack}>
-          <Text style={styles.notFoundBtnText}>Go back</Text>
+          <Text style={styles.notFoundBtnText}>
+            {t('publicProfile.goBack')}
+          </Text>
         </Pressable>
       </View>
     );
@@ -91,9 +97,7 @@ export default function UserPublicProfileScreen() {
             style={styles.cover}
           />
 
-          <View
-            style={[styles.overlayHeader, { paddingTop: insets.top + 6 }]}
-          >
+          <View style={[styles.overlayHeader, { paddingTop: insets.top + 6 }]}>
             <Pressable
               onPress={handleBack}
               style={styles.backButton}
@@ -101,7 +105,7 @@ export default function UserPublicProfileScreen() {
             >
               <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
             </Pressable>
-            <Text style={styles.headerTitle}>Profile</Text>
+            <Text style={styles.headerTitle}>{t('profile.title')}</Text>
             <View style={{ width: 32 }} />
           </View>
 
@@ -135,7 +139,9 @@ export default function UserPublicProfileScreen() {
             </View>
           )}
 
-          {isMe && <Text style={styles.youBadge}>That's you</Text>}
+          {isMe && (
+            <Text style={styles.youBadge}>{t('publicProfile.you')}</Text>
+          )}
         </View>
 
         {/* BIO */}
@@ -148,11 +154,13 @@ export default function UserPublicProfileScreen() {
         {/* SPORTS */}
         {sports.length > 0 && (
           <View style={styles.sportsBlock}>
-            <Text style={styles.sectionLabel}>PREFERRED SPORTS</Text>
+            <Text style={styles.sectionLabel}>
+              {t('profile.preferredSports')}
+            </Text>
             <View style={styles.sportsRow}>
               {sports.map((sportId) => {
                 const badge = getBadgeStyle(sportId);
-                const label = getSportLabel(sportId);
+                const label = t(getSportKey(sportId));
                 return (
                   <View
                     key={sportId}
@@ -171,18 +179,22 @@ export default function UserPublicProfileScreen() {
           </View>
         )}
 
-        {/* STATS — read-only, без кликов */}
+        {/* STATS */}
         <View style={styles.statsGrid}>
           <View style={styles.statsCard}>
             <Ionicons name="calendar-outline" size={20} color="#208AEF" />
             <Text style={styles.statsNumber}>{user.joinedCount ?? 0}</Text>
-            <Text style={styles.statsLabel}>Joined</Text>
+            <Text style={styles.statsLabel}>
+              {t('profile.stats.joined')}
+            </Text>
           </View>
 
           <View style={styles.statsCard}>
             <Ionicons name="trophy-outline" size={20} color="#208AEF" />
             <Text style={styles.statsNumber}>{user.gamesCount ?? 0}</Text>
-            <Text style={styles.statsLabel}>Created</Text>
+            <Text style={styles.statsLabel}>
+              {t('profile.stats.created')}
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -225,7 +237,6 @@ const styles = StyleSheet.create({
   },
   notFoundBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
 
-  // COVER
   coverWrapper: {
     height: COVER_HEIGHT + AVATAR_SIZE / 2,
     position: 'relative',
@@ -288,7 +299,6 @@ const styles = StyleSheet.create({
   },
   avatarText: { fontSize: 44, fontWeight: '800', color: '#FFFFFF' },
 
-  // IDENTITY
   identityBlock: {
     alignItems: 'center',
     paddingHorizontal: 24,
@@ -315,7 +325,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
-  // BIO
   bioBlock: {
     marginHorizontal: 16,
     marginTop: 18,
@@ -327,7 +336,6 @@ const styles = StyleSheet.create({
   },
   bioText: { fontSize: 13, color: '#334A77', lineHeight: 19 },
 
-  // SPORTS
   sportsBlock: { marginTop: 18, paddingHorizontal: 16 },
   sectionLabel: {
     fontSize: 11,
@@ -347,7 +355,6 @@ const styles = StyleSheet.create({
   sportDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   sportText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
 
-  // STATS
   statsGrid: {
     flexDirection: 'row',
     gap: 12,

@@ -12,7 +12,16 @@ export const grounds: TranslationDict = {
   'grounds.pendingLong': { en: 'Pending moderation', ru: 'На модерации', be: 'На мадэрацыі', lt: 'Laukia moderavimo', pl: 'Oczekuje na moderację', uk: 'На модерації' },
   'grounds.addButtonTitle': { en: 'Add a ground', ru: 'Добавить площадку', be: 'Дадаць пляцоўку', lt: 'Pridėti aikštelę', pl: 'Dodaj boisko', uk: 'Додати майданчик' },
   'grounds.addButtonSubtitle': { en: 'Share a spot with the community', ru: 'Поделитесь местом с сообществом', be: 'Падзяліцеся месцам з супольнасцю', lt: 'Pasidalinkite vieta su bendruomene', pl: 'Podziel się miejscem ze społecznością', uk: 'Поділіться місцем зі спільнотою' },
-
+  'grounds.addAuthHint': {
+    en: 'Please sign in or create an account to add a new ground to the community.',
+    ru: 'Войдите или создайте аккаунт, чтобы добавить новую площадку в сообщество.',
+    be: 'Увайдзіце або стварыце акаўнт, каб дадаць новую пляцоўку ў супольнасць.',
+    lt: 'Prisijunkite arba susikurkite paskyrą, kad pridėtumėte naują aikštelę į bendruomenę.',
+    pl: 'Zaloguj się lub utwórz konto, aby dodać nowe boisko do społeczności.',
+    uk: 'Увійдіть або створіть акаунт, щоб додати новий майданчик до спільноти.',
+  },
+  'ground.edit.title': { en: 'Edit ground', ru: 'Редактирование площадки', be: 'Рэдагаванне пляцоўкі', lt: 'Redaguoti aikštelę', pl: 'Edytuj boisko', uk: 'Редагування майданчика' },
+  'ground.edit.subtitle': { en: 'Update the info', ru: 'Обновите данные', be: 'Абнавіце дадзеныя', lt: 'Atnaujinkite informaciją', pl: 'Zaktualizuj informacje', uk: 'Оновіть дані' },
   // ===== GROUND FORM =====
   'groundForm.name': { en: 'Ground name', ru: 'Название площадки', be: 'Назва пляцоўкі', lt: 'Aikštelės pavadinimas', pl: 'Nazwa boiska', uk: 'Назва майданчика' },
   'groundForm.namePlaceholder': { en: 'e.g. Riverside Court', ru: 'Напр., Riverside Court', be: 'Напр., Riverside Court', lt: 'Pvz., Riverside Court', pl: 'np. Riverside Court', uk: 'Напр., Riverside Court' },

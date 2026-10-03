@@ -26,13 +26,15 @@ import {
   uploadUserPhotoFx,
   fetchMyProfileFx,
 } from '@/effector/store';
-import { SPORT_OPTIONS } from '@/constants/sports';
+import { SPORT_OPTIONS, getSportKey } from '@/constants/sports';
+import { useTranslation } from '@/i18n';
 
 const AVATAR_SIZE = 100;
 
 export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const user = useUnit($userSession);
   const isSaving = useUnit(updateProfileFx.pending);
@@ -53,7 +55,6 @@ export default function EditProfileScreen() {
     sports: [] as string[],
   });
 
-  // ✅ Заполняем форму при загрузке/обновлении сессии
   useEffect(() => {
     if (!user) return;
     const values = {
@@ -67,7 +68,6 @@ export default function EditProfileScreen() {
     setCity(values.city);
     setSports(values.sports);
     setInitial(values);
-    // ✅ Точечные зависимости — не сбрасываем форму на каждый ререндер
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     user?.id,
@@ -97,7 +97,7 @@ export default function EditProfileScreen() {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission needed', 'We need access to your photos.');
+        Alert.alert(t('photos.permissionNeeded'), t('photos.accessHint'));
         return;
       }
 
@@ -116,8 +116,10 @@ export default function EditProfileScreen() {
     } catch (e: any) {
       const raw = e?.response?.data?.message ?? e?.message;
       Alert.alert(
-        'Upload failed',
-        Array.isArray(raw) ? raw.join('\n') : String(raw || 'Please try again.'),
+        t('profile.edit.uploadFailed'),
+        Array.isArray(raw)
+          ? raw.join('\n')
+          : String(raw || t('common.tryAgain')),
       );
     }
   };
@@ -126,7 +128,7 @@ export default function EditProfileScreen() {
     Keyboard.dismiss();
 
     if (!username.trim()) {
-      Alert.alert('Error', 'Full name cannot be empty.');
+      Alert.alert(t('common.error'), t('profile.edit.nameRequired'));
       return;
     }
 
@@ -137,15 +139,15 @@ export default function EditProfileScreen() {
         city: city.trim(),
         preferredSports: sports,
       });
-      Alert.alert('Success', 'Profile updated!', [
-        { text: 'OK', onPress: () => router.back() },
+      Alert.alert(t('profile.edit.successTitle'), t('profile.edit.successMessage'), [
+        { text: t('common.ok'), onPress: () => router.back() },
       ]);
     } catch (e: any) {
       const raw = e?.response?.data?.message ?? e?.message;
       const message = Array.isArray(raw)
         ? raw.join('\n')
-        : String(raw || 'Could not save profile.');
-      Alert.alert('Error', message);
+        : String(raw || t('common.couldNotSave'));
+      Alert.alert(t('common.error'), message);
     }
   };
 
@@ -157,7 +159,7 @@ export default function EditProfileScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
     >
-      {/* =============== HEADER =============== */}
+      {/* HEADER */}
       <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
         <Pressable
           onPress={() => router.back()}
@@ -167,20 +169,22 @@ export default function EditProfileScreen() {
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Edit profile</Text>
-          <Text style={styles.headerSubtitle}>Update your info</Text>
+          <Text style={styles.headerTitle}>{t('profile.edit.title')}</Text>
+          <Text style={styles.headerSubtitle}>
+            {t('profile.edit.subtitle')}
+          </Text>
         </View>
         <View style={{ width: 32 }} />
       </View>
 
-      {/* =============== SCROLL =============== */}
+      {/* SCROLL */}
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.scrollContent}
       >
-        {/* =============== AVATAR =============== */}
+        {/* AVATAR */}
         <View style={styles.avatarSection}>
           <Pressable onPress={handlePickAvatar} style={styles.avatarPressable}>
             {user?.avatar ? (
@@ -205,25 +209,27 @@ export default function EditProfileScreen() {
 
           <Pressable onPress={handlePickAvatar} hitSlop={8}>
             <Text style={styles.changePhotoText}>
-              {isUploading ? 'Uploading…' : 'Change photo'}
+              {isUploading
+                ? t('profile.edit.uploading')
+                : t('profile.edit.changePhoto')}
             </Text>
           </Pressable>
         </View>
 
-        {/* =============== FULL NAME =============== */}
-        <Text style={styles.inputLabel}>Full name</Text>
+        {/* FULL NAME */}
+        <Text style={styles.inputLabel}>{t('profile.edit.fullName')}</Text>
         <TextInput
           style={styles.textField}
           value={username}
           onChangeText={setUsername}
-          placeholder="Your name"
+          placeholder={t('profile.edit.namePlaceholder')}
           placeholderTextColor="#BACAD6"
           maxLength={50}
           autoCapitalize="words"
         />
 
-        {/* =============== EMAIL (read-only) =============== */}
-        <Text style={styles.inputLabel}>Email</Text>
+        {/* EMAIL */}
+        <Text style={styles.inputLabel}>{t('profile.edit.email')}</Text>
         <View style={styles.emailRow}>
           <View style={styles.emailField}>
             <Text style={styles.emailText} numberOfLines={1}>
@@ -232,7 +238,9 @@ export default function EditProfileScreen() {
             {user?.isEmailConfirmed && (
               <View style={styles.verifiedBadge}>
                 <Ionicons name="checkmark-circle" size={12} color="#27AE60" />
-                <Text style={styles.verifiedText}>Verified</Text>
+                <Text style={styles.verifiedText}>
+                  {t('profile.edit.verified')}
+                </Text>
               </View>
             )}
           </View>
@@ -240,32 +248,34 @@ export default function EditProfileScreen() {
             style={styles.changeEmailButton}
             onPress={() => router.push('/user/change-email')}
           >
-            <Text style={styles.changeEmailText}>Change</Text>
+            <Text style={styles.changeEmailText}>
+              {t('common.change')}
+            </Text>
           </Pressable>
         </View>
         <Text style={styles.hintText}>
-          We'll send a 6-digit code to the new address to confirm the change.
+          {t('profile.edit.changeEmailHint')}
         </Text>
 
-        {/* =============== CITY =============== */}
-        <Text style={styles.inputLabel}>City</Text>
+        {/* CITY */}
+        <Text style={styles.inputLabel}>{t('profile.edit.city')}</Text>
         <TextInput
           style={styles.textField}
           value={city}
           onChangeText={setCity}
-          placeholder="e.g. Vilnius"
+          placeholder={t('profile.edit.cityPlaceholder')}
           placeholderTextColor="#BACAD6"
           maxLength={50}
           autoCapitalize="words"
         />
 
-        {/* =============== BIO =============== */}
-        <Text style={styles.inputLabel}>About me</Text>
+        {/* BIO */}
+        <Text style={styles.inputLabel}>{t('profile.edit.aboutMe')}</Text>
         <TextInput
           style={styles.textareaField}
           value={bio}
           onChangeText={setBio}
-          placeholder="Tell other players about yourself…"
+          placeholder={t('profile.edit.bioPlaceholder')}
           placeholderTextColor="#BACAD6"
           multiline
           numberOfLines={4}
@@ -274,8 +284,10 @@ export default function EditProfileScreen() {
         />
         <Text style={styles.counterText}>{bio.length}/300</Text>
 
-        {/* =============== SPORTS =============== */}
-        <Text style={styles.inputLabel}>Preferred sports</Text>
+        {/* SPORTS */}
+        <Text style={styles.inputLabel}>
+          {t('profile.edit.preferredSports')}
+        </Text>
         <View style={styles.sportsWrap}>
           {SPORT_OPTIONS.map((sport) => {
             const active = sports.includes(sport.id);
@@ -292,20 +304,21 @@ export default function EditProfileScreen() {
                   style={{ marginRight: 6 }}
                 />
                 <Text
-                  style={[styles.sportChipText, active && styles.sportChipTextActive]}
+                  style={[
+                    styles.sportChipText,
+                    active && styles.sportChipTextActive,
+                  ]}
                 >
-                  {sport.label}
+                  {t(getSportKey(sport.id))}
                 </Text>
               </Pressable>
             );
           })}
         </View>
-        <Text style={styles.hintText}>
-          Used to recommend grounds and events you'll love.
-        </Text>        
+        <Text style={styles.hintText}>{t('profile.edit.sportsHint')}</Text>
       </ScrollView>
 
-      {/* =============== SAVE BUTTON (не absolute) =============== */}
+      {/* SAVE */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
         <Pressable
           style={[
@@ -319,7 +332,9 @@ export default function EditProfileScreen() {
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
             <Text style={styles.saveButtonText}>
-              {hasChanges ? 'Save changes' : 'No changes yet'}
+              {hasChanges
+                ? t('common.saveChanges')
+                : t('common.noChangesYet')}
             </Text>
           )}
         </Pressable>
@@ -330,8 +345,6 @@ export default function EditProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
-
-  // =============== HEADER ===============
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -351,24 +364,14 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 1,
   },
-
-  // =============== SCROLL ===============
   scrollView: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 24,
   },
-
-  // =============== AVATAR ===============
-  avatarSection: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  avatarPressable: {
-    position: 'relative',
-    marginBottom: 10,
-  },
+  avatarSection: { alignItems: 'center', marginBottom: 20 },
+  avatarPressable: { position: 'relative', marginBottom: 10 },
   avatarImage: {
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
@@ -402,8 +405,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#208AEF',
   },
-
-  // =============== INPUTS ===============
   inputLabel: {
     fontSize: 14,
     fontWeight: '700',
@@ -441,13 +442,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     marginTop: 4,
   },
-
-  // =============== EMAIL ROW ===============
-  emailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
+  emailRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   emailField: {
     flex: 1,
     minHeight: 48,
@@ -505,13 +500,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     lineHeight: 15,
   },
-
-  // =============== SPORTS ===============
-  sportsWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
+  sportsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   sportChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -535,7 +524,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '700',
   },
-  // =============== BOTTOM BAR (обычный, не absolute) ===============
   bottomBar: {
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,

@@ -23,10 +23,13 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { createEventFx } from '@/effector/events/async/events';
 import { $grounds, fetchGroundsFx } from '@/effector/store';
 import GroundPickerModal from '@/components/ui/GroundPickerModal';
+import { useTranslation } from '@/i18n';
+import { SKILL_LEVELS, getSkillLevelKey } from '@/constants/skillLevels';
 
 export default function CreateEventScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
   const { groundId: initialGroundId } = useLocalSearchParams<{ groundId: string }>();
 
   const grounds = useUnit($grounds);
@@ -38,7 +41,7 @@ export default function CreateEventScreen() {
   );
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
-  const [skillLevel, setSkillLevel] = useState('All levels');
+  const [skillLevel, setSkillLevel] = useState<string>('all'); 
   const [playersNeeded, setPlayersNeeded] = useState(10);
   const [duration, setDuration] = useState(90);
   const [description, setDescription] = useState('');
@@ -64,9 +67,9 @@ export default function CreateEventScreen() {
     const g = grounds.find((x) => x.id === initialGroundId);
     if (g && g.confirmed === false) {
       Alert.alert(
-        'Ground not available',
-        'This ground is pending moderation. Please choose another one.',
-        [{ text: 'OK', onPress: () => setSelectedGroundId('') }],
+        t('events.form.groundPending'),
+        t('events.form.groundPendingHint'),
+        [{ text: t('common.ok'), onPress: () => setSelectedGroundId('') }],
       );
     }
   }, [initialGroundId, grounds]);
@@ -107,22 +110,23 @@ export default function CreateEventScreen() {
     setSelectedGroundId(ground.id);
     setShowGroundPicker(false);
   };
+ 
 
   const handlePublish = async () => {
     Keyboard.dismiss();
 
     if (!title.trim()) {
-      Alert.alert('Error', 'Please enter an event title.');
+      Alert.alert(t('common.error'), t('events.form.titleRequired'));
       return;
     }
     if (!selectedGroundId) {
-      Alert.alert('Error', 'Please select a playground.');
+      Alert.alert(t('common.error'), t('events.form.groundRequired'));
       return;
     }
     if (selectedGround?.confirmed === false) {
       Alert.alert(
-        'Ground not available',
-        'This ground is pending moderation. Events cannot be created on it yet.',
+        t('events.form.groundPending'),
+        t('events.form.groundPendingHint'),
       );
       return;
     }
@@ -141,9 +145,9 @@ export default function CreateEventScreen() {
         groundId: selectedGroundId,
       });
 
-      Alert.alert('Success', 'Your match has been successfully published!', [
+      Alert.alert(t('common.success'), t('events.form.publishMessage'), [
         {
-          text: 'Awesome',
+          text: t('common.ok'),
           onPress: () => {
             setTimeout(() => {
               router.replace('/(drawer)/(tabs)/events');
@@ -157,8 +161,8 @@ export default function CreateEventScreen() {
         ? raw.join('\n')
         : typeof raw === 'string'
           ? raw
-          : 'Failed to create event. Try again.';
-      Alert.alert('Error', message);
+          : t('common.tryAgain');
+      Alert.alert(t('common.error'), message);
     }
   };
 
@@ -177,8 +181,8 @@ export default function CreateEventScreen() {
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Create event</Text>
-          <Text style={styles.headerSubtitle}>Organise a game</Text>
+          <Text style={styles.headerTitle}>{t('events.create.title')}</Text>
+          <Text style={styles.headerSubtitle}>{t('events.create.subtitle')}</Text>
         </View>
         <View style={{ width: 32 }} />
       </View>
@@ -189,24 +193,24 @@ export default function CreateEventScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 120 }]}
       >
-        <Text style={styles.inputLabel}>Event title</Text>
+        <Text style={styles.inputLabel}>{t('events.form.titleLabel')}</Text>
         <TextInput
           style={styles.textField}
-          placeholder="e.g. Evening pickup basketball"
+          placeholder={t('events.form.titlePlaceholder')}
           placeholderTextColor="#BACAD6"
           value={title}
           onChangeText={setTitle}
         />
 
         <View style={styles.groundLabelRow}>
-          <Text style={styles.inputLabel}>Ground</Text>
+          <Text style={styles.inputLabel}>{t('events.form.ground')}</Text>
           <Pressable
             style={styles.pickOnMapLink}
             onPress={() => setShowGroundPicker(true)}
             hitSlop={6}
           >
             <Ionicons name="map-outline" size={14} color="#208AEF" />
-            <Text style={styles.pickOnMapText}>Pick on map</Text>
+            <Text style={styles.pickOnMapText}>{t('events.form.pickOnMap')}</Text>
           </Pressable>
         </View>
 
@@ -221,7 +225,7 @@ export default function CreateEventScreen() {
             ]}
             numberOfLines={1}
           >
-            {selectedGround?.name || 'Select playground court'}
+            {selectedGround?.name || t('events.form.selectGround')}
           </Text>
           <Ionicons name="chevron-down" size={18} color="#6080A8" />
         </Pressable>
@@ -237,14 +241,14 @@ export default function CreateEventScreen() {
           <View style={styles.warningNotice}>
             <Ionicons name="warning-outline" size={18} color="#FF8000" />
             <Text style={styles.warningNoticeText}>
-              This ground is pending moderation. You cannot create events on it yet.
+              {t('events.form.groundPendingHint')}
             </Text>
           </View>
         )}
 
         <View style={styles.rowContainer}>
           <View style={styles.flexItem}>
-            <Text style={styles.inputLabel}>Date</Text>
+            <Text style={styles.inputLabel}>{t('events.form.date')}</Text>
             <Pressable style={styles.iconInputField} onPress={handleOpenDatePicker}>
               <Text style={styles.iconInputText}>{formattedDate}</Text>
               <Ionicons name="calendar-outline" size={16} color="#334A77" />
@@ -252,7 +256,7 @@ export default function CreateEventScreen() {
           </View>
 
           <View style={styles.flexItem}>
-            <Text style={styles.inputLabel}>Time</Text>
+            <Text style={styles.inputLabel}>{t('events.form.time')}</Text>
             <Pressable style={styles.iconInputField} onPress={handleOpenTimePicker}>
               <Text style={styles.iconInputText}>{formattedTime}</Text>
               <Ionicons name="time-outline" size={16} color="#334A77" />
@@ -260,9 +264,9 @@ export default function CreateEventScreen() {
           </View>
         </View>
 
-        <Text style={styles.inputLabel}>Skill level</Text>
+        <Text style={styles.inputLabel}>{t('events.form.skillLevel')}</Text>
         <View style={styles.chipsWrapContainer}>
-          {['All levels', 'Beginner', 'Intermediate', 'Advanced'].map((level) => {
+          {SKILL_LEVELS.map((level) => {
             const isSelected = skillLevel === level;
             return (
               <Pressable
@@ -271,7 +275,7 @@ export default function CreateEventScreen() {
                 style={[styles.chipItem, isSelected && styles.chipItemSelected]}
               >
                 <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                  {level}
+                  {t(getSkillLevelKey(level))}
                 </Text>
               </Pressable>
             );
@@ -280,7 +284,7 @@ export default function CreateEventScreen() {
 
         <View style={styles.rowContainer}>
           <View style={styles.flexItem}>
-            <Text style={styles.inputLabel}>Players needed</Text>
+            <Text style={styles.inputLabel}>{t('events.form.playersNeeded')}</Text>
             <View style={styles.counterBlock}>
               <Pressable
                 style={styles.counterButton}
@@ -299,7 +303,7 @@ export default function CreateEventScreen() {
           </View>
 
           <View style={styles.flexItem}>
-            <Text style={styles.inputLabel}>Duration (min)</Text>
+            <Text style={styles.inputLabel}>{t('events.form.duration')}</Text>
             <View style={styles.counterBlock}>
               <Pressable
                 style={styles.counterButton}
@@ -318,10 +322,10 @@ export default function CreateEventScreen() {
           </View>
         </View>
 
-        <Text style={styles.inputLabel}>Description (optional)</Text>
+        <Text style={styles.inputLabel}>{t('events.form.description')}</Text>
         <TextInput
           style={styles.textareaField}
-          placeholder="Format, what to bring, meeting point..."
+          placeholder={t('events.form.descriptionPlaceholder')}
           placeholderTextColor="#BACAD6"
           multiline
           numberOfLines={4}
@@ -338,7 +342,7 @@ export default function CreateEventScreen() {
               <View style={styles.iosModalContent}>
                 <View style={styles.iosModalHeaderRow}>
                   <Pressable onPress={() => setShowDatePicker(false)}>
-                    <Text style={styles.iosCancelText}>Cancel</Text>
+                    <Text style={styles.iosCancelText}>{t('common.cancel')}</Text>
                   </Pressable>
                   <Pressable
                     onPress={() => {
@@ -346,7 +350,7 @@ export default function CreateEventScreen() {
                       setShowDatePicker(false);
                     }}
                   >
-                    <Text style={styles.iosConfirmText}>Done</Text>
+                    <Text style={styles.iosConfirmText}>{t('common.ok')}</Text>
                   </Pressable>
                 </View>
                 <DateTimePicker
@@ -365,7 +369,7 @@ export default function CreateEventScreen() {
               <View style={styles.iosModalContent}>
                 <View style={styles.iosModalHeaderRow}>
                   <Pressable onPress={() => setShowTimePicker(false)}>
-                    <Text style={styles.iosCancelText}>Cancel</Text>
+                    <Text style={styles.iosCancelText}>{t('common.cancel')}</Text>
                   </Pressable>
                   <Pressable
                     onPress={() => {
@@ -373,7 +377,7 @@ export default function CreateEventScreen() {
                       setShowTimePicker(false);
                     }}
                   >
-                    <Text style={styles.iosConfirmText}>Done</Text>
+                    <Text style={styles.iosConfirmText}>{t('common.ok')}</Text>
                   </Pressable>
                 </View>
                 <DateTimePicker
@@ -421,7 +425,9 @@ export default function CreateEventScreen() {
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={styles.publishButtonText}>Publish event</Text>
+            <Text style={styles.publishButtonText}>
+              {t('events.form.publishButton')}
+            </Text>
           )}
         </Pressable>
       </View>

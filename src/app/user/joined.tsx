@@ -20,10 +20,12 @@ import {
   $userSession,
   fetchMyJoinedEventsFx,
 } from '@/effector/store';
+import { useTranslation } from '@/i18n';
 
 export default function JoinedEventsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const events = useUnit($myJoinedEvents);
   const isLoading = useUnit($isMyJoinedLoading);
@@ -34,9 +36,11 @@ export default function JoinedEventsScreen() {
     fetchJoined();
   }, []);
 
+  const countKey =
+    events.length === 1 ? 'joined.count_one' : 'joined.count_other';
+
   return (
     <View style={styles.container}>
-      {/* HEADER */}
       <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
         <Pressable
           onPress={() => router.back()}
@@ -46,9 +50,9 @@ export default function JoinedEventsScreen() {
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Joined events</Text>
+          <Text style={styles.headerTitle}>{t('joined.title')}</Text>
           <Text style={styles.headerSubtitle}>
-            {events.length} {events.length === 1 ? 'event' : 'events'}
+            {t(countKey, { count: events.length })}
           </Text>
         </View>
         <View style={{ width: 32 }} />
@@ -78,15 +82,15 @@ export default function JoinedEventsScreen() {
           ListEmptyComponent={
             <View style={styles.emptyBlock}>
               <Ionicons name="calendar-outline" size={48} color="#BACAD6" />
-              <Text style={styles.emptyTitle}>No joined events yet</Text>
-              <Text style={styles.emptyText}>
-                Browse events and tap "Join" to see them here.
-              </Text>
+              <Text style={styles.emptyTitle}>{t('joined.empty')}</Text>
+              <Text style={styles.emptyText}>{t('joined.emptyHint')}</Text>
               <Pressable
                 style={styles.emptyButton}
                 onPress={() => router.push('/(drawer)/(tabs)/events')}
               >
-                <Text style={styles.emptyButtonText}>Find events</Text>
+                <Text style={styles.emptyButtonText}>
+                  {t('joined.findButton')}
+                </Text>
               </Pressable>
             </View>
           }

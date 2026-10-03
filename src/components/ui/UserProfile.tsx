@@ -18,8 +18,9 @@ import { useUnit } from 'effector-react';
 import { SessionUser } from '@/effector/domains/auth';
 import { fetchMyProfileFx } from '@/effector/events/async/users';
 import { getBadgeStyle } from '@/constants/badgeStyle';
-import { getSportLabel } from '@/constants/sports';
+import { getSportKey } from '@/constants/sports';
 import { $myReviewsCount, fetchMyReviewsFx } from '@/effector/store';
+import { useTranslation } from '@/i18n';
 
 interface UserProfileProps {
   user: SessionUser;
@@ -30,6 +31,7 @@ const COVER_HEIGHT = 160;
 const AVATAR_SIZE = 140;
 
 export default function UserProfile({ user, onLogout }: UserProfileProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -116,7 +118,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           <Pressable style={styles.cityRow} onPress={goToEdit}>
             <Ionicons name="location-outline" size={13} color="#6080A8" />
             <Text style={[styles.cityText, !hasCity && styles.cityEmpty]}>
-              {hasCity ? user.city : 'Add your city'}
+              {hasCity ? user.city : t('profile.addCity')}
             </Text>
           </Pressable>
         </View>
@@ -127,21 +129,19 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             <Text style={styles.bioText}>{user.bio}</Text>
           ) : (
             <Pressable onPress={goToEdit}>
-              <Text style={styles.bioEmptyText}>
-                + Add a short bio — tell other players about yourself
-              </Text>
+              <Text style={styles.bioEmptyText}>{t('profile.addBio')}</Text>
             </Pressable>
           )}
         </View>
 
         {/* SPORTS */}
         <View style={styles.sportsBlock}>
-          <Text style={styles.sectionLabel}>PREFERRED SPORTS</Text>
+          <Text style={styles.sectionLabel}>{t('profile.preferredSports')}</Text>
           {sports.length > 0 ? (
             <View style={styles.sportsRow}>
               {sports.map((sportId) => {
                 const badge = getBadgeStyle(sportId);
-                const label = getSportLabel(sportId);
+                const label = t(getSportKey(sportId));
                 return (
                   <View
                     key={sportId}
@@ -159,14 +159,12 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             </View>
           ) : (
             <Pressable onPress={goToEdit}>
-              <Text style={styles.emptyHintText}>
-                + Choose sports you usually play
-              </Text>
+              <Text style={styles.emptyHintText}>{t('profile.addSports')}</Text>
             </Pressable>
           )}
         </View>
 
-        {/* STATS — кликабельные */}
+        {/* STATS */}
         <View style={styles.statsGrid}>
           <Pressable
             style={styles.statsCard}
@@ -174,7 +172,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           >
             <Ionicons name="calendar-outline" size={18} color="#208AEF" />
             <Text style={styles.statsNumber}>{joinedCount}</Text>
-            <Text style={styles.statsLabel}>Joined</Text>
+            <Text style={styles.statsLabel}>{t('profile.stats.joined')}</Text>
           </Pressable>
 
           <Pressable
@@ -183,7 +181,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           >
             <Ionicons name="heart-outline" size={18} color="#208AEF" />
             <Text style={styles.statsNumber}>{savedCount}</Text>
-            <Text style={styles.statsLabel}>Saved</Text>
+            <Text style={styles.statsLabel}>{t('profile.stats.saved')}</Text>
           </Pressable>
 
           <Pressable
@@ -192,7 +190,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           >
             <Ionicons name="trophy-outline" size={18} color="#208AEF" />
             <Text style={styles.statsNumber}>{gamesCount}</Text>
-            <Text style={styles.statsLabel}>Created</Text>
+            <Text style={styles.statsLabel}>{t('profile.stats.created')}</Text>
           </Pressable>
 
           <Pressable
@@ -201,7 +199,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           >
             <Ionicons name="star-outline" size={18} color="#208AEF" />
             <Text style={styles.statsNumber}>{reviewsCount}</Text>
-            <Text style={styles.statsLabel}>Reviews</Text>
+            <Text style={styles.statsLabel}>{t('profile.stats.reviews')}</Text>
           </Pressable>
         </View>
 
@@ -215,7 +213,9 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
                 color="#6080A8"
                 style={styles.menuIcon}
               />
-              <Text style={styles.menuItemText}>Edit profile</Text>
+              <Text style={styles.menuItemText}>
+                {t('profile.menu.editProfile')}
+              </Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
           </Pressable>
@@ -233,7 +233,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
                   style={styles.menuIcon}
                 />
                 <Text style={[styles.menuItemText, { color: '#FF8000' }]}>
-                  Moderation
+                  {t('profile.menu.moderation')}
                 </Text>
               </View>
               <View style={styles.menuItemRight}>
@@ -241,7 +241,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
                 <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
               </View>
             </Pressable>
-          )}          
+          )}
         </View>
 
         {/* LOGOUT */}
@@ -252,7 +252,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             color="#FF3B30"
             style={styles.logoutIcon}
           />
-          <Text style={styles.logoutButtonText}>Log out</Text>
+          <Text style={styles.logoutButtonText}>{t('profile.logout')}</Text>
         </Pressable>
       </ScrollView>
     </View>
@@ -426,7 +426,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF8000',
     marginRight: 8,
   },
-
   logoutButton: {
     marginHorizontal: 16,
     flexDirection: 'row',

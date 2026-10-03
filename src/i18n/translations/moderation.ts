@@ -22,4 +22,12 @@ export const moderation: TranslationDict = {
   'moderation.rejectConfirmButton': { en: 'Reject & Delete', ru: 'Отклонить и удалить', be: 'Адхіліць і выдаліць', lt: 'Atmesti ir ištrinti', pl: 'Odrzuć i usuń', uk: 'Відхилити й видалити' },
   'moderation.failedApprove': { en: 'Failed to approve ground.', ru: 'Не удалось одобрить.', be: 'Не ўдалося ўхваліць.', lt: 'Nepavyko patvirtinti.', pl: 'Nie udało się zatwierdzić.', uk: 'Не вдалося схвалити.' },
   'moderation.failedDelete': { en: 'Failed to delete ground.', ru: 'Не удалось удалить.', be: 'Не ўдалося выдаліць.', lt: 'Nepavyko ištrinti.', pl: 'Nie udało się usunąć.', uk: 'Не вдалося видалити.' },
+  'pendingGround.byCreator': {
+    en: 'by {{name}}',
+    ru: 'от {{name}}',
+    be: 'ад {{name}}',
+    lt: 'nuo {{name}}',
+    pl: 'od {{name}}',
+    uk: 'від {{name}}',
+  },
 };

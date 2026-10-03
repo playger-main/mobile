@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@/i18n';
 
 interface AuthResetPasswordProps {
   email: string;
@@ -27,6 +28,7 @@ export default function AuthResetPassword({
   isSubmitting,
   errorMessage,
 }: AuthResetPasswordProps) {
+  const { t } = useTranslation();
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -65,11 +67,9 @@ export default function AuthResetPassword({
         <Ionicons name="lock-open-outline" size={32} color="#FFFFFF" />
       </View>
 
-      <Text style={styles.formTitle}>Set new password</Text>
+      <Text style={styles.formTitle}>{t('auth.reset.title')}</Text>
       <Text style={styles.formSubtitle}>
-        We sent a 6-digit code to{' '}
-        <Text style={styles.emailHighlight}>{email}</Text>. Enter it below and
-        choose a new password.
+        {t('auth.reset.subtitle', { email })}
       </Text>
 
       {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
@@ -80,7 +80,7 @@ export default function AuthResetPassword({
           placeholder="000000"
           placeholderTextColor="#BACAD6"
           value={code}
-          onChangeText={(t) => setCode(t.replace(/\D/g, ''))}
+          onChangeText={(v) => setCode(v.replace(/\D/g, ''))}
           keyboardType="number-pad"
           maxLength={6}
           autoFocus
@@ -92,7 +92,7 @@ export default function AuthResetPassword({
         <View style={styles.inputWithIcon}>
           <TextInput
             style={styles.inputFieldInner}
-            placeholder="New password (min 6)"
+            placeholder={t('auth.reset.newPassword')}
             placeholderTextColor="#BACAD6"
             value={password}
             onChangeText={setPassword}
@@ -120,7 +120,7 @@ export default function AuthResetPassword({
         <View style={styles.inputWithIcon}>
           <TextInput
             style={styles.inputFieldInner}
-            placeholder="Confirm new password"
+            placeholder={t('auth.reset.confirmNewPassword')}
             placeholderTextColor="#BACAD6"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
@@ -153,7 +153,9 @@ export default function AuthResetPassword({
         </View>
 
         {showMismatch && (
-          <Text style={styles.mismatchText}>Passwords do not match</Text>
+          <Text style={styles.mismatchText}>
+            {t('auth.passwordsDoNotMatch')}
+          </Text>
         )}
       </View>
 
@@ -165,22 +167,28 @@ export default function AuthResetPassword({
         {isSubmitting ? (
           <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
-          <Text style={styles.primaryButtonText}>Reset password</Text>
+          <Text style={styles.primaryButtonText}>
+            {t('auth.reset.button')}
+          </Text>
         )}
       </Pressable>
 
       <View style={styles.resendBlock}>
         {countdown > 0 ? (
-          <Text style={styles.resendTimer}>Resend code in {countdown}s</Text>
+          <Text style={styles.resendTimer}>
+            {t('auth.verify.resendIn', { count: countdown })}
+          </Text>
         ) : (
           <Pressable onPress={handleResend}>
-            <Text style={styles.resendLink}>Resend code</Text>
+            <Text style={styles.resendLink}>{t('auth.reset.resend')}</Text>
           </Pressable>
         )}
       </View>
 
       <Pressable style={styles.backButton} onPress={onBackToSignIn}>
-        <Text style={styles.backButtonText}>← Back to sign in</Text>
+        <Text style={styles.backButtonText}>
+          {t('auth.forgot.backToSignIn')}
+        </Text>
       </Pressable>
     </View>
   );

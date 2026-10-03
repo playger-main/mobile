@@ -4,9 +4,6 @@ import {
   useColorScheme,
   View,
   ActivityIndicator,
-  Alert,
-  Linking,
-  Platform,
   AppState,
 } from 'react-native';
 import { Stack, ThemeProvider, DarkTheme, DefaultTheme } from 'expo-router';
@@ -26,9 +23,14 @@ import {
   requestUserLocationFx,
   checkLocationPermissionFx,
   detectCityFx,
+  $appLanguage,
 } from '@/effector/store';
 
 import { DEFAULT_CITY_CENTER } from '@/constants/location';
+import { registerCalendarLocales, setCalendarLocale } from '@/i18n';
+
+// ✅ Регистрируем локали календаря ДО первого рендера
+registerCalendarLocales();
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -38,6 +40,9 @@ export default function RootLayout() {
   const { isHydrating } = useUnit({
     isHydrating: $isHydrating,
   });
+
+  // ✅ Текущий язык приложения — для синхронизации локали календаря
+  const appLanguage = useUnit($appLanguage);
 
   const [fontsLoaded, fontError] = useFonts({
     ...Ionicons.font,
@@ -63,6 +68,11 @@ export default function RootLayout() {
       } catch {}
     })();
   }, []);
+
+  // ✅ Синхронизируем активную локаль календаря с текущим языком
+  useEffect(() => {
+    setCalendarLocale(appLanguage);
+  }, [appLanguage]);
 
   // ✅ AppState — при возврате в приложение обновляем данные
   useEffect(() => {
@@ -125,7 +135,6 @@ export default function RootLayout() {
           <Stack.Screen name="user/favorites" options={{ headerShown: false }} />
           <Stack.Screen name="user/created" options={{ headerShown: false }} />
           <Stack.Screen name="user/reviews" options={{ headerShown: false }} />
-
         </Stack>
       </ThemeProvider>
     </GestureHandlerRootView>

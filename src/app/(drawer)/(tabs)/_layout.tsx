@@ -1,3 +1,4 @@
+// src/app/(drawer)/(tabs)/_layout.tsx
 import React from 'react';
 import { Tabs, useNavigation } from 'expo-router';
 import { Pressable, StyleSheet } from 'react-native';
@@ -6,16 +7,19 @@ import { Ionicons } from '@expo/vector-icons';
 // @ts-ignore
 import { DrawerActions } from 'expo-router/react-navigation';
 
+import { useTranslation } from '@/i18n';
+
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const renderDrawerButton = () => (
-    <Pressable 
+    <Pressable
       onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
       style={({ pressed }) => [
         styles.tabMenuButton,
-        { opacity: pressed ? 0.7 : 1 }
+        { opacity: pressed ? 0.7 : 1 },
       ]}
     >
       <Ionicons name="menu-outline" size={24} color="#334A77" />
@@ -25,21 +29,24 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: true, 
+        headerShown: true,
         headerTransparent: true,
         headerTitle: '',
         headerShadowVisible: false,
-        headerLeft: () => renderDrawerButton(), 
-        tabBarActiveTintColor: '#208AEF',   
-        tabBarInactiveTintColor: '#6080A8', 
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },        
+        headerLeft: () => renderDrawerButton(),
+        tabBarActiveTintColor: '#208AEF',
+        tabBarInactiveTintColor: '#6080A8',
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
         tabBarButton: (props: any) => {
           const { children, onPress, style } = props;
           return (
             <Pressable
               onPress={onPress}
               style={({ pressed }) => [
-                { flex: 1, backgroundColor: pressed ? '#ffffff0d' : 'transparent' },
+                {
+                  flex: 1,
+                  backgroundColor: pressed ? '#ffffff0d' : 'transparent',
+                },
                 style,
               ]}
               android_ripple={null}
@@ -48,7 +55,6 @@ export default function TabLayout() {
             </Pressable>
           );
         },
-        
         tabBarStyle: {
           height: 50 + insets.bottom,
           paddingBottom: insets.bottom,
@@ -63,28 +69,40 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Grounds',
-          headerShown: false, // На Grounds хедер выключен, так как кнопка встроена внутрь поиска
+          title: t('tab.grounds'),
+          headerShown: false,
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'map' : 'map-outline'} size={22} color={color} />
+            <Ionicons
+              name={focused ? 'map' : 'map-outline'}
+              size={22}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
         name="events"
         options={{
-          title: 'Events',
+          title: t('tab.events'),
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={22} color={color} />
+            <Ionicons
+              name={focused ? 'calendar' : 'calendar-outline'}
+              size={22}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('tab.profile'),
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
+            <Ionicons
+              name={focused ? 'person' : 'person-outline'}
+              size={22}
+              color={color}
+            />
           ),
         }}
       />
@@ -94,13 +112,13 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabMenuButton: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     left: 16,
     width: 48,
     height: 48,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12, 
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',

@@ -30,15 +30,17 @@ import {
 import LocationPickerModal from '@/components/ui/LocationPickerModal';
 import PhotoPicker, { PhotoInput } from '@/components/ui/PhotoPicker';
 
-import { SPORT_OPTIONS } from '@/constants/sports';
-import { AMENITIES_OPTIONS } from '@/constants/amenities';
-import { SURFACE_OPTIONS } from '@/constants/surface';
+import { SPORT_OPTIONS, getSportKey } from '@/constants/sports';
+import { AMENITIES_OPTIONS, getAmenityKey } from '@/constants/amenities';
+import { SURFACE_OPTIONS, getSurfaceKey } from '@/constants/surface';
+import { useTranslation } from '@/i18n';
 
 const MAX_PHOTOS = 5;
 
 export default function EditGroundScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const ground = useUnit($currentGround);
@@ -97,12 +99,16 @@ export default function EditGroundScreen() {
 
   const pickImage = async () => {
     if (photoInputs.length >= MAX_PHOTOS) {
-      Alert.alert('Maximum photos', `You can add up to ${MAX_PHOTOS} photos.`);
+      Alert.alert(
+        t('photos.maxPhotos'),
+        t('photos.upToN', { count: MAX_PHOTOS }),
+      );
       return;
     }
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const { status } =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'We need access to your photos.');
+      Alert.alert(t('photos.permissionNeeded'), t('photos.accessHint'));
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -166,7 +172,6 @@ export default function EditGroundScreen() {
     address?: string;
   }) => {
     setLocation({ lat: data.latitude, lng: data.longitude });
-    // ✅ Не перезаписываем уже введённый адрес
     if (data.address && !address.trim()) {
       setAddress(data.address);
     }
@@ -175,15 +180,14 @@ export default function EditGroundScreen() {
 
   const handleSave = async () => {
     if (!name.trim())
-      return Alert.alert('Error', 'Please enter a ground name.');
+      return Alert.alert(t('common.error'), t('groundForm.nameRequired'));
     if (sports.length === 0)
-      return Alert.alert('Error', 'Please select at least one sport.');
+      return Alert.alert(t('common.error'), t('groundForm.sportRequired'));
     if (!location)
-      return Alert.alert('Error', 'Please pick a location on the map.');
+      return Alert.alert(t('common.error'), t('groundForm.locationRequired'));
     if (!address.trim())
-      return Alert.alert('Error', 'Please enter an address.');
+      return Alert.alert(t('common.error'), t('groundForm.addressRequired'));
 
-    // Удалённые существующие фото
     const currentIds = photoInputs
       .filter((p) => !p.isNew && p.id)
       .map((p) => p.id!);
@@ -215,13 +219,13 @@ export default function EditGroundScreen() {
         mainNewPhotoIndex: currentMainIsNew ? mainNewIdx : undefined,
       });
 
-      Alert.alert('Success', 'Ground updated!', [
-        { text: 'OK', onPress: () => router.back() },
+      Alert.alert(t('common.success'), t('groundForm.updateSuccess'), [
+        { text: t('common.ok'), onPress: () => router.back() },
       ]);
     } catch (err: any) {
       const raw = err?.response?.data?.message ?? err?.message ?? err;
       const message = Array.isArray(raw) ? raw.join('\n') : String(raw);
-      Alert.alert('Error', message || 'Failed to update ground.');
+      Alert.alert(t('common.error'), message || t('groundForm.updateFailed'));
     }
   };
 
@@ -253,8 +257,8 @@ export default function EditGroundScreen() {
           <Ionicons name="chevron-back" size={24} color="#006EE6" />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Edit ground</Text>
-          <Text style={styles.headerSubtitle}>Update the info</Text>
+          <Text style={styles.headerTitle}>{t('ground.edit.title')}</Text>
+          <Text style={styles.headerSubtitle}>{t('ground.edit.subtitle')}</Text>
         </View>
         <View style={{ width: 32 }} />
       </View>
@@ -266,22 +270,22 @@ export default function EditGroundScreen() {
           { paddingBottom: insets.bottom + 120 },
         ]}
       >
-        {/* ============ NAME ============ */}
-        <Text style={styles.inputLabel}>Ground name</Text>
+        {/* NAME */}
+        <Text style={styles.inputLabel}>{t('groundForm.name')}</Text>
         <TextInput
           style={styles.textField}
-          placeholder="e.g. Riverside Court"
+          placeholder={t('groundForm.namePlaceholder')}
           placeholderTextColor="#BACAD6"
           value={name}
           onChangeText={setName}
         />
 
-        {/* ============ SPORT ============ */}
+        {/* SPORT */}
         <View style={styles.labelWithHintRow}>
-          <Text style={styles.inputLabel}>Sport</Text>
+          <Text style={styles.inputLabel}>{t('groundForm.sport')}</Text>
           {sports.length > 0 && (
             <Text style={styles.selectedCountHint}>
-              {sports.length} selected
+              {t('groundForm.selected', { count: sports.length })}
             </Text>
           )}
         </View>
@@ -307,8 +311,9 @@ export default function EditGroundScreen() {
                     styles.sportLabel,
                     isSelected && styles.sportLabelSelected,
                   ]}
+                  numberOfLines={1}
                 >
-                  {sport.label}
+                  {t(getSportKey(sport.id))}
                 </Text>
                 {isSelected && (
                   <View style={styles.sportCheckmark}>
@@ -320,10 +325,14 @@ export default function EditGroundScreen() {
           })}
         </View>
 
-        {/* ============ LOCATION (перенесено сюда, перед адресом) ============ */}
+        {/* LOCATION */}
         <View style={styles.labelWithHintRow}>
-          <Text style={styles.inputLabel}>Location on map</Text>
-          {location && <Text style={styles.selectedCountHint}>✓ Set</Text>}
+          <Text style={styles.inputLabel}>{t('groundForm.location')}</Text>
+          {location && (
+            <Text style={styles.selectedCountHint}>
+              {t('groundForm.locationSet')}
+            </Text>
+          )}
         </View>
         <Pressable
           style={styles.mapPickerBox}
@@ -334,10 +343,14 @@ export default function EditGroundScreen() {
               <Ionicons name="checkmark-circle" size={24} color="#27AE60" />
               <View style={{ flex: 1 }}>
                 <Text style={styles.locationSetText}>
-                  Coordinates: {location.lat.toFixed(5)},{' '}
-                  {location.lng.toFixed(5)}
+                  {t('groundForm.coordinates', {
+                    lat: location.lat.toFixed(5),
+                    lng: location.lng.toFixed(5),
+                  })}
                 </Text>
-                <Text style={styles.locationChangeHint}>Tap to change</Text>
+                <Text style={styles.locationChangeHint}>
+                  {t('groundForm.tapToChange')}
+                </Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color="#BACAD6" />
             </View>
@@ -345,32 +358,29 @@ export default function EditGroundScreen() {
             <View style={styles.mapPlaceholder}>
               <Ionicons name="map-outline" size={24} color="#208AEF" />
               <Text style={styles.mapPlaceholderText}>
-                Tap to select location on map
+                {t('groundForm.tapToSelect')}
               </Text>
             </View>
           )}
         </Pressable>
-        <Text style={styles.hintText}>
-          Move the pin to update — the address won't be overwritten if you've
-          edited it.
-        </Text>
+        <Text style={styles.hintText}>{t('groundForm.locationHintEdit')}</Text>
 
-        {/* ============ ADDRESS ============ */}
-        <Text style={styles.inputLabel}>Address</Text>
+        {/* ADDRESS */}
+        <Text style={styles.inputLabel}>{t('groundForm.address')}</Text>
         <TextInput
           style={styles.textField}
-          placeholder="Street, area"
+          placeholder={t('groundForm.addressPlaceholder')}
           placeholderTextColor="#BACAD6"
           value={address}
           onChangeText={setAddress}
         />
 
-        {/* ============ SURFACE ============ */}
+        {/* SURFACE */}
         <View style={styles.labelWithHintRow}>
-          <Text style={styles.inputLabel}>Surface (optional)</Text>
+          <Text style={styles.inputLabel}>{t('groundForm.surface')}</Text>
           {surfaces.length > 0 && (
             <Text style={styles.selectedCountHint}>
-              {surfaces.length} selected
+              {t('groundForm.selected', { count: surfaces.length })}
             </Text>
           )}
         </View>
@@ -398,18 +408,18 @@ export default function EditGroundScreen() {
                     isSelected && styles.surfaceChipTextSelected,
                   ]}
                 >
-                  {s.label}
+                  {t(getSurfaceKey(s.id))}
                 </Text>
               </Pressable>
             );
           })}
         </View>
 
-        {/* ============ DESCRIPTION ============ */}
-        <Text style={styles.inputLabel}>Description (optional)</Text>
+        {/* DESCRIPTION */}
+        <Text style={styles.inputLabel}>{t('groundForm.description')}</Text>
         <TextInput
           style={styles.textareaField}
-          placeholder="Tell players what makes this spot great..."
+          placeholder={t('groundForm.descriptionPlaceholder')}
           placeholderTextColor="#BACAD6"
           multiline
           numberOfLines={4}
@@ -418,8 +428,8 @@ export default function EditGroundScreen() {
           onChangeText={setDescription}
         />
 
-        {/* ============ AMENITIES ============ */}
-        <Text style={styles.inputLabel}>Amenities</Text>
+        {/* AMENITIES */}
+        <Text style={styles.inputLabel}>{t('groundForm.amenities')}</Text>
         <View style={styles.amenitiesWrap}>
           {AMENITIES_OPTIONS.map((amenity) => {
             const isSelected = amenities.includes(amenity);
@@ -438,15 +448,15 @@ export default function EditGroundScreen() {
                     isSelected && styles.amenityTextSelected,
                   ]}
                 >
-                  {amenity}
+                  {t(getAmenityKey(amenity))}
                 </Text>
               </Pressable>
             );
           })}
         </View>
 
-        {/* ============ PHOTOS ============ */}
-        <Text style={styles.inputLabel}>Photos</Text>
+        {/* PHOTOS */}
+        <Text style={styles.inputLabel}>{t('groundForm.photos')}</Text>
         <PhotoPicker
           photos={photoInputs}
           max={MAX_PHOTOS}
@@ -455,7 +465,7 @@ export default function EditGroundScreen() {
           onSetMain={setMainPhoto}
         />
 
-        {/* ============ MODERATION NOTICE ============ */}
+        {/* MODERATION NOTICE */}
         {!user?.role?.includes('moderator') &&
           !user?.role?.includes('admin') && (
             <View style={styles.moderationNotice}>
@@ -465,8 +475,7 @@ export default function EditGroundScreen() {
                 color="#FF8000"
               />
               <Text style={styles.moderationNoticeText}>
-                After editing, your ground will be sent for re-moderation and
-                temporarily hidden from other users.
+                {t('groundForm.moderationNotice')}
               </Text>
             </View>
           )}
@@ -487,7 +496,9 @@ export default function EditGroundScreen() {
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={styles.publishButtonText}>Save changes</Text>
+            <Text style={styles.publishButtonText}>
+              {t('common.saveChanges')}
+            </Text>
           )}
         </Pressable>
       </View>
@@ -588,6 +599,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
     position: 'relative',
+    paddingHorizontal: 4,
   },
   sportCardSelected: { borderColor: '#208AEF', backgroundColor: '#F0F6FC' },
   sportLabel: {

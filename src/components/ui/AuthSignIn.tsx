@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@/i18n';
 
 interface AuthSignInProps {
   onSubmit: (email: string, password: string) => void;
@@ -27,6 +28,7 @@ export default function AuthSignIn({
   isSubmitting,
   errorMessage,
 }: AuthSignInProps) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -37,17 +39,15 @@ export default function AuthSignIn({
         <Ionicons name="basketball" size={32} color="#FFFFFF" />
       </View>
 
-      <Text style={styles.formTitle}>Welcome back</Text>
-      <Text style={styles.formSubtitle}>
-        Sign in to join games, save grounds and host events.
-      </Text>
+      <Text style={styles.formTitle}>{t('auth.signIn.title')}</Text>
+      <Text style={styles.formSubtitle}>{t('auth.signIn.subtitle')}</Text>
 
       {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
       <View style={styles.inputGroup}>
         <TextInput
           style={styles.inputField}
-          placeholder="Email"
+          placeholder={t('auth.email')}
           placeholderTextColor="#BACAD6"
           value={email}
           onChangeText={setEmail}
@@ -60,7 +60,7 @@ export default function AuthSignIn({
         <View style={styles.inputWithIcon}>
           <TextInput
             style={styles.inputFieldInner}
-            placeholder="Password"
+            placeholder={t('auth.password')}
             placeholderTextColor="#BACAD6"
             value={password}
             onChangeText={setPassword}
@@ -89,7 +89,7 @@ export default function AuthSignIn({
           style={styles.forgotButton}
           hitSlop={6}
         >
-          <Text style={styles.forgotText}>Forgot password?</Text>
+          <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
         </Pressable>
       </View>
 
@@ -101,19 +101,21 @@ export default function AuthSignIn({
         {isSubmitting ? (
           <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
-          <Text style={styles.primaryButtonText}>Sign in</Text>
+          <Text style={styles.primaryButtonText}>{t('auth.signIn.button')}</Text>
         )}
       </Pressable>
 
       <View style={styles.toggleRow}>
-        <Text style={styles.toggleText}>New to PlayG? </Text>
+        <Text style={styles.toggleText}>{t('auth.signIn.newTo')}</Text>
         <Pressable onPress={onSwitchToSignUp}>
-          <Text style={styles.toggleLink}>Create an account</Text>
+          <Text style={styles.toggleLink}>{t('auth.signIn.createAccount')}</Text>
         </Pressable>
       </View>
 
       <Pressable style={styles.guestButton} onPress={onContinueAsGuest}>
-        <Text style={styles.guestButtonText}>Continue browsing as guest</Text>
+        <Text style={styles.guestButtonText}>
+          {t('auth.continueAsGuest')}
+        </Text>
       </Pressable>
     </View>
   );
@@ -177,15 +179,8 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   eyeButton: { padding: 4, marginLeft: 4 },
-  forgotButton: {
-    alignSelf: 'flex-end',
-    marginTop: -4,
-  },
-  forgotText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#208AEF',
-  },
+  forgotButton: { alignSelf: 'flex-end', marginTop: -4 },
+  forgotText: { fontSize: 13, fontWeight: '600', color: '#208AEF' },
   primaryButton: {
     width: '100%',
     height: 50,

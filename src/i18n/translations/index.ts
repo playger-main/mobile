@@ -2,6 +2,7 @@
 import type { TranslationDict } from '../types';
 
 import { common } from './common';
+import { tabs } from './tabs'
 import { auth } from './auth';
 import { profile } from './profile';
 import { lists } from './lists';
@@ -15,8 +16,10 @@ import { location } from './location';
 import { statuses } from './statuses';
 import { settings } from './settings';
 import { about } from './about';
+import { calendar } from './calendar';
 
 export const translations: TranslationDict = {
+  ...tabs,
   ...common,
   ...auth,
   ...profile,
@@ -31,4 +34,5 @@ export const translations: TranslationDict = {
   ...statuses,
   ...settings,
   ...about,
+  ...calendar,
 };

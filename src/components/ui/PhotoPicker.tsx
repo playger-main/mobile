@@ -2,6 +2,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@/i18n';
 
 export interface PhotoInput {
   id?: string;
@@ -26,6 +27,7 @@ export default function PhotoPicker({
   onRemove,
   onSetMain,
 }: PhotoPickerProps) {
+  const { t } = useTranslation();
   const canAdd = photos.length < max;
 
   return (
@@ -38,7 +40,9 @@ export default function PhotoPicker({
             {photo.isMain && (
               <View style={styles.mainBadge}>
                 <Ionicons name="star" size={10} color="#FFFFFF" />
-                <Text style={styles.mainBadgeText}>Main</Text>
+                <Text style={styles.mainBadgeText}>
+                  {t('photos.main')}
+                </Text>
               </View>
             )}
 
@@ -73,18 +77,14 @@ export default function PhotoPicker({
       </View>
 
       <Text style={styles.hint}>
-        Up to {max} photos. Tap ⭐ to set as main (cover).
+        {t('photos.hint', { max })}
       </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tile: {
     width: 90,
     height: 90,

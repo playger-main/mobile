@@ -11,13 +11,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useUnit } from 'effector-react';
 
 import { getBadgeStyle } from '@/constants/badgeStyle';
-import { getSportLabel } from '@/constants/sports';
+import { getSportKey } from '@/constants/sports';
 import {
   $userLocation,
   $cityCenter,
   $upcomingEventsCountByGround,
 } from '@/effector/store';
 import { calculateDistance, formatDistance } from '@/utils/distance';
+import { useTranslation } from '@/i18n';
 
 export interface ExtendedGroundItem {
   id: string;
@@ -43,7 +44,6 @@ export interface ExtendedGroundItem {
 interface CardGroundProps {
   item: ExtendedGroundItem;
   onPress: () => void;
-  // ✅ Новая сигнатура: получаем и id, и текущее состояние
   onToggleFavorite: (groundId: string, isFavorite: boolean) => void;
 }
 
@@ -52,6 +52,7 @@ export default function CardGround({
   onPress,
   onToggleFavorite,
 }: CardGroundProps) {
+  const { t } = useTranslation();
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
   const upcomingByGround = useUnit($upcomingEventsCountByGround);
@@ -83,7 +84,8 @@ export default function CardGround({
     );
   }, [userLocation, cityCenter, item.geolocation, item.distanceMeters]);
 
-  const displayDistance = formatDistance(distanceMeters);
+  const displayDistance =
+    formatDistance(distanceMeters) ?? t('distance.nearby');
   const showImage = !!item.avatar && !imageError;
 
   return (
@@ -118,7 +120,9 @@ export default function CardGround({
         {item.confirmed === false && (
           <View style={styles.pendingBadge}>
             <Ionicons name="time-outline" size={11} color="#FFFFFF" />
-            <Text style={styles.pendingBadgeText}>Pending</Text>
+            <Text style={styles.pendingBadgeText}>
+              {t('grounds.pendingBadge')}
+            </Text>
           </View>
         )}
       </View>
@@ -129,7 +133,7 @@ export default function CardGround({
             {item.name}
           </Text>
           <Pressable
-            onPress={() => onToggleFavorite(item.id, item.isFavorite)} // ✅
+            onPress={() => onToggleFavorite(item.id, item.isFavorite)}
             style={styles.favoriteButton}
             hitSlop={8}
           >
@@ -142,14 +146,14 @@ export default function CardGround({
         </View>
 
         <Text style={styles.address} numberOfLines={1}>
-          {item.address || 'No address provided'}
+          {item.address || t('grounds.noAddress')}
         </Text>
 
         {sportsList.length > 0 && (
           <View style={styles.sportsRow}>
             {sportsList.slice(0, 2).map((sportId, idx) => {
               const style = getBadgeStyle(sportId);
-              const label = getSportLabel(sportId);
+              const label = t(getSportKey(sportId));
               return (
                 <View
                   key={`${sportId}-${idx}`}

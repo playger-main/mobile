@@ -30,17 +30,19 @@ import {
 } from '@/effector/store';
 import { toggleFavoriteInStore } from '@/effector/events/sync';
 import { getBadgeStyle } from '@/constants/badgeStyle';
-import { getSportLabel } from '@/constants/sports';
-import { getAmenityIcon } from '@/constants/amenities';
-import { getSurfaceLabel } from '@/constants/surface';
+import { getSportKey } from '@/constants/sports';
+import { getAmenityIcon, getAmenityKey } from '@/constants/amenities';
+import { getSurfaceKey } from '@/constants/surface';
 import { getEventStatus } from '@/utils/eventStatus';
 import { navigateToGroundOnMap } from '@/utils/navigateToGround';
 import { calculateDistance, formatDistance } from '@/utils/distance';
+import { useTranslation } from '@/i18n';
 
 export default function GroundDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const {
     ground,
@@ -60,7 +62,6 @@ export default function GroundDetailScreen() {
     cityCenter: $cityCenter,
   });
 
-  // ✅ Только статистика отзывов для отображения рейтинга
   const reviewStats = useUnit($groundReviewStats);
   const fetchReviews = useUnit(fetchGroundReviewsFx);
 
@@ -71,7 +72,7 @@ export default function GroundDetailScreen() {
       if (id) {
         fetchGroundByIdFx(id);
         fetchEventsByGroundIdFx(id);
-        fetchReviews(id); // для обновления рейтинга
+        fetchReviews(id);
       }
     }, [id]),
   );
@@ -113,14 +114,14 @@ export default function GroundDetailScreen() {
   const formatEventDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      if (isNaN(date.getTime())) return { day: '??', month: 'ED' };
+      if (isNaN(date.getTime())) return { day: '??', month: '—' };
       const day = date.getDate().toString();
       const month = date
         .toLocaleString('en-US', { month: 'short' })
         .toUpperCase();
       return { day, month };
     } catch {
-      return { day: '00', month: 'EVT' };
+      return { day: '00', month: '—' };
     }
   };
 
@@ -136,7 +137,8 @@ export default function GroundDetailScreen() {
       Number(ground.geolocation.lng),
     );
   })();
-  const displayDistance = formatDistance(distanceMeters);
+  const displayDistance =
+    formatDistance(distanceMeters) ?? t('distance.nearby');
 
   const amenitiesList: string[] = Array.isArray(ground.amenities)
     ? ground.amenities
@@ -194,7 +196,7 @@ export default function GroundDetailScreen() {
           <View style={styles.eventMeta}>
             <Ionicons name="time-outline" size={14} color="#6080A8" />
             <Text style={styles.eventMetaText}>
-              {event.startTime} • {event.duration || '1.5 hours'}
+              {event.startTime} • {event.duration || '—'}
             </Text>
             <Ionicons
               name="people-outline"
@@ -219,7 +221,7 @@ export default function GroundDetailScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Слайдер фото */}
+        {/* Photo slider */}
         <View style={styles.imageContainer}>
           <PhotoSlider
             key={photosList.join('|')}
@@ -230,11 +232,7 @@ export default function GroundDetailScreen() {
           />
 
           <View style={[styles.headerOverlay, { top: insets.top + 12 }]}>
-            <Pressable
-              onPress={handleBack}
-              style={styles.iconButton}
-              hitSlop={8}
-            >
+            <Pressable onPress={handleBack} style={styles.iconButton} hitSlop={8}>
               <Ionicons name="chevron-back" size={22} color="#334A77" />
             </Pressable>
             <View style={styles.headerRight}>
@@ -264,17 +262,20 @@ export default function GroundDetailScreen() {
           {ground.confirmed === false && (
             <View style={styles.pendingBadge}>
               <Ionicons name="time-outline" size={12} color="#FFFFFF" />
-              <Text style={styles.pendingBadgeText}>Pending moderation</Text>
+              <Text style={styles.pendingBadgeText}>
+                {t('grounds.pendingLong')}
+              </Text>
             </View>
           )}
         </View>
 
         <View style={styles.contentContainer}>
+          {/* Sports */}
           <View style={styles.sportsRow}>
             {sportsList.length > 0 ? (
               sportsList.map((sportId) => {
                 const style = getBadgeStyle(sportId);
-                const label = getSportLabel(sportId);
+                const label = t(getSportKey(sportId));
                 return (
                   <View
                     key={sportId}
@@ -292,13 +293,13 @@ export default function GroundDetailScreen() {
             ) : (
               <View style={[styles.sportBadge, { backgroundColor: '#F0F4F8' }]}>
                 <Text style={[styles.sportText, { color: '#6080A8' }]}>
-                  SPORT
+                  {t('sport.all').toUpperCase()}
                 </Text>
               </View>
             )}
           </View>
 
-          {/* ✅ Кликабельный рейтинг → экран отзывов */}
+          {/* Rating → reviews */}
           <Pressable
             style={styles.ratingBlock}
             onPress={() =>
@@ -318,11 +319,11 @@ export default function GroundDetailScreen() {
                     ({reviewStats.totalReviews})
                   </Text>
                 </Text>
-                <Text style={styles.seeAllText}>· See all</Text>
+                <Text style={styles.seeAllText}>{t('reviews.seeAll')}</Text>
               </>
             ) : (
               <Text style={styles.noReviewsText}>
-                No reviews yet · Write one
+                {t('reviews.noReviewsYet')}
               </Text>
             )}
             <Ionicons
@@ -336,7 +337,7 @@ export default function GroundDetailScreen() {
           <Text style={styles.title}>{ground.name}</Text>
           <Text style={styles.address}>
             <Ionicons name="location-outline" size={14} color="#6080A8" />{' '}
-            {ground.address || 'No address provided'}
+            {ground.address || t('grounds.noAddress')}
           </Text>
 
           <View style={styles.mapRow}>
@@ -351,7 +352,9 @@ export default function GroundDetailScreen() {
                 }
               >
                 <Ionicons name="map-outline" size={16} color="#208AEF" />
-                <Text style={styles.showOnMapText}>Show on map</Text>
+                <Text style={styles.showOnMapText}>
+                  {t('groundDetail.showOnMap')}
+                </Text>
               </Pressable>
             ) : (
               <View />
@@ -364,13 +367,15 @@ export default function GroundDetailScreen() {
 
           {surfacesList.length > 0 && (
             <>
-              <Text style={styles.sectionTitle}>Surface</Text>
+              <Text style={styles.sectionTitle}>
+                {t('groundDetail.surface')}
+              </Text>
               <View style={styles.surfacesWrap}>
                 {surfacesList.map((cov, idx) => (
                   <View key={`${cov}-${idx}`} style={styles.surfaceChip}>
                     <Ionicons name="layers-outline" size={13} color="#208AEF" />
                     <Text style={styles.surfaceChipText}>
-                      {getSurfaceLabel(cov)}
+                      {t(getSurfaceKey(cov))}
                     </Text>
                   </View>
                 ))}
@@ -378,13 +383,12 @@ export default function GroundDetailScreen() {
             </>
           )}
 
-          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.sectionTitle}>{t('groundDetail.about')}</Text>
           <Text style={styles.description}>
-            {ground.description ||
-              'A community-focused open court for practice and friendly team matches. Check upcoming events to join existing teams.'}
+            {ground.description || t('groundDetail.noDescription')}
           </Text>
 
-          <Text style={styles.sectionTitle}>Amenities</Text>
+          <Text style={styles.sectionTitle}>{t('groundForm.amenities')}</Text>
           {amenitiesList.length > 0 ? (
             <View style={styles.amenitiesContainer}>
               {amenitiesList.map((amenity, idx) => (
@@ -395,13 +399,15 @@ export default function GroundDetailScreen() {
                     color="#208AEF"
                     style={{ marginRight: 6 }}
                   />
-                  <Text style={styles.amenityText}>{amenity}</Text>
+                  <Text style={styles.amenityText}>
+                    {t(getAmenityKey(amenity))}
+                  </Text>
                 </View>
               ))}
             </View>
           ) : (
             <Text style={styles.emptyAmenities}>
-              No amenities listed for this ground yet.
+              {t('groundDetail.noAmenities')}
             </Text>
           )}
 
@@ -415,7 +421,7 @@ export default function GroundDetailScreen() {
                     { marginBottom: 0, marginTop: 0 },
                   ]}
                 >
-                  Live now ({activeEvents.length})
+                  {t('groundDetail.liveNow', { count: activeEvents.length })}
                 </Text>
               </View>
               <View style={{ marginTop: 12 }}>
@@ -425,13 +431,15 @@ export default function GroundDetailScreen() {
           )}
 
           <Text style={styles.sectionTitle}>
-            Upcoming events ({upcomingEvents.length})
+            {t('groundDetail.upcomingEvents', {
+              count: upcomingEvents.length,
+            })}
           </Text>
           {upcomingEvents.length > 0 ? (
             upcomingEvents.map(renderEventCard)
           ) : (
             <Text style={styles.emptyEvents}>
-              No upcoming events scheduled yet.
+              {t('groundDetail.noUpcoming')}
             </Text>
           )}
 
@@ -449,7 +457,7 @@ export default function GroundDetailScreen() {
                     style={{ marginRight: 8 }}
                   />
                   <Text style={styles.historyToggleText}>
-                    History ({pastEvents.length})
+                    {t('groundDetail.history', { count: pastEvents.length })}
                   </Text>
                 </View>
                 <Ionicons
@@ -480,12 +488,12 @@ export default function GroundDetailScreen() {
               });
             } else {
               Alert.alert(
-                'Authentication Required',
-                'Please sign in or create an account to organize matches on this playground.',
+                t('common.authRequired'),
+                t('groundDetail.createEventAuthHint'),
                 [
-                  { text: 'Cancel', style: 'cancel' },
+                  { text: t('common.cancel'), style: 'cancel' },
                   {
-                    text: 'Sign In',
+                    text: t('common.signIn'),
                     onPress: () => router.push('/(drawer)/(tabs)/profile'),
                   },
                 ],
@@ -499,7 +507,9 @@ export default function GroundDetailScreen() {
             color="#208AEF"
             style={{ marginRight: 8 }}
           />
-          <Text style={styles.createEventButtonText}>Create event</Text>
+          <Text style={styles.createEventButtonText}>
+            {t('groundDetail.createEventButton')}
+          </Text>
         </Pressable>
       </View>
     </View>
@@ -561,8 +571,6 @@ const styles = StyleSheet.create({
   },
   sportDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   sportText: { fontSize: 11, fontWeight: '700' },
-
-  // ✅ Rating — кликабельный, с chevron
   ratingBlock: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -572,12 +580,7 @@ const styles = StyleSheet.create({
   ratingText: { fontSize: 14, fontWeight: '700', color: '#334A77' },
   reviewsText: { color: '#BACAD6', fontWeight: '400' },
   seeAllText: { fontSize: 13, color: '#208AEF', fontWeight: '600' },
-  noReviewsText: {
-    fontSize: 13,
-    color: '#208AEF',
-    fontWeight: '600',
-  },
-
+  noReviewsText: { fontSize: 13, color: '#208AEF', fontWeight: '600' },
   title: { fontSize: 24, fontWeight: '800', color: '#334A77', marginTop: 4 },
   address: { fontSize: 14, color: '#6080A8', marginTop: 4 },
   mapRow: {

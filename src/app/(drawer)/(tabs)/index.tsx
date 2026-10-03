@@ -26,6 +26,8 @@ import ListGrounds from '@/components/ui/ListGrounds';
 import MapComponent from '@/components/ui/MapComponent';
 import MapLegend from '@/components/ui/MapLegend';
 
+import { useTranslation } from '@/i18n';
+
 import {
   $grounds,
   $searchQuery,
@@ -46,6 +48,7 @@ export default function GroundsScreen() {
   const router = useRouter();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const { height: screenHeight } = useWindowDimensions();
+  const { t } = useTranslation();
 
   const isWeb = Platform.OS === 'web';
 
@@ -106,7 +109,6 @@ export default function GroundsScreen() {
     changeKindofsport: setSelectedCategory,
   });
 
-  // ✅ Обработчик избранного — сохраняем на сервере
   const handleToggleFavorite = useCallback(
     (groundId: string, isFavorite: boolean) => {
       if (isFavorite) {
@@ -136,12 +138,12 @@ export default function GroundsScreen() {
       router.push('/ground/create');
     } else {
       Alert.alert(
-        'Authentication Required',
-        'Please sign in or create an account to add a new ground to the community.',
+        t('common.authRequired'),
+        t('grounds.addAuthHint'),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Sign In',
+            text: t('common.signIn'),
             onPress: () => router.push('/(drawer)/(tabs)/profile'),
           },
         ],
