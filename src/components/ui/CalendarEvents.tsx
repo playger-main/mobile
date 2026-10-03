@@ -1,7 +1,7 @@
 // src/components/ui/CalendarEvents.tsx
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Calendar, DateData } from 'react-native-calendars';
+import { Calendar, DateData, LocaleConfig } from 'react-native-calendars';
 import { ServerEventItem } from '@/effector/events/async/events';
 import { useTranslation } from '@/i18n';
 
@@ -16,9 +16,10 @@ export default function CalendarEvents({
   allEvents,
   onDateChange,
 }: CalendarEventsProps) {
-  // ✅ Подписываемся на язык, чтобы календарь перерисовался
-  //    при смене (key пересоздаёт компонент)
   const { lang } = useTranslation();
+
+  // ✅ Синхронно — до того, как <Calendar> прочитает defaultLocale
+  LocaleConfig.defaultLocale = lang;
 
   const markedDates = allEvents.reduce((acc: any, event) => {
     acc[event.date] = {
@@ -38,10 +39,7 @@ export default function CalendarEvents({
   return (
     <View style={styles.container}>
       <Calendar
-        // ✅ key заставляет React пересоздать компонент при смене языка.
-        //    Локаль берётся из LocaleConfig.defaultLocale (глобально),
-        //    который устанавливается в _layout.tsx через setCalendarLocale().
-        key={String(lang)}
+        key={lang}
         current={selectedDate}
         onDayPress={(day: DateData) => onDateChange(day.dateString)}
         markedDates={markedDates}
