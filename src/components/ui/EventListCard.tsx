@@ -115,12 +115,12 @@ export default function EventListCard({
             </View>
           )}
 
-          {isCreator && (
+          {/* {isCreator && (
             <View style={[styles.creatorBadge, { backgroundColor: colors.primaryDark }]}>
               <Ionicons name="star" size={9} color="#FFFFFF" />
               <Text style={styles.creatorBadgeText}>{t('events.host')}</Text>
             </View>
-          )}
+          )} */}
         </View>
 
         <View style={styles.rightHeader}>
@@ -170,7 +170,15 @@ export default function EventListCard({
               {t('events.playersCount', { current: players, max: maxPlayers })}
             </Text>
           </View>
+          
+          {isCreator && (
+            <View style={[styles.creatorBadge, { backgroundColor: colors.primaryDark }]}>
+              <Ionicons name="star" size={9} color="#FFFFFF" />
+              <Text style={styles.creatorBadgeText}>{t('events.host')}</Text>
+            </View>
+          )}
         </View>
+        
 
         <View style={[styles.spotsBadge, { backgroundColor: statusStyle.bg }]}>
           <Text style={[styles.spotsText, { color: statusStyle.text }]}>
