@@ -26,7 +26,7 @@ interface UserProfileProps {
 }
 
 const COVER_HEIGHT = 180;
-const AVATAR_SIZE = 140;
+const AVATAR_SIZE = 120;
 
 export default function UserProfile({ user, onLogout }: UserProfileProps) {
   const insets = useSafeAreaInsets();
@@ -35,7 +35,6 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
   const fetchProfile = useUnit(fetchMyProfileFx);
   const isRefreshing = useUnit(fetchMyProfileFx.pending);
 
-  // ✅ Тянем свежий профиль при монтировании
   useEffect(() => {
     fetchProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -44,6 +43,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
   const avatarLetter = user.name ? user.name.charAt(0).toUpperCase() : 'P';
   const hasAvatar = !!user.avatar;
 
+  // ✅ Вариант B: счётчики приходят с бэка из /user/me
   const joinedCount = user.joinedCount ?? 0;
   const savedCount = user.savedCount ?? 0;
   const gamesCount = user.gamesCount ?? 0;
@@ -66,7 +66,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* =============== COVER + AVATAR =============== */}
+        {/* COVER + AVATAR */}
         <View style={styles.coverWrapper}>
           <LinearGradient
             colors={['#006EE6', '#208AEF']}
@@ -75,16 +75,12 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             style={styles.cover}
           />
 
-          {/* Overlay header */}
-          <View
-            style={[styles.overlayHeader, { paddingTop: insets.top + 6 }]}
-          >
+          <View style={[styles.overlayHeader, { paddingTop: insets.top + 6 }]}>
             <View style={styles.headerSpacer} />
             <Text style={styles.headerTitle}>Profile</Text>
             <View style={styles.headerSpacer} />
           </View>
 
-          {/* Avatar */}
           <View style={styles.avatarWrapper}>
             <Pressable onPress={goToEdit} style={styles.avatarShadow}>
               {hasAvatar ? (
@@ -101,7 +97,6 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             </Pressable>
           </View>
 
-          {/* Refresh indicator */}
           {isRefreshing && (
             <View style={styles.refreshBadge}>
               <ActivityIndicator size="small" color="#FFFFFF" />
@@ -109,7 +104,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           )}
         </View>
 
-        {/* =============== IDENTITY =============== */}
+        {/* IDENTITY */}
         <View style={styles.identityBlock}>
           <Text style={styles.userName} numberOfLines={1}>
             {user.name || 'PlayG User'}
@@ -126,7 +121,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           </Pressable>
         </View>
 
-        {/* =============== BIO — всегда =============== */}
+        {/* BIO */}
         <View style={styles.bioBlock}>
           {hasBio ? (
             <Text style={styles.bioText}>{user.bio}</Text>
@@ -139,7 +134,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           )}
         </View>
 
-        {/* =============== PREFERRED SPORTS — всегда =============== */}
+        {/* SPORTS */}
         <View style={styles.sportsBlock}>
           <Text style={styles.sectionLabel}>PREFERRED SPORTS</Text>
           {sports.length > 0 ? (
@@ -171,11 +166,11 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           )}
         </View>
 
-        {/* =============== STATS =============== */}
+        {/* ✅ STATS — кликабельны, ведут на свои экраны */}
         <View style={styles.statsGrid}>
           <Pressable
             style={styles.statsCard}
-            onPress={() => router.push('/(drawer)/(tabs)/events')}
+            onPress={() => router.push('/user/joined')}
           >
             <Ionicons name="calendar-outline" size={20} color="#208AEF" />
             <Text style={styles.statsNumber}>{joinedCount}</Text>
@@ -184,63 +179,25 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
 
           <Pressable
             style={styles.statsCard}
-            onPress={() => router.push('/(drawer)/(tabs)')}
+            onPress={() => router.push('/user/favorites')}
           >
             <Ionicons name="heart-outline" size={20} color="#208AEF" />
             <Text style={styles.statsNumber}>{savedCount}</Text>
             <Text style={styles.statsLabel}>Saved</Text>
           </Pressable>
 
-          <View style={styles.statsCard}>
+          <Pressable
+            style={styles.statsCard}
+            onPress={() => router.push('/user/created')}
+          >
             <Ionicons name="trophy-outline" size={20} color="#208AEF" />
             <Text style={styles.statsNumber}>{gamesCount}</Text>
-            <Text style={styles.statsLabel}>Games</Text>
-          </View>
+            <Text style={styles.statsLabel}>Created</Text>
+          </Pressable>
         </View>
 
-        {/* =============== MENU =============== */}
+        {/* MENU */}
         <View style={styles.menuContainer}>
-          {/* My events */}
-          <Pressable
-            style={styles.menuItem}
-            onPress={() => router.push('/(drawer)/(tabs)/events')}
-          >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color="#6080A8"
-                style={styles.menuIcon}
-              />
-              <Text style={styles.menuItemText}>My events</Text>
-            </View>
-            <View style={styles.menuItemRight}>
-              <Text style={styles.menuCountText}>{joinedCount}</Text>
-              <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
-            </View>
-          </Pressable>
-
-          {/* Favourite grounds */}
-          <Pressable
-            style={styles.menuItem}
-            onPress={() => router.push('/(drawer)/(tabs)')}
-          >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="heart-outline"
-                size={20}
-                color="#6080A8"
-                style={styles.menuIcon}
-              />
-              <Text style={styles.menuItemText}>Favourite grounds</Text>
-            </View>
-            <View style={styles.menuItemRight}>
-              <Text style={styles.menuCountText}>{savedCount}</Text>
-              <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
-            </View>
-          </Pressable>
-
-          {/* Edit profile */}
           <Pressable style={styles.menuItem} onPress={goToEdit}>
             <View style={styles.menuItemLeft}>
               <Ionicons
@@ -254,7 +211,6 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
           </Pressable>
 
-          {/* Moderation — только для модераторов */}
           {isModerator && (
             <Pressable
               style={styles.menuItem}
@@ -278,7 +234,6 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             </Pressable>
           )}
 
-          {/* Settings */}
           <Pressable
             style={styles.menuItem}
             onPress={() => router.push('/(drawer)/settings')}
@@ -295,7 +250,6 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
           </Pressable>
 
-          {/* About */}
           <Pressable
             style={[styles.menuItem, styles.noBorder]}
             onPress={() => router.push('/(drawer)/about')}
@@ -313,7 +267,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           </Pressable>
         </View>
 
-        {/* =============== LOGOUT =============== */}
+        {/* LOGOUT */}
         <Pressable style={styles.logoutButton} onPress={onLogout}>
           <Ionicons
             name="log-out-outline"
@@ -332,16 +286,12 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   scrollContent: { paddingBottom: 40 },
 
-  // =============== COVER ===============
   coverWrapper: {
     height: COVER_HEIGHT + AVATAR_SIZE / 2,
     position: 'relative',
     marginBottom: 8,
   },
-  cover: {
-    height: COVER_HEIGHT,
-    width: '100%',
-  },
+  cover: { height: COVER_HEIGHT, width: '100%' },
   overlayHeader: {
     position: 'absolute',
     top: 0,
@@ -363,7 +313,6 @@ const styles = StyleSheet.create({
     textShadowRadius: 3,
   },
   headerSpacer: { width: 32 },
-
   avatarWrapper: {
     position: 'absolute',
     bottom: 0,
@@ -398,7 +347,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarText: { fontSize: 48, fontWeight: '800', color: '#FFFFFF' },
-
   refreshBadge: {
     position: 'absolute',
     top: 16,
@@ -411,12 +359,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // =============== IDENTITY ===============
-  identityBlock: {
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    marginTop: 14,
-  },
+  identityBlock: { alignItems: 'center', paddingHorizontal: 24, marginTop: 14 },
   userName: { fontSize: 20, fontWeight: '800', color: '#334A77' },
   userEmail: { fontSize: 13, color: '#6080A8', marginTop: 3 },
   cityRow: {
@@ -428,7 +371,6 @@ const styles = StyleSheet.create({
   cityText: { fontSize: 13, color: '#6080A8', fontWeight: '500' },
   cityEmpty: { color: '#208AEF', fontWeight: '600' },
 
-  // =============== BIO ===============
   bioBlock: {
     marginHorizontal: 16,
     marginTop: 18,
@@ -446,7 +388,6 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
 
-  // =============== SPORTS ===============
   sportsBlock: { marginTop: 18, paddingHorizontal: 16 },
   sectionLabel: {
     fontSize: 11,
@@ -465,13 +406,8 @@ const styles = StyleSheet.create({
   },
   sportDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   sportText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
-  emptyHintText: {
-    fontSize: 12,
-    color: '#208AEF',
-    fontWeight: '600',
-  },
+  emptyHintText: { fontSize: 12, color: '#208AEF', fontWeight: '600' },
 
-  // =============== STATS ===============
   statsGrid: {
     flexDirection: 'row',
     gap: 12,
@@ -502,7 +438,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // =============== MENU ===============
   menuContainer: {
     marginHorizontal: 16,
     backgroundColor: '#FFFFFF',
@@ -525,8 +460,6 @@ const styles = StyleSheet.create({
   menuIcon: { marginRight: 12 },
   menuItemText: { fontSize: 14, fontWeight: '600', color: '#334A77' },
   menuItemRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  menuCountText: { fontSize: 14, color: '#BACAD6', fontWeight: '500' },
-
   moderationDot: {
     width: 8,
     height: 8,
@@ -535,7 +468,6 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
 
-  // =============== LOGOUT ===============
   logoutButton: {
     marginHorizontal: 16,
     flexDirection: 'row',

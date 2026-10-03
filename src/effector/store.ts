@@ -84,6 +84,26 @@ export type {
 } from './events/async/users';
 
 // ==========================================
+// 3c. СПИСКИ ПОЛЬЗОВАТЕЛЯ (NEW)
+// ==========================================
+export {
+  fetchMyCreatedEventsFx,
+  fetchMyJoinedEventsFx,
+  fetchMyFavoriteGroundsFx,
+  addFavoriteFx,
+  removeFavoriteFx,
+} from './events/async/userLists';
+
+export {
+  $myCreatedEvents,
+  $myJoinedEvents,
+  $myFavoriteGrounds,
+  $isMyCreatedLoading,
+  $isMyJoinedLoading,
+  $isMyFavoritesLoading,
+} from './domains/userLists';
+
+// ==========================================
 // 4. НАСТРОЙКИ
 // ==========================================
 export {
