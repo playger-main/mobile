@@ -17,6 +17,7 @@ import { statuses } from './statuses';
 import { settings } from './settings';
 import { about } from './about';
 import { calendar } from './calendar';
+import { drawer } from './drawer';
 
 export const translations: TranslationDict = {
   ...tabs,
@@ -35,4 +36,5 @@ export const translations: TranslationDict = {
   ...settings,
   ...about,
   ...calendar,
+  ...drawer,
 };
