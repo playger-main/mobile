@@ -33,11 +33,12 @@ import {
   $clusterSheetVisible,
   $userSession,
   $pendingGrounds,
+  addFavoriteFx,
+  removeFavoriteFx,
 } from '@/effector/store';
 import {
   setSearchQuery,
   setSelectedCategory,
-  toggleFavoriteInStore,
 } from '@/effector/events/sync';
 
 export default function GroundsScreen() {
@@ -52,12 +53,13 @@ export default function GroundsScreen() {
   const user = useUnit($userSession);
   const pendingCount = useUnit($pendingGrounds.map((p) => p.length));
 
+  const addFavorite = useUnit(addFavoriteFx);
+  const removeFavorite = useUnit(removeFavoriteFx);
+
   const isModerator =
     user?.role?.includes('moderator') || user?.role?.includes('admin');
 
-  // ✅ Кнопка модерации видна только если есть pending и это модератор
   const showModerationFab = isModerator && pendingCount > 0;
-  // ✅ Кнопка Add выше, если снизу есть модерация
   const showAddFab = true;
 
   const snapPoints = useMemo(() => {
@@ -96,15 +98,25 @@ export default function GroundsScreen() {
     selectedKindofsport,
     changeSearch,
     changeKindofsport,
-    toggleFavorite,
   } = useUnit({
     grounds: $grounds,
     searchQuery: $searchQuery,
     selectedKindofsport: $selectedCategory,
     changeSearch: setSearchQuery,
     changeKindofsport: setSelectedCategory,
-    toggleFavorite: toggleFavoriteInStore,
   });
+
+  // ✅ Обработчик избранного — сохраняем на сервере
+  const handleToggleFavorite = useCallback(
+    (groundId: string, isFavorite: boolean) => {
+      if (isFavorite) {
+        removeFavorite(groundId);
+      } else {
+        addFavorite(groundId);
+      }
+    },
+    [addFavorite, removeFavorite],
+  );
 
   const mapRegion = {
     latitude: 54.7284,
@@ -161,7 +173,7 @@ export default function GroundsScreen() {
           <View style={styles.webListWrapper}>
             <ListGrounds
               onItemPress={(item) => router.push(`/ground/${item.id}`)}
-              onToggleFavorite={toggleFavorite}
+              onToggleFavorite={handleToggleFavorite}
             />
           </View>
         </ScrollView>
@@ -209,19 +221,17 @@ export default function GroundsScreen() {
       >
         <ListGrounds
           onItemPress={(item) => router.push(`/ground/${item.id}`)}
-          onToggleFavorite={toggleFavorite}
+          onToggleFavorite={handleToggleFavorite}
         />
       </BottomSheet>
 
       {!clusterSheetVisible && (
         <>
-          {/* ✅ FAB "Add ground" — всегда */}
           {showAddFab && (
             <Pressable
               style={({ pressed }) => [
                 styles.fabButton,
                 {
-                  // ✅ Поднимаем выше, если снизу показана кнопка модерации
                   bottom: showModerationFab
                     ? insets.bottom + 88
                     : insets.bottom + 16,
@@ -234,7 +244,6 @@ export default function GroundsScreen() {
             </Pressable>
           )}
 
-          {/* ✅ FAB "Moderation" — только если есть pending */}
           {showModerationFab && (
             <Pressable
               style={({ pressed }) => [
@@ -309,7 +318,6 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
   },
-
   fabButton: {
     position: 'absolute',
     right: 16,
@@ -349,7 +357,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
   },
-
   webRoot: { flex: 1, backgroundColor: '#FFFFFF' },
   webScrollContainer: { flex: 1 },
   webSearchWrapper: { paddingTop: 16, paddingBottom: 8, width: '100%' },

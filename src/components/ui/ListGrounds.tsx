@@ -30,7 +30,8 @@ import { setSelectedCategory } from '@/effector/events/sync';
 
 interface ListGroundsProps {
   onItemPress: (item: ExtendedGroundItem) => void;
-  onToggleFavorite: (id: string) => void;
+  // ✅ Новая сигнатура
+  onToggleFavorite: (groundId: string, isFavorite: boolean) => void;
 }
 
 export default function ListGrounds({
@@ -58,11 +59,6 @@ export default function ListGrounds({
     events: $events,
   });
 
-  // ✅ Рефетч при:
-  //  - смене фильтра
-  //  - изменении поиска
-  //  - логине/логауте
-  //  - возврате на таб (useFocusEffect)
   useFocusEffect(
     useCallback(() => {
       fetchGroundsFx({
@@ -72,7 +68,6 @@ export default function ListGrounds({
     }, [selectedCategory, searchQuery, user?.id]),
   );
 
-  // События — один раз
   React.useEffect(() => {
     if (events.length === 0) {
       fetchAllEventsFx();
@@ -82,9 +77,7 @@ export default function ListGrounds({
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       <View style={styles.headerTopRow}>
-        <Text style={styles.countText}>
-          {grounds.length} grounds nearby
-        </Text>
+        <Text style={styles.countText}>{grounds.length} grounds nearby</Text>
         <Text style={styles.sortText}>By distance</Text>
       </View>
 
@@ -107,7 +100,6 @@ export default function ListGrounds({
     );
   }
 
-  // Web-версия
   if (isWeb) {
     return (
       <View style={styles.webListContent}>
@@ -123,7 +115,6 @@ export default function ListGrounds({
     );
   }
 
-  // Mobile
   return (
     <BottomSheetFlatList
       data={grounds}

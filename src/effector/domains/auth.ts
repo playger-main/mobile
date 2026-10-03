@@ -19,24 +19,23 @@ const authDomain = createDomain('auth');
 // ==========================================
 
 export interface SessionUser {
-  // Из JWT (базовое)
   id: string;
-  name: string;        // = username
+  name: string;
   email: string;
   role: string[];
 
-  // Расширенный профиль (заполняется после /user/me)
+  // Расширенный профиль
   bio?: string;
   city?: string | null;
   preferredSports?: string[];
-  avatar?: string | null;         // CDN URL
-  avatarPath?: string | null;     // относительный путь
-  photos?: string[];              // CDN URLs
+  avatar?: string | null;
+  avatarPath?: string | null;
+  photos?: string[];
   photoPaths?: string[];
   photoIds?: string[];
   isEmailConfirmed?: boolean;
 
-  // Статистика (если понадобится в UI)
+  // Статистика
   joinedCount?: number;
   savedCount?: number;
   gamesCount?: number;
@@ -67,6 +66,11 @@ const mapProfileToSession = (p: ServerUserProfile): SessionUser => ({
   photoPaths: p.photoPaths,
   photoIds: p.photoIds,
   isEmailConfirmed: p.isEmailConfirmed,
+
+  // ✅ ПРОБРАСЫВАЕМ СЧЁТЧИКИ
+  joinedCount: p.joinedCount ?? 0,
+  savedCount: p.savedCount ?? 0,
+  gamesCount: p.gamesCount ?? 0,
 });
 
 // ==========================================
@@ -119,7 +123,9 @@ export const $authStep = authDomain
   .on(setAuthStep, (_, step) => step)
   .on(signUpFx.done, () => 'verify')
   .on(verifyCodeFx.done, () => 'signin')
-  .on(hydrateSessionFx.doneData, (state, payload) => (payload ? 'signin' : state));
+  .on(hydrateSessionFx.doneData, (state, payload) =>
+    payload ? 'signin' : state,
+  );
 
 export const $userSession = authDomain
   .createStore<SessionUser | null>(null)
@@ -132,6 +138,7 @@ export const $userSession = authDomain
     }
     return payload.user;
   })
+  // Мержим свежий профиль во всех случаях
   .on(fetchMyProfileFx.doneData, (state, profile) =>
     state ? { ...state, ...mapProfileToSession(profile) } : state,
   )
@@ -148,7 +155,7 @@ export const $userSession = authDomain
     SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
     SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
     return null;
-});
+  });
 
 export const $accessToken = authDomain
   .createStore<string | null>(null)
@@ -179,8 +186,6 @@ export const $isHydrating = authDomain
 // АВТО-ПОДГРУЗКА ПРОФИЛЯ
 // ==========================================
 
-// Как только появилась валидная сессия (после логина или гидратации) —
-// сразу тянем полный профиль из /user/me.
 signInFx.doneData.watch(() => {
   fetchMyProfileFx();
 });
@@ -188,4 +193,3 @@ signInFx.doneData.watch(() => {
 hydrateSessionFx.doneData.watch((result) => {
   if (result) fetchMyProfileFx();
 });
-

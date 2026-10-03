@@ -22,6 +22,11 @@ export interface ServerUserProfile {
   photoIds: string[];
   createdAt: number;
   updatedAt: number;
+
+  // ✅ Счётчики, которые отдаёт /user/me
+  joinedCount?: number;
+  savedCount?: number;
+  gamesCount?: number;
 }
 
 export interface UpdateProfilePayload {
@@ -78,7 +83,6 @@ const userApi = {
     return res.data;
   },
 
-  // ✅ Загрузка фото в профиль — тот же /photo, но без groundId/eventId
   uploadPhoto: async (
     payload: UploadUserPhotoPayload,
   ): Promise<{ photo: any; path: string; cdnUrl: string }> => {

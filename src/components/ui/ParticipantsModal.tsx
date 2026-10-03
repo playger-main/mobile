@@ -1,6 +1,6 @@
 // src/components/ui/ParticipantsModal.tsx
 import React, { useEffect, useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 interface Player {
   id: string;
   name: string;
+  avatar?: string | null;
 }
 
 interface ParticipantsModalProps {
@@ -31,7 +32,6 @@ export default function ParticipantsModal({
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [isExpanded, setIsExpanded] = React.useState(false);
 
-  // ✅ Два snap-поинта: средний (70%) и почти полный (95%)
   const snapPoints = useMemo(() => ['50%', '94%'], []);
 
   useEffect(() => {
@@ -47,14 +47,13 @@ export default function ParticipantsModal({
 
   if (!visible) return null;
 
-  // ✅ Сортируем: создатель всегда первый
+  // Создатель всегда первым
   const sorted = [...players].sort((a, b) => {
     if (a.id === creatorId) return -1;
     if (b.id === creatorId) return 1;
     return 0;
   });
 
-  // ✅ Кнопка-переключатель разворачивания
   const handleToggleExpand = () => {
     if (isExpanded) {
       bottomSheetRef.current?.snapToIndex(0);
@@ -68,6 +67,7 @@ export default function ParticipantsModal({
   const renderPlayer = ({ item }: { item: Player }) => {
     const isCreator = item.id === creatorId;
     const initial = item.name?.charAt(0).toUpperCase() || '?';
+    const hasAvatar = !!item.avatar;
 
     return (
       <Pressable
@@ -76,12 +76,17 @@ export default function ParticipantsModal({
         disabled={!onPlayerPress}
       >
         <View
-          style={[
-            styles.avatar,
-            isCreator && styles.avatarCreator,
-          ]}
+          style={[styles.avatar, isCreator && styles.avatarCreator]}
         >
-          <Text style={styles.avatarText}>{initial}</Text>
+          {hasAvatar ? (
+            <Image
+              key={item.avatar!}
+              source={{ uri: item.avatar! }}
+              style={styles.avatarImage}
+            />
+          ) : (
+            <Text style={styles.avatarText}>{initial}</Text>
+          )}
         </View>
 
         <View style={styles.playerInfo}>
@@ -121,7 +126,6 @@ export default function ParticipantsModal({
         </View>
       )}
     >
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.headerTitle}>Participants</Text>
@@ -130,7 +134,6 @@ export default function ParticipantsModal({
           </Text>
         </View>
 
-        {/* ✅ Кнопка развернуть/свернуть */}
         <Pressable
           onPress={handleToggleExpand}
           style={styles.expandButton}
@@ -143,13 +146,11 @@ export default function ParticipantsModal({
           />
         </Pressable>
 
-        {/* Кнопка закрытия */}
         <Pressable onPress={onClose} style={styles.closeButton} hitSlop={10}>
           <Ionicons name="close" size={20} color="#6080A8" />
         </Pressable>
       </View>
 
-      {/* List */}
       {sorted.length > 0 ? (
         <BottomSheetFlatList
           data={sorted}
@@ -186,17 +187,13 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 16,
   },
-  handleContainer: {
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
+  handleContainer: { alignItems: 'center', paddingVertical: 10 },
   handlePill: {
     width: 55,
     height: 4,
     backgroundColor: '#BACAD6',
     borderRadius: 2,
   },
-
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -208,11 +205,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   headerLeft: { flex: 1 },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#334A77',
-  },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: '#334A77' },
   headerSubtitle: {
     fontSize: 13,
     color: '#BACAD6',
@@ -235,10 +228,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#F0F6FC',
   },
-
-  listContent: {
-    paddingVertical: 8,
-  },
+  listContent: { paddingVertical: 8 },
   playerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -253,15 +243,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#E6F4FE',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden', // ✅ чтобы Image обрезался по кругу
   },
-  avatarCreator: {
-    backgroundColor: '#006EE6',
+  avatarCreator: { backgroundColor: '#006EE6' },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
+  avatarText: { fontSize: 16, fontWeight: '800', color: '#FFFFFF' },
   playerInfo: { flex: 1 },
   playerNameRow: {
     flexDirection: 'row',
@@ -294,7 +284,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F6FC',
     marginLeft: 74,
   },
-
   emptyContainer: {
     flex: 1,
     alignItems: 'center',

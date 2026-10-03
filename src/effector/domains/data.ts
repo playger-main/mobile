@@ -27,6 +27,8 @@ import {
   updateEventFx,
 } from '../events/async/events';
 
+import { addFavoriteFx, removeFavoriteFx } from '../events/async/userLists';
+
 const dataDomain = createDomain('data');
 
 // ==========================================
@@ -43,6 +45,13 @@ export const $grounds = dataDomain
       item.id === id ? { ...item, isFavorite: !item.isFavorite } : item,
     ),
   )
+  // ✅ Синхронизация с сервером — после ответа обновляем флаг
+  .on(addFavoriteFx.done, (state, { params: groundId }) =>
+    state.map((g) => (g.id === groundId ? { ...g, isFavorite: true } : g)),
+  )
+  .on(removeFavoriteFx.done, (state, { params: groundId }) =>
+    state.map((g) => (g.id === groundId ? { ...g, isFavorite: false } : g)),
+  )
   .on(createGroundFx.doneData, (state, newGround) => {
     const extendedGround: ExtendedGroundItem = {
       ...newGround,
@@ -53,7 +62,6 @@ export const $grounds = dataDomain
     };
     return [extendedGround, ...state];
   })
-  // ✅ После редактирования — обновляем avatar/photos, сохраняем остальные поля
   .on(updateGroundFx.doneData, (state, updated) =>
     state.map((g) =>
       g.id === updated.id
@@ -72,7 +80,6 @@ export const $grounds = dataDomain
         : g,
     ),
   )
-  // ✅ Когда открыли детали — синхронизируем список
   .on(fetchGroundByIdFx.doneData, (state, fresh) =>
     state.map((g) =>
       g.id === fresh.id
@@ -125,7 +132,6 @@ export const $currentGroundEvents = dataDomain
   .on(fetchEventsByGroundIdFx.doneData, (_, payload) => payload)
   .on(fetchEventsByGroundIdFx.failData, () => []);
 
-// ✅ Стор для неподтверждённых площадок (для модерации)
 export const $pendingGrounds = dataDomain
   .createStore<ExtendedGroundItem[]>([])
   .on(fetchGroundsFx.doneData, (_, payload) =>
@@ -189,7 +195,6 @@ export const $currentDayEvents = combine(
 // ПРОИЗВОДНЫЕ СТОРЫ
 // ==========================================
 
-// ✅ Количество предстоящих/активных событий на площадке
 export const $upcomingEventsCountByGround = $events.map((events) => {
   const map: Record<string, number> = {};
   for (const e of events) {

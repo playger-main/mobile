@@ -124,16 +124,7 @@ export default function EventDetailScreen() {
     userSession?.role?.includes('admin');
   const canEdit = isCreator || isModerator;
 
-  const playersList = (() => {
-    const list = Array.isArray(event.players) ? [...event.players] : [];
-    if (event.creator?.id && !list.some((p) => p.id === event.creator!.id)) {
-      list.unshift({
-        id: event.creator.id,
-        name: event.creator.name || 'Creator',
-      });
-    }
-    return list;
-  })();
+  const playersList = Array.isArray(event.players) ? [...event.players] : [];
 
   let buttonText = 'Join event';
   let buttonStyle = [styles.joinButton, styles.primaryJoinBg];

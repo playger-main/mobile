@@ -43,15 +43,19 @@ export interface ExtendedGroundItem {
 interface CardGroundProps {
   item: ExtendedGroundItem;
   onPress: () => void;
-  onToggleFavorite: (id: string) => void;
+  // ✅ Новая сигнатура: получаем и id, и текущее состояние
+  onToggleFavorite: (groundId: string, isFavorite: boolean) => void;
 }
 
-export default function CardGround({ item, onPress, onToggleFavorite }: CardGroundProps) {
+export default function CardGround({
+  item,
+  onPress,
+  onToggleFavorite,
+}: CardGroundProps) {
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
   const upcomingByGround = useUnit($upcomingEventsCountByGround);
 
-  // ✅ Сброс ошибки при смене URL
   const [imageError, setImageError] = useState(false);
   useEffect(() => {
     setImageError(false);
@@ -80,7 +84,6 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
   }, [userLocation, cityCenter, item.geolocation, item.distanceMeters]);
 
   const displayDistance = formatDistance(distanceMeters);
-
   const showImage = !!item.avatar && !imageError;
 
   return (
@@ -102,7 +105,12 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
 
         {upcomingCount > 0 && (
           <View style={styles.compactEventBadge}>
-            <Ionicons name="calendar" size={11} color="#FFFFFF" style={styles.badgeIcon} />
+            <Ionicons
+              name="calendar"
+              size={11}
+              color="#FFFFFF"
+              style={styles.badgeIcon}
+            />
             <Text style={styles.compactEventText}>{upcomingCount}</Text>
           </View>
         )}
@@ -121,7 +129,7 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
             {item.name}
           </Text>
           <Pressable
-            onPress={() => onToggleFavorite(item.id)}
+            onPress={() => onToggleFavorite(item.id, item.isFavorite)} // ✅
             style={styles.favoriteButton}
             hitSlop={8}
           >
@@ -147,7 +155,9 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
                   key={`${sportId}-${idx}`}
                   style={[styles.categoryBadge, { backgroundColor: style.bg }]}
                 >
-                  <View style={[styles.categoryDot, { backgroundColor: style.text }]} />
+                  <View
+                    style={[styles.categoryDot, { backgroundColor: style.text }]}
+                  />
                   <Text style={[styles.categoryText, { color: style.text }]}>
                     {label.toUpperCase()}
                   </Text>
@@ -156,7 +166,9 @@ export default function CardGround({ item, onPress, onToggleFavorite }: CardGrou
             })}
             {sportsList.length > 2 && (
               <View style={styles.moreBadge}>
-                <Text style={styles.moreBadgeText}>+{sportsList.length - 2}</Text>
+                <Text style={styles.moreBadgeText}>
+                  +{sportsList.length - 2}
+                </Text>
               </View>
             )}
           </View>

@@ -14,15 +14,12 @@ import { useRouter } from 'expo-router';
 import { useUnit } from 'effector-react';
 import { Ionicons } from '@expo/vector-icons';
 
-import CardGround, {
-  ExtendedGroundItem,
-} from '@/components/ui/CardGround';
+import CardGround from '@/components/ui/CardGround';
 import {
   $myFavoriteGrounds,
   $isMyFavoritesLoading,
   fetchMyFavoriteGroundsFx,
   removeFavoriteFx,
-  toggleFavoriteInStore,
 } from '@/effector/store';
 
 export default function FavoriteGroundsScreen() {
@@ -33,13 +30,13 @@ export default function FavoriteGroundsScreen() {
   const isLoading = useUnit($isMyFavoritesLoading);
   const fetchFavorites = useUnit(fetchMyFavoriteGroundsFx);
   const removeFavorite = useUnit(removeFavoriteFx);
-  const toggleInStore = useUnit(toggleFavoriteInStore);
 
   useEffect(() => {
     fetchFavorites();
   }, []);
 
-  const handleToggleFavorite = (groundId: string) => {
+  const handleToggleFavorite = (groundId: string, isFavorite: boolean) => {
+    // На этом экране все площадки уже в избранном, поэтому удаляем
     Alert.alert(
       'Remove from favourites?',
       'This ground will no longer appear in your favourites list.',
@@ -51,13 +48,14 @@ export default function FavoriteGroundsScreen() {
           onPress: async () => {
             try {
               await removeFavorite(groundId);
-              // ✅ Синхронизируем флаг в общем сторе площадок
-              toggleInStore(groundId);
+              // Список обновится сам через $myFavoriteGrounds
             } catch (e: any) {
               const raw = e?.response?.data?.message ?? e?.message;
               Alert.alert(
                 'Error',
-                Array.isArray(raw) ? raw.join('\n') : String(raw || 'Try again.'),
+                Array.isArray(raw)
+                  ? raw.join('\n')
+                  : String(raw || 'Try again.'),
               );
             }
           },
@@ -78,9 +76,7 @@ export default function FavoriteGroundsScreen() {
         </Pressable>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Favourite grounds</Text>
-          <Text style={styles.headerSubtitle}>
-            {grounds.length} saved
-          </Text>
+          <Text style={styles.headerSubtitle}>{grounds.length} saved</Text>
         </View>
         <View style={{ width: 32 }} />
       </View>

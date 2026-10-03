@@ -1,5 +1,5 @@
 // src/components/ui/UserProfile.tsx
-import React, { useEffect } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useUnit } from 'effector-react';
 
 import { SessionUser } from '@/effector/domains/auth';
@@ -35,15 +35,16 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
   const fetchProfile = useUnit(fetchMyProfileFx);
   const isRefreshing = useUnit(fetchMyProfileFx.pending);
 
-  useEffect(() => {
-    fetchProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // ✅ Обновляем профиль при каждом фокусе на вкладке
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, []),
+  );
 
   const avatarLetter = user.name ? user.name.charAt(0).toUpperCase() : 'P';
   const hasAvatar = !!user.avatar;
 
-  // ✅ Вариант B: счётчики приходят с бэка из /user/me
   const joinedCount = user.joinedCount ?? 0;
   const savedCount = user.savedCount ?? 0;
   const gamesCount = user.gamesCount ?? 0;
@@ -75,7 +76,9 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             style={styles.cover}
           />
 
-          <View style={[styles.overlayHeader, { paddingTop: insets.top + 6 }]}>
+          <View
+            style={[styles.overlayHeader, { paddingTop: insets.top + 6 }]}
+          >
             <View style={styles.headerSpacer} />
             <Text style={styles.headerTitle}>Profile</Text>
             <View style={styles.headerSpacer} />
@@ -166,7 +169,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           )}
         </View>
 
-        {/* ✅ STATS — кликабельны, ведут на свои экраны */}
+        {/* STATS — кликабельные */}
         <View style={styles.statsGrid}>
           <Pressable
             style={styles.statsCard}
@@ -359,7 +362,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  identityBlock: { alignItems: 'center', paddingHorizontal: 24, marginTop: 14 },
+  identityBlock: {
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    marginTop: 14,
+  },
   userName: { fontSize: 20, fontWeight: '800', color: '#334A77' },
   userEmail: { fontSize: 13, color: '#6080A8', marginTop: 3 },
   cityRow: {

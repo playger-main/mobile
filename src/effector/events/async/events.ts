@@ -1,6 +1,5 @@
 // src/effector/events/async/events.ts
 import { createEffect } from 'effector';
-
 import { apiInstance } from '../../api';
 
 // ==========================================
@@ -29,6 +28,7 @@ export interface ServerEventItem {
     name: string;
     address: string;
     kindofsport?: string[];
+    avatar?: string | null;   // ✅ добавлено
   };
 }
 
@@ -57,7 +57,10 @@ export interface DetailedEventItem {
   playersCount?: string;
   maxPlayers?: number;
   currentPlayers?: number;
-  players?: Array<{ id: string; name: string }>;
+
+  // ✅ Participants с аватарами
+  players?: Array<{ id: string; name: string; avatar?: string | null }>;
+
   creator: {
     id: string;
     name: string;
@@ -67,9 +70,9 @@ export interface DetailedEventItem {
     name: string;
     address: string;
     kindofsport?: string[];
-    avatar?: string | null;
+    avatar?: string | null;   // ✅ используется в EventLocationCard
     geolocation?: { lat: string; lng: string } | null;
-  };
+  };  
 }
 
 export interface CreateEventPayload {
