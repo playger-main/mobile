@@ -1,0 +1,58 @@
+// src/i18n/translations/grounds.ts
+import type { TranslationDict } from '../types';
+
+export const grounds: TranslationDict = {
+  // ===== GROUNDS LIST =====
+  'grounds.title': { en: 'Grounds', ru: 'Площадки', be: 'Пляцоўкі', lt: 'Aikštelės', pl: 'Boiska', uk: 'Майданчики' },
+  'grounds.count': { en: '{{count}} grounds nearby', ru: '{{count}} площадок рядом', be: '{{count}} пляцовак побач', lt: 'Netoliese: {{count}} aikštelės', pl: 'W pobliżu: {{count}} boisk', uk: 'Поруч: {{count}} майданчиків' },
+  'grounds.sortByDistance': { en: 'By distance', ru: 'По расстоянию', be: 'Па адлегласці', lt: 'Pagal atstumą', pl: 'Wg odległości', uk: 'За відстанню' },
+  'grounds.noAddress': { en: 'No address provided', ru: 'Адрес не указан', be: 'Адрас не пазначаны', lt: 'Adresas nenurodytas', pl: 'Brak adresu', uk: 'Адресу не вказано' },
+  'grounds.searchPlaceholder': { en: 'Search grounds or area', ru: 'Поиск площадок или района', be: 'Пошук пляцовак або раёна', lt: 'Ieškoti aikštelių ar vietovių', pl: 'Szukaj boisk lub okolicy', uk: 'Пошук майданчиків або району' },
+  'grounds.pendingBadge': { en: 'Pending', ru: 'На модерации', be: 'На мадэрацыі', lt: 'Laukiama', pl: 'Oczekuje', uk: 'На модерації' },
+  'grounds.pendingLong': { en: 'Pending moderation', ru: 'На модерации', be: 'На мадэрацыі', lt: 'Laukia moderavimo', pl: 'Oczekuje na moderację', uk: 'На модерації' },
+  'grounds.addButtonTitle': { en: 'Add a ground', ru: 'Добавить площадку', be: 'Дадаць пляцоўку', lt: 'Pridėti aikštelę', pl: 'Dodaj boisko', uk: 'Додати майданчик' },
+  'grounds.addButtonSubtitle': { en: 'Share a spot with the community', ru: 'Поделитесь местом с сообществом', be: 'Падзяліцеся месцам з супольнасцю', lt: 'Pasidalinkite vieta su bendruomene', pl: 'Podziel się miejscem ze społecznością', uk: 'Поділіться місцем зі спільнотою' },
+
+  // ===== GROUND FORM =====
+  'groundForm.name': { en: 'Ground name', ru: 'Название площадки', be: 'Назва пляцоўкі', lt: 'Aikštelės pavadinimas', pl: 'Nazwa boiska', uk: 'Назва майданчика' },
+  'groundForm.namePlaceholder': { en: 'e.g. Riverside Court', ru: 'Напр., Riverside Court', be: 'Напр., Riverside Court', lt: 'Pvz., Riverside Court', pl: 'np. Riverside Court', uk: 'Напр., Riverside Court' },
+  'groundForm.sport': { en: 'Sport', ru: 'Вид спорта', be: 'Від спорту', lt: 'Sporto šaka', pl: 'Sport', uk: 'Вид спорту' },
+  'groundForm.selected': { en: '{{count}} selected', ru: 'Выбрано: {{count}}', be: 'Абрана: {{count}}', lt: 'Pasirinkta: {{count}}', pl: 'Wybrano: {{count}}', uk: 'Обрано: {{count}}' },
+  'groundForm.location': { en: 'Location on map', ru: 'Расположение на карте', be: 'Размяшчэнне на карце', lt: 'Vieta žemėlapyje', pl: 'Lokalizacja na mapie', uk: 'Розташування на карті' },
+  'groundForm.locationSet': { en: '✓ Set', ru: '✓ Указано', be: '✓ Пазначана', lt: '✓ Nustatyta', pl: '✓ Ustawiono', uk: '✓ Вказано' },
+  'groundForm.coordinates': { en: 'Coordinates: {{lat}}, {{lng}}', ru: 'Координаты: {{lat}}, {{lng}}', be: 'Каардынаты: {{lat}}, {{lng}}', lt: 'Koordinatės: {{lat}}, {{lng}}', pl: 'Współrzędne: {{lat}}, {{lng}}', uk: 'Координати: {{lat}}, {{lng}}' },
+  'groundForm.tapToChange': { en: 'Tap to change', ru: 'Нажмите, чтобы изменить', be: 'Націсніце, каб змяніць', lt: 'Paspauskite, kad pakeistumėte', pl: 'Dotknij, aby zmienić', uk: 'Натисніть, щоб змінити' },
+  'groundForm.tapToSelect': { en: 'Tap to select location on map', ru: 'Нажмите, чтобы выбрать точку на карте', be: 'Націсніце, каб выбраць кропку на карце', lt: 'Paspauskite, kad pasirinktumėte vietą žemėlapyje', pl: 'Dotknij, aby wybrać lokalizację na mapie', uk: 'Натисніть, щоб вибрати точку на карті' },
+  'groundForm.locationHint': { en: "Pick a point first — we'll fill in the address automatically.", ru: 'Сначала выберите точку — адрес подставится автоматически.', be: 'Спачатку выберыце кропку — адрас падставіцца аўтаматычна.', lt: 'Pirmiausia pasirinkite tašką — adresas bus įvestas automatiškai.', pl: 'Najpierw wybierz punkt — adres uzupełni się automatycznie.', uk: 'Спочатку виберіть точку — адреса підставиться автоматично.' },
+  'groundForm.locationHintEdit': { en: "Move the pin to update — the address won't be overwritten if you've edited it.", ru: 'Переместите маркер — адрес не перезапишется, если вы его изменили вручную.', be: 'Перамясціце маркер — адрас не перазапішацца, калі вы змянілі яго ўручную.', lt: 'Perkelkite smeigtuką — adresas nebus perrašytas, jei jį redagavote.', pl: 'Przenieś pinezkę — adres nie zostanie nadpisany, jeśli go edytowałeś.', uk: 'Перемістіть маркер — адреса не перезапишеться, якщо ви його змінили вручну.' },
+  'groundForm.address': { en: 'Address', ru: 'Адрес', be: 'Адрас', lt: 'Adresas', pl: 'Adres', uk: 'Адреса' },
+  'groundForm.addressPlaceholder': { en: 'Street, area', ru: 'Улица, район', be: 'Вуліца, раён', lt: 'Gatvė, rajonas', pl: 'Ulica, okolica', uk: 'Вулиця, район' },
+  'groundForm.surface': { en: 'Surface (optional)', ru: 'Покрытие (необязательно)', be: 'Пакрыццё (неабавязкова)', lt: 'Danga (neprivaloma)', pl: 'Nawierzchnia (opcjonalnie)', uk: 'Покриття (необовʼязково)' },
+  'groundForm.description': { en: 'Description (optional)', ru: 'Описание (необязательно)', be: 'Апісанне (неабавязкова)', lt: 'Aprašymas (neprivaloma)', pl: 'Opis (opcjonalnie)', uk: 'Опис (необовʼязково)' },
+  'groundForm.descriptionPlaceholder': { en: 'Tell players what makes this spot great...', ru: 'Расскажите, чем эта площадка хороша…', be: 'Раскажыце, чым гэта пляцоўка добрая…', lt: 'Papasakokite, kuo ši vieta ypatinga…', pl: 'Opowiedz, co wyróżnia to miejsce…', uk: 'Розкажіть, чим цей майданчик гарний…' },
+  'groundForm.amenities': { en: 'Amenities', ru: 'Удобства', be: 'Выгоды', lt: 'Patogumai', pl: 'Udogodnienia', uk: 'Зручності' },
+  'groundForm.photos': { en: 'Photos', ru: 'Фото', be: 'Фота', lt: 'Nuotraukos', pl: 'Zdjęcia', uk: 'Фото' },
+  'groundForm.nameRequired': { en: 'Please enter a ground name.', ru: 'Введите название площадки.', be: 'Увядзіце назву пляцоўкі.', lt: 'Įveskite aikštelės pavadinimą.', pl: 'Wprowadź nazwę boiska.', uk: 'Введіть назву майданчика.' },
+  'groundForm.sportRequired': { en: 'Please select at least one sport.', ru: 'Выберите хотя бы один вид спорта.', be: 'Выберыце хаця б адзін від спорту.', lt: 'Pasirinkite bent vieną sporto šaką.', pl: 'Wybierz co najmniej jeden sport.', uk: 'Виберіть хоча б один вид спорту.' },
+  'groundForm.addressRequired': { en: 'Please enter an address.', ru: 'Введите адрес.', be: 'Увядзіце адрас.', lt: 'Įveskite adresą.', pl: 'Wprowadź adres.', uk: 'Введіть адресу.' },
+  'groundForm.locationRequired': { en: 'Please pick a location on the map.', ru: 'Выберите точку на карте.', be: 'Выберыце кропку на карце.', lt: 'Pasirinkite vietą žemėlapyje.', pl: 'Wybierz lokalizację na mapie.', uk: 'Виберіть точку на карті.' },
+  'groundForm.publishButton': { en: 'Publish ground', ru: 'Опубликовать площадку', be: 'Апублікаваць пляцоўку', lt: 'Paskelbti aikštelę', pl: 'Opublikuj boisko', uk: 'Опублікувати майданчик' },
+  'groundForm.publishSuccess': { en: 'Ground published!', ru: 'Площадка опубликована!', be: 'Пляцоўка апублікавана!', lt: 'Aikštelė paskelbta!', pl: 'Boisko opublikowane!', uk: 'Майданчик опубліковано!' },
+  'groundForm.publishFailed': { en: 'Failed to create ground.', ru: 'Не удалось создать площадку.', be: 'Не ўдалося стварыць пляцоўку.', lt: 'Nepavyko sukurti aikštelės.', pl: 'Nie udało się utworzyć boiska.', uk: 'Не вдалося створити майданчик.' },
+  'groundForm.updateSuccess': { en: 'Ground updated!', ru: 'Площадка обновлена!', be: 'Пляцоўка абноўлена!', lt: 'Aikštelė atnaujinta!', pl: 'Boisko zaktualizowane!', uk: 'Майданчик оновлено!' },
+  'groundForm.updateFailed': { en: 'Failed to update ground.', ru: 'Не удалось обновить площадку.', be: 'Не ўдалося абнавіць пляцоўку.', lt: 'Nepavyko atnaujinti aikštelės.', pl: 'Nie udało się zaktualizować boiska.', uk: 'Не вдалося оновити майданчик.' },
+  'groundForm.moderationNotice': { en: 'After editing, your ground will be sent for re-moderation and temporarily hidden from other users.', ru: 'После редактирования площадка уйдёт на повторную модерацию и временно скроется от других.', be: 'Пасля рэдагавання пляцоўка пойдзе на паўторную мадэрацыю і часова схаваецца ад іншых.', lt: 'Po redagavimo aikštelė bus išsiųsta pakartotinei moderacijai ir laikinai paslėpta nuo kitų.', pl: 'Po edycji boisko zostanie wysłane do ponownej moderacji i tymczasowo ukryte przed innymi.', uk: 'Після редагування майданчик піде на повторну модерацію і тимчасово сховається від інших.' },
+
+  // ===== GROUND DETAIL =====
+  'groundDetail.surface': { en: 'Surface', ru: 'Покрытие', be: 'Пакрыццё', lt: 'Danga', pl: 'Nawierzchnia', uk: 'Покриття' },
+  'groundDetail.about': { en: 'About', ru: 'Описание', be: 'Апісанне', lt: 'Apie', pl: 'O boisku', uk: 'Опис' },
+  'groundDetail.noDescription': { en: 'A community-focused open court for practice and friendly team matches. Check upcoming events to join existing teams.', ru: 'Открытая площадка для тренировок и дружеских матчей. Смотрите предстоящие события, чтобы присоединиться.', be: 'Адкрытая пляцоўка для трэніровак і сяброўскіх матчаў. Глядзіце будучыя падзеі, каб далучыцца.', lt: 'Atvira aikštelė treniruotėms ir draugiškoms rungtynėms. Peržiūrėkite būsimus renginius ir prisijunkite.', pl: 'Otwarte boisko do treningów i towarzyskich meczów. Sprawdź nadchodzące wydarzenia, aby dołączyć.', uk: 'Відкритий майданчик для тренувань і дружніх матчів. Дивіться майбутні події, щоб долучитися.' },
+  'groundDetail.noAmenities': { en: 'No amenities listed for this ground yet.', ru: 'Удобства пока не указаны.', be: 'Выгоды пакуль не пазначаны.', lt: 'Patogumai kol kas nenurodyti.', pl: 'Brak udogodnień.', uk: 'Зручності поки не вказані.' },
+  'groundDetail.showOnMap': { en: 'Show on map', ru: 'Показать на карте', be: 'Паказаць на карце', lt: 'Rodyti žemėlapyje', pl: 'Pokaż na mapie', uk: 'Показати на карті' },
+  'groundDetail.liveNow': { en: 'Live now ({{count}})', ru: 'Сейчас ({{count}})', be: 'Зараз ({{count}})', lt: 'Vyksta dabar ({{count}})', pl: 'Trwa teraz ({{count}})', uk: 'Зараз ({{count}})' },
+  'groundDetail.upcomingEvents': { en: 'Upcoming events ({{count}})', ru: 'Предстоящие события ({{count}})', be: 'Будучыя падзеі ({{count}})', lt: 'Būsimi renginiai ({{count}})', pl: 'Nadchodzące wydarzenia ({{count}})', uk: 'Майбутні події ({{count}})' },
+  'groundDetail.noUpcoming': { en: 'No upcoming events scheduled yet.', ru: 'Пока нет предстоящих событий.', be: 'Пакуль няма будучых падзей.', lt: 'Būsimų renginių kol kas nėra.', pl: 'Brak zaplanowanych wydarzeń.', uk: 'Поки немає майбутніх подій.' },
+  'groundDetail.history': { en: 'History ({{count}})', ru: 'История ({{count}})', be: 'Гісторыя ({{count}})', lt: 'Istorija ({{count}})', pl: 'Historia ({{count}})', uk: 'Історія ({{count}})' },
+  'groundDetail.createEventButton': { en: 'Create event', ru: 'Создать событие', be: 'Стварыць падзею', lt: 'Sukurti renginį', pl: 'Utwórz wydarzenie', uk: 'Створити подію' },
+  'groundDetail.createEventAuthHint': { en: 'Please sign in or create an account to organize matches on this playground.', ru: 'Войдите или создайте аккаунт, чтобы организовывать матчи на этой площадке.', be: 'Увайдзіце або стварыце акаўнт, каб арганізоўваць матчы на гэтай пляцоўцы.', lt: 'Prisijunkite arba susikurkite paskyrą, kad galėtumėte organizuoti rungtynes šioje aikštelėje.', pl: 'Zaloguj się lub utwórz konto, aby organizować mecze na tym boisku.', uk: 'Увійдіть або створіть акаунт, щоб організовувати матчі на цьому майданчику.' },
+};
