@@ -241,39 +241,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
                 <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
               </View>
             </Pressable>
-          )}
-
-          <Pressable
-            style={styles.menuItem}
-            onPress={() => router.push('/(drawer)/settings')}
-          >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="settings-outline"
-                size={20}
-                color="#6080A8"
-                style={styles.menuIcon}
-              />
-              <Text style={styles.menuItemText}>Settings</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
-          </Pressable>
-
-          <Pressable
-            style={[styles.menuItem, styles.noBorder]}
-            onPress={() => router.push('/(drawer)/about')}
-          >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name="information-circle-outline"
-                size={20}
-                color="#6080A8"
-                style={styles.menuIcon}
-              />
-              <Text style={styles.menuItemText}>About PlayG</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
-          </Pressable>
+          )}          
         </View>
 
         {/* LOGOUT */}

@@ -75,10 +75,8 @@ const reviewApi = {
   },
 
   getMine: async (): Promise<MyReview[]> => {
-    try {
-        console.log('[reviews] GET /review/mine');
-        const res = await apiInstance.get<MyReview[]>('/review/mine');
-        console.log('[reviews] /review/mine →', res.data?.length, 'items');
+    try {        
+        const res = await apiInstance.get<MyReview[]>('/review/mine');        
         return res.data;
     } catch (e: any) {
         console.error(

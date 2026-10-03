@@ -27,7 +27,6 @@ import {
   fetchMyProfileFx,
 } from '@/effector/store';
 import { SPORT_OPTIONS } from '@/constants/sports';
-import { getBadgeStyle } from '@/constants/badgeStyle';
 
 const AVATAR_SIZE = 100;
 
@@ -280,30 +279,20 @@ export default function EditProfileScreen() {
         <View style={styles.sportsWrap}>
           {SPORT_OPTIONS.map((sport) => {
             const active = sports.includes(sport.id);
-            const badge = getBadgeStyle(sport.id);
             return (
               <Pressable
                 key={sport.id}
                 onPress={() => toggleSport(sport.id)}
-                style={[
-                  styles.sportChip,
-                  active && {
-                    backgroundColor: badge.bg,
-                    borderColor: badge.text,
-                  },
-                ]}
+                style={[styles.sportChip, active && styles.sportChipActive]}
               >
                 <Ionicons
                   name={sport.icon as any}
                   size={14}
-                  color={active ? badge.text : '#6080A8'}
+                  color={active ? '#FFFFFF' : '#334A77'}
                   style={{ marginRight: 6 }}
                 />
                 <Text
-                  style={[
-                    styles.sportChipText,
-                    active && { color: badge.text, fontWeight: '700' },
-                  ]}
+                  style={[styles.sportChipText, active && styles.sportChipTextActive]}
                 >
                   {sport.label}
                 </Text>
@@ -313,7 +302,7 @@ export default function EditProfileScreen() {
         </View>
         <Text style={styles.hintText}>
           Used to recommend grounds and events you'll love.
-        </Text>
+        </Text>        
       </ScrollView>
 
       {/* =============== SAVE BUTTON (не absolute) =============== */}
@@ -533,12 +522,19 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#FFFFFF',
   },
+  sportChipActive: {
+    backgroundColor: '#208AEF',
+    borderColor: '#208AEF',
+  },
   sportChipText: {
     fontSize: 13,
     color: '#334A77',
     fontWeight: '500',
   },
-
+  sportChipTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
   // =============== BOTTOM BAR (обычный, не absolute) ===============
   bottomBar: {
     backgroundColor: '#FFFFFF',
