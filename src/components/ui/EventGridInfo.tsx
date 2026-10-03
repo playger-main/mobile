@@ -34,9 +34,9 @@ export default function EventGridInfo({
   onPlayersPress,
 }: EventGridInfoProps) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { theme, colors } = useTheme();
 
-  const statusStyle = getEventStatusStyle(status);
+  const statusStyle = getEventStatusStyle(status, theme);
   const statusLabel = t(getEventStatusLabelKey(status));
   const levelLabel = t(getSkillLevelKey(level));
 

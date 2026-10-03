@@ -48,7 +48,7 @@ export default function CardGround({
   onToggleFavorite,
 }: CardGroundProps) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { theme, colors } = useTheme();
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
   const upcomingByGround = useUnit($upcomingEventsCountByGround);
@@ -151,7 +151,7 @@ export default function CardGround({
         {sportsList.length > 0 && (
           <View style={styles.sportsRow}>
             {sportsList.slice(0, 2).map((sportId, idx) => {
-              const style = getBadgeStyle(sportId);
+              const style = getBadgeStyle(sportId, theme);
               const label = t(getSportKey(sportId));
               return (
                 <View

@@ -262,13 +262,13 @@ export default function EventDetailScreen() {
             </View>
           )}
 
-          <View
+          {/* <View
             style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}
           >
             <Text style={[styles.statusText, { color: statusStyle.text }]}>
               {statusLabel}
             </Text>
-          </View>
+          </View> */}
         </View>
 
         <Text style={[styles.title, { color: colors.textPrimary }]}>

@@ -39,7 +39,7 @@ export default function EventListCard({
 }: EventListCardProps) {
   const router = useRouter();
   const { t, lang } = useTranslation();
-  const { colors } = useTheme();
+  const { theme, colors } = useTheme();
 
   const sportsList: string[] =
     Array.isArray(item.ground?.kindofsport) && item.ground.kindofsport.length > 0
@@ -47,7 +47,7 @@ export default function EventListCard({
       : [];
 
   const status = getEventStatus(item.date, item.startTime, item.duration);
-  const statusStyle = getEventStatusStyle(status);
+  const statusStyle = getEventStatusStyle(status, theme);
   const statusLabel = t(getEventStatusLabelKey(status));
 
   const players = item.currentPlayers ?? 0;
@@ -85,7 +85,7 @@ export default function EventListCard({
         <View style={styles.sportsRow}>
           {sportsList.length > 0 ? (
             sportsList.slice(0, 2).map((sportId, idx) => {
-              const style = getBadgeStyle(sportId);
+              const style = getBadgeStyle(sportId, theme);
               const label = t(getSportKey(sportId));
               return (
                 <View

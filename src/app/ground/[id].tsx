@@ -44,7 +44,7 @@ export default function GroundDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { theme, colors } = useTheme();
 
   const {
     ground,
@@ -305,7 +305,7 @@ export default function GroundDetailScreen() {
           <View style={styles.sportsRow}>
             {sportsList.length > 0 ? (
               sportsList.map((sportId) => {
-                const style = getBadgeStyle(sportId);
+                const style = getBadgeStyle(sportId, theme);
                 const label = t(getSportKey(sportId));
                 return (
                   <View

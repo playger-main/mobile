@@ -2,6 +2,13 @@
 
 export type EventStatus = 'upcoming' | 'active' | 'finished';
 
+type Theme = 'light' | 'dark';
+
+interface StatusPalette {
+  light: { bg: string; text: string };
+  dark: { bg: string; text: string };
+}
+
 export const parseDurationToMinutes = (duration: string): number => {
   if (!duration) return 60;
   const normalized = duration.toLowerCase().trim();
@@ -65,12 +72,32 @@ export const getEventStatusLabel = (status: EventStatus): string => {
   }
 };
 
+// ============================================================
+// СТИЛИ (с учётом темы)
+// ============================================================
+
+const STATUS_PALETTES: Record<EventStatus, StatusPalette> = {
+  upcoming: {
+    light: { bg: '#EBF3FF', text: '#208AEF' },
+    dark: { bg: '#16283D', text: '#3A9BF5' },
+  },
+  active: {
+    light: { bg: '#EAF9F5', text: '#27AE60' },
+    dark: { bg: '#14301F', text: '#3DCB78' },
+  },
+  finished: {
+    light: { bg: '#F1F3F5', text: '#86909C' },
+    dark: { bg: '#2A3038', text: '#6E7A8F' },
+  },
+};
+
+/**
+ * ✅ Учитывает тему.
+ * Вызов: getEventStatusStyle(status, theme)
+ */
 export const getEventStatusStyle = (
   status: EventStatus,
+  theme: Theme = 'light',
 ): { bg: string; text: string } => {
-  switch (status) {
-    case 'upcoming': return { bg: '#EBF3FF', text: '#208AEF' };
-    case 'active':   return { bg: '#EAF9F5', text: '#27AE60' };
-    case 'finished': return { bg: '#F1F3F5', text: '#86909C' };
-  }
+  return STATUS_PALETTES[status][theme];
 };
