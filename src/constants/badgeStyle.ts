@@ -15,18 +15,18 @@ export const getBadgeStyle = (sport: string): { bg: string; text: string } => {
     case 'basketball':
       return { bg: '#FFF0E6', text: '#FF8000' };
     case 'football':
-      return { bg: '#EAF9F5', text: '#27AE60' };
+      return { bg: '#EAF9F5', text: '#FF8000' };
     case 'tennis':
-      return { bg: '#EBF3FF', text: '#208AEF' };
+      return { bg: '#EBF3FF', text: '#FF8000' };
     case 'volleyball':
-      return { bg: '#FFF9E0', text: '#B8860B' };
+      return { bg: '#FFF9E0', text: '#FF8000' };
     case 'pickleball':
-      return { bg: '#F2E8FF', text: '#9B51E0' };
+      return { bg: '#F2E8FF', text: '#FF8000' };
     case 'skateboarding':
-      return { bg: '#F1F3F5', text: '#495057' };
+      return { bg: '#F1F3F5', text: '#FF8000' };
     case 'running':
-      return { bg: '#E0F2FE', text: '#0EA5E9' };
+      return { bg: '#E0F2FE', text: '#FF8000' };
     default:
-      return { bg: '#F0F4F8', text: '#6080A8' };
+      return { bg: '#F0F4F8', text: '#FF8000' };
   }
 };
