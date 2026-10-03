@@ -17,7 +17,7 @@ export default function GroundMarker({
   sportId,
   sportsCount = 1,
 }: GroundMarkerProps) {
-  const { colors } = useTheme();
+  const { theme, colors } = useTheme();
   const activityColors = ACTIVITY_COLORS[level];
   const iconName = getSportIcon(sportId);
   const hasMultiple = sportsCount > 1;

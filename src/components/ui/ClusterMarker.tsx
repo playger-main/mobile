@@ -22,7 +22,8 @@ export default function ClusterMarker({ count }: ClusterMarkerProps) {
           height: size,
           borderRadius: size / 2,
           backgroundColor: colors.primary,
-          borderColor: colors.background,
+          borderColor: colors.primaryDark,
+
           shadowColor: colors.shadow,
         },
       ]}

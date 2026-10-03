@@ -77,8 +77,8 @@ export const AppThemeColors: Record<'light' | 'dark', AppColors> = {
     textTertiary: '#BACAD6',
     textInverse: '#FFFFFF',
 
-    primary: '#208AEF',
-    primaryDark: '#006EE6',
+    primary: '#3b9df8',
+    primaryDark: '#197be5',
     primaryBg: '#EBF3FF',
     accent: '#27AE60',
     accentBg: '#EAF9F5',
@@ -104,8 +104,8 @@ export const AppThemeColors: Record<'light' | 'dark', AppColors> = {
     textTertiary: '#6E7A8F',
     textInverse: '#0F1115',
 
-    primary: '#3A9BF5',
-    primaryDark: '#208AEF',
+    primary: '#2d64da',
+    primaryDark: '#6fadff',
     primaryBg: '#16283D',
     accent: '#3DCB78',
     accentBg: '#14301F',
