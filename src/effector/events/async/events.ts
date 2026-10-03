@@ -22,13 +22,14 @@ export interface ServerEventItem {
     id: string;
     name: string;
     role: string[];
+    avatar?: string | null;   // ✅ добавлено
   };
   ground: {
     id: string;
     name: string;
     address: string;
     kindofsport?: string[];
-    avatar?: string | null;   // ✅ добавлено
+    avatar?: string | null;
   };
 }
 
@@ -43,6 +44,7 @@ export interface RealEventItem {
     id: string;
     name: string;
     role: string[];
+    avatar?: string | null;
   };
 }
 
@@ -64,15 +66,17 @@ export interface DetailedEventItem {
   creator: {
     id: string;
     name: string;
+    avatar?: string | null;   // ✅ добавлено
   };
+
   ground: {
     id: string;
     name: string;
     address: string;
     kindofsport?: string[];
-    avatar?: string | null;   // ✅ используется в EventLocationCard
+    avatar?: string | null;
     geolocation?: { lat: string; lng: string } | null;
-  };  
+  };
 }
 
 export interface CreateEventPayload {
@@ -121,7 +125,10 @@ const eventApi = {
   },
 
   create: async (payload: CreateEventPayload): Promise<DetailedEventItem> => {
-    const response = await apiInstance.post<DetailedEventItem>('/event', payload);
+    const response = await apiInstance.post<DetailedEventItem>(
+      '/event',
+      payload,
+    );
     return response.data;
   },
 

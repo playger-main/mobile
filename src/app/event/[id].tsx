@@ -9,13 +9,17 @@ import {
   ActivityIndicator,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
 import { Ionicons } from '@expo/vector-icons';
 
-import { fetchEventByIdFx, toggleJoinEventFx } from '@/effector/events/async/events';
+import {
+  fetchEventByIdFx,
+  toggleJoinEventFx,
+} from '@/effector/events/async/events';
 import {
   $currentEvent,
   $isEventDetailLoading,
@@ -103,7 +107,8 @@ export default function EventDetailScreen() {
   const currentPlayers = event.currentPlayers || 0;
 
   const sportsList: string[] =
-    Array.isArray(event.ground?.kindofsport) && event.ground.kindofsport.length > 0
+    Array.isArray(event.ground?.kindofsport) &&
+    event.ground.kindofsport.length > 0
       ? event.ground.kindofsport
       : [];
 
@@ -124,6 +129,8 @@ export default function EventDetailScreen() {
     userSession?.role?.includes('admin');
   const canEdit = isCreator || isModerator;
 
+  // ✅ players как есть — создатель автоматически в списке при создании,
+  //    при Leave — его там нет
   const playersList = Array.isArray(event.players) ? [...event.players] : [];
 
   let buttonText = 'Join event';
@@ -192,17 +199,23 @@ export default function EventDetailScreen() {
             })
           ) : (
             <View style={[styles.sportBadge, { backgroundColor: '#F0F4F8' }]}>
-              <Text style={[styles.sportText, { color: '#6080A8' }]}>SPORT</Text>
+              <Text style={[styles.sportText, { color: '#6080A8' }]}>
+                SPORT
+              </Text>
             </View>
           )}
 
           {sportsList.length > 4 && (
             <View style={styles.moreBadge}>
-              <Text style={styles.moreBadgeText}>+{sportsList.length - 4}</Text>
+              <Text style={styles.moreBadgeText}>
+                +{sportsList.length - 4}
+              </Text>
             </View>
           )}
 
-          <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+          <View
+            style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}
+          >
             <Text style={[styles.statusText, { color: statusStyle.text }]}>
               {statusLabel}
             </Text>
@@ -217,15 +230,29 @@ export default function EventDetailScreen() {
             onPress={() =>
               router.push({
                 pathname: '/user/[id]',
-                params: { id: event.creator.id, name: event.creator.name },
+                params: {
+                  id: event.creator.id,
+                  name: event.creator.name,
+                  avatar: event.creator.avatar ?? '',
+                },
               })
             }
           >
-            <View style={styles.hostAvatar}>
-              <Text style={styles.hostAvatarText}>
-                {event.creator.name?.charAt(0).toUpperCase() || '?'}
-              </Text>
-            </View>
+            {/* ✅ Аватар создателя, если есть. Иначе — буква */}
+            {event.creator.avatar ? (
+              <Image
+                key={event.creator.avatar}
+                source={{ uri: event.creator.avatar }}
+                style={styles.hostAvatarImage}
+              />
+            ) : (
+              <View style={styles.hostAvatar}>
+                <Text style={styles.hostAvatarText}>
+                  {event.creator.name?.charAt(0).toUpperCase() || '?'}
+                </Text>
+              </View>
+            )}
+
             <View style={{ flex: 1 }}>
               <Text style={styles.hostLabel}>Hosted by</Text>
               <Text style={styles.hostName} numberOfLines={1}>
@@ -252,7 +279,7 @@ export default function EventDetailScreen() {
           maxPlayers={maxPlayers}
         />
 
-        {/* ✅ Фото площадки показывается здесь */}
+        {/* Фото площадки */}
         <EventLocationCard
           name={event.ground?.name || 'Playground'}
           address={event.ground?.address || 'Address'}
@@ -368,6 +395,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#006EE6',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  // ✅ Стиль для картинки-аватара создателя
+  hostAvatarImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F0F4F8',
   },
   hostAvatarText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 },
   hostLabel: { fontSize: 11, color: '#BACAD6', fontWeight: '500' },
