@@ -8,21 +8,27 @@ import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from 'expo-router/react-navigation';
 
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   const renderDrawerButton = () => (
     <Pressable
       onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
       style={({ pressed }) => [
         styles.tabMenuButton,
-        { opacity: pressed ? 0.7 : 1 },
+        {
+          backgroundColor: colors.surface,
+          shadowColor: colors.shadow,
+          opacity: pressed ? 0.7 : 1,
+        },
       ]}
     >
-      <Ionicons name="menu-outline" size={24} color="#334A77" />
+      <Ionicons name="menu-outline" size={24} color={colors.textPrimary} />
     </Pressable>
   );
 
@@ -34,8 +40,8 @@ export default function TabLayout() {
         headerTitle: '',
         headerShadowVisible: false,
         headerLeft: () => renderDrawerButton(),
-        tabBarActiveTintColor: '#208AEF',
-        tabBarInactiveTintColor: '#6080A8',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
         tabBarButton: (props: any) => {
           const { children, onPress, style } = props;
@@ -45,7 +51,9 @@ export default function TabLayout() {
               style={({ pressed }) => [
                 {
                   flex: 1,
-                  backgroundColor: pressed ? '#ffffff0d' : 'transparent',
+                  backgroundColor: pressed
+                    ? colors.surfaceSecondary
+                    : 'transparent',
                 },
                 style,
               ]}
@@ -59,8 +67,8 @@ export default function TabLayout() {
           height: 50 + insets.bottom,
           paddingBottom: insets.bottom,
           borderTopWidth: 1,
-          borderTopColor: '#E6F4FE',
-          backgroundColor: '#FFFFFF',
+          borderTopColor: colors.border,
+          backgroundColor: colors.surface,
           elevation: 2,
           shadowOpacity: 0.05,
         },
@@ -117,11 +125,9 @@ const styles = StyleSheet.create({
     left: 16,
     width: 48,
     height: 48,
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,

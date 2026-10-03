@@ -13,6 +13,7 @@ import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportKey } from '@/constants/sports';
 import { ExtendedGroundItem } from './CardGround';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface PendingGroundCardProps {
   item: ExtendedGroundItem;
@@ -30,6 +31,7 @@ export default function PendingGroundCard({
   isProcessing = false,
 }: PendingGroundCardProps) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   const sportsList: string[] =
     Array.isArray(item.kindofsport) && item.kindofsport.length > 0
@@ -37,17 +39,26 @@ export default function PendingGroundCard({
       : [];
 
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.warning + '55',
+          shadowColor: colors.shadow,
+        },
+      ]}
+    >
       <Pressable style={styles.topSection} onPress={onPress}>
         <Image
           source={{ uri: item.avatar || 'https://unsplash.com' }}
-          style={styles.image}
+          style={[styles.image, { backgroundColor: colors.surfaceSecondary }]}
         />
         <View style={styles.info}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={1}>
             {item.name}
           </Text>
-          <Text style={styles.address} numberOfLines={1}>
+          <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>
             {item.address || t('grounds.noAddress')}
           </Text>
 
@@ -61,9 +72,7 @@ export default function PendingGroundCard({
                     key={`${sportId}-${idx}`}
                     style={[styles.categoryBadge, { backgroundColor: style.bg }]}
                   >
-                    <View
-                      style={[styles.categoryDot, { backgroundColor: style.text }]}
-                    />
+                    <View style={[styles.categoryDot, { backgroundColor: style.text }]} />
                     <Text style={[styles.categoryText, { color: style.text }]}>
                       {label.toUpperCase()}
                     </Text>
@@ -71,8 +80,8 @@ export default function PendingGroundCard({
                 );
               })}
               {sportsList.length > 2 && (
-                <View style={styles.moreBadge}>
-                  <Text style={styles.moreBadgeText}>
+                <View style={[styles.moreBadge, { backgroundColor: colors.primaryBg }]}>
+                  <Text style={[styles.moreBadgeText, { color: colors.textSecondary }]}>
                     +{sportsList.length - 2}
                   </Text>
                 </View>
@@ -81,31 +90,36 @@ export default function PendingGroundCard({
           )}
 
           {item.creator?.name && (
-            <Text style={styles.creatorText}>
+            <Text style={[styles.creatorText, { color: colors.textTertiary }]}>
               {t('pendingGround.byCreator', { name: item.creator.name })}
             </Text>
           )}
         </View>
       </Pressable>
 
-      <View style={styles.actions}>
+      <View style={[styles.actions, { borderTopColor: colors.borderSubtle }]}>
         <Pressable
-          style={[styles.actionButton, styles.rejectButton]}
+          style={[
+            styles.actionButton,
+            { backgroundColor: colors.dangerBg, borderRightColor: colors.borderSubtle },
+          ]}
           onPress={() => onReject(item.id)}
           disabled={isProcessing}
         >
           {isProcessing ? (
-            <ActivityIndicator size="small" color="#FF3B30" />
+            <ActivityIndicator size="small" color={colors.danger} />
           ) : (
             <>
-              <Ionicons name="close-circle-outline" size={18} color="#FF3B30" />
-              <Text style={styles.rejectText}>{t('moderation.reject')}</Text>
+              <Ionicons name="close-circle-outline" size={18} color={colors.danger} />
+              <Text style={[styles.rejectText, { color: colors.danger }]}>
+                {t('moderation.reject')}
+              </Text>
             </>
           )}
         </Pressable>
 
         <Pressable
-          style={[styles.actionButton, styles.approveButton]}
+          style={[styles.actionButton, { backgroundColor: colors.primary }]}
           onPress={() => onApprove(item.id)}
           disabled={isProcessing}
         >
@@ -125,34 +139,21 @@ export default function PendingGroundCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#FFE0B2',
     overflow: 'hidden',
-    shadowColor: '#334A77',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
     elevation: 2,
   },
   topSection: { flexDirection: 'row', padding: 12 },
-  image: {
-    width: 90,
-    height: 90,
-    borderRadius: 12,
-    backgroundColor: '#F0F4F8',
-  },
+  image: { width: 90, height: 90, borderRadius: 12 },
   info: { flex: 1, marginLeft: 12, justifyContent: 'center' },
-  title: { fontSize: 15, fontWeight: '700', color: '#334A77' },
-  address: { fontSize: 12, color: '#6080A8', marginTop: 2 },
-  sportsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-    marginTop: 6,
-  },
+  title: { fontSize: 15, fontWeight: '700' },
+  address: { fontSize: 12, marginTop: 2 },
+  sportsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 6 },
   categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -163,23 +164,13 @@ const styles = StyleSheet.create({
   categoryDot: { width: 5, height: 5, borderRadius: 2.5, marginRight: 4 },
   categoryText: { fontSize: 9, fontWeight: '700' },
   moreBadge: {
-    backgroundColor: '#F0F6FC',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
   },
-  moreBadgeText: { fontSize: 9, fontWeight: '700', color: '#6080A8' },
-  creatorText: {
-    fontSize: 11,
-    color: '#BACAD6',
-    fontWeight: '500',
-    marginTop: 4,
-  },
-  actions: {
-    flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: '#F0F6FC',
-  },
+  moreBadgeText: { fontSize: 9, fontWeight: '700' },
+  creatorText: { fontSize: 11, fontWeight: '500', marginTop: 4 },
+  actions: { flexDirection: 'row', borderTopWidth: 1 },
   actionButton: {
     flex: 1,
     flexDirection: 'row',
@@ -187,13 +178,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     height: 44,
-  },
-  rejectButton: {
-    backgroundColor: '#FFF5F5',
     borderRightWidth: 1,
-    borderRightColor: '#F0F6FC',
   },
-  approveButton: { backgroundColor: '#208AEF' },
-  rejectText: { color: '#FF3B30', fontSize: 13, fontWeight: '700' },
+  rejectText: { fontSize: 13, fontWeight: '700' },
   approveText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
 });

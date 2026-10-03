@@ -37,12 +37,14 @@ import { getEventStatus } from '@/utils/eventStatus';
 import { navigateToGroundOnMap } from '@/utils/navigateToGround';
 import { calculateDistance, formatDistance } from '@/utils/distance';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function GroundDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   const {
     ground,
@@ -105,8 +107,10 @@ export default function GroundDetailScreen() {
 
   if (isLoading || !ground) {
     return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#208AEF" />
+      <View
+        style={[styles.loaderContainer, { backgroundColor: colors.background }]}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -181,47 +185,64 @@ export default function GroundDetailScreen() {
     return (
       <Pressable
         key={event.id}
-        style={styles.eventCard}
+        style={[
+          styles.eventCard,
+          {
+            backgroundColor: colors.surface,
+            borderColor: colors.border,
+          },
+        ]}
         onPress={() => router.push(`/event/${event.id}`)}
       >
-        <View style={styles.eventDateBadge}>
-          <Text style={styles.eventDateText}>{dateInfo.day}</Text>
-          <Text style={styles.eventMonthText}>{dateInfo.month}</Text>
+        <View
+          style={[
+            styles.eventDateBadge,
+            { backgroundColor: colors.primaryBg },
+          ]}
+        >
+          <Text style={[styles.eventDateText, { color: colors.primary }]}>
+            {dateInfo.day}
+          </Text>
+          <Text style={[styles.eventMonthText, { color: colors.primary }]}>
+            {dateInfo.month}
+          </Text>
         </View>
 
         <View style={styles.eventInfo}>
-          <Text style={styles.eventTitle} numberOfLines={1}>
+          <Text
+            style={[styles.eventTitle, { color: colors.textPrimary }]}
+            numberOfLines={1}
+          >
             {event.name}
           </Text>
           <View style={styles.eventMeta}>
-            <Ionicons name="time-outline" size={14} color="#6080A8" />
-            <Text style={styles.eventMetaText}>
+            <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+            <Text style={[styles.eventMetaText, { color: colors.textSecondary }]}>
               {event.startTime} • {event.duration || '—'}
             </Text>
             <Ionicons
               name="people-outline"
               size={14}
-              color="#6080A8"
+              color={colors.textSecondary}
               style={{ marginLeft: 12 }}
             />
-            <Text style={styles.eventMetaText}>
+            <Text style={[styles.eventMetaText, { color: colors.textSecondary }]}>
               {players}/{maxPlayers}
             </Text>
           </View>
         </View>
 
-        <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
+        <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
       </Pressable>
     );
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Photo slider */}
         <View style={styles.imageContainer}>
           <PhotoSlider
             key={photosList.join('|')}
@@ -232,35 +253,46 @@ export default function GroundDetailScreen() {
           />
 
           <View style={[styles.headerOverlay, { top: insets.top + 12 }]}>
-            <Pressable onPress={handleBack} style={styles.iconButton} hitSlop={8}>
-              <Ionicons name="chevron-back" size={22} color="#334A77" />
+            <Pressable
+              onPress={handleBack}
+              style={[styles.iconButton, { backgroundColor: colors.surface }]}
+              hitSlop={8}
+            >
+              <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
             </Pressable>
             <View style={styles.headerRight}>
               {canEdit && (
                 <Pressable
                   onPress={() => router.push(`/ground/edit?id=${ground.id}`)}
-                  style={[styles.iconButton, { marginRight: 8 }]}
+                  style={[
+                    styles.iconButton,
+                    { marginRight: 8, backgroundColor: colors.surface },
+                  ]}
                   hitSlop={8}
                 >
-                  <Ionicons name="create-outline" size={22} color="#334A77" />
+                  <Ionicons
+                    name="create-outline"
+                    size={22}
+                    color={colors.textPrimary}
+                  />
                 </Pressable>
               )}
               <Pressable
                 onPress={() => toggleFavorite(ground.id)}
-                style={styles.iconButton}
+                style={[styles.iconButton, { backgroundColor: colors.surface }]}
                 hitSlop={8}
               >
                 <Ionicons
                   name={ground.isFavorite ? 'heart' : 'heart-outline'}
                   size={22}
-                  color={ground.isFavorite ? '#FF3B30' : '#334A77'}
+                  color={ground.isFavorite ? colors.danger : colors.textPrimary}
                 />
               </Pressable>
             </View>
           </View>
 
           {ground.confirmed === false && (
-            <View style={styles.pendingBadge}>
+            <View style={[styles.pendingBadge, { backgroundColor: colors.warning }]}>
               <Ionicons name="time-outline" size={12} color="#FFFFFF" />
               <Text style={styles.pendingBadgeText}>
                 {t('grounds.pendingLong')}
@@ -270,7 +302,6 @@ export default function GroundDetailScreen() {
         </View>
 
         <View style={styles.contentContainer}>
-          {/* Sports */}
           <View style={styles.sportsRow}>
             {sportsList.length > 0 ? (
               sportsList.map((sportId) => {
@@ -291,15 +322,19 @@ export default function GroundDetailScreen() {
                 );
               })
             ) : (
-              <View style={[styles.sportBadge, { backgroundColor: '#F0F4F8' }]}>
-                <Text style={[styles.sportText, { color: '#6080A8' }]}>
+              <View
+                style={[
+                  styles.sportBadge,
+                  { backgroundColor: colors.surfaceSecondary },
+                ]}
+              >
+                <Text style={[styles.sportText, { color: colors.textSecondary }]}>
                   {t('sport.all').toUpperCase()}
                 </Text>
               </View>
             )}
           </View>
 
-          {/* Rating → reviews */}
           <Pressable
             style={styles.ratingBlock}
             onPress={() =>
@@ -313,37 +348,51 @@ export default function GroundDetailScreen() {
             <Ionicons name="star" size={16} color="#FFCC00" />
             {hasReviews ? (
               <>
-                <Text style={styles.ratingText}>
+                <Text style={[styles.ratingText, { color: colors.textPrimary }]}>
                   {reviewStats.avgRating.toFixed(1)}{' '}
-                  <Text style={styles.reviewsText}>
+                  <Text style={[styles.reviewsText, { color: colors.textTertiary }]}>
                     ({reviewStats.totalReviews})
                   </Text>
                 </Text>
-                <Text style={styles.seeAllText}>{t('reviews.seeAll')}</Text>
+                <Text style={[styles.seeAllText, { color: colors.primary }]}>
+                  {t('reviews.seeAll')}
+                </Text>
               </>
             ) : (
-              <Text style={styles.noReviewsText}>
+              <Text style={[styles.noReviewsText, { color: colors.primary }]}>
                 {t('reviews.noReviewsYet')}
               </Text>
             )}
             <Ionicons
               name="chevron-forward"
               size={14}
-              color="#BACAD6"
+              color={colors.textTertiary}
               style={{ marginLeft: 4 }}
             />
           </Pressable>
 
-          <Text style={styles.title}>{ground.name}</Text>
-          <Text style={styles.address}>
-            <Ionicons name="location-outline" size={14} color="#6080A8" />{' '}
+          <Text style={[styles.title, { color: colors.textPrimary }]}>
+            {ground.name}
+          </Text>
+          <Text style={[styles.address, { color: colors.textSecondary }]}>
+            <Ionicons
+              name="location-outline"
+              size={14}
+              color={colors.textSecondary}
+            />{' '}
             {ground.address || t('grounds.noAddress')}
           </Text>
 
           <View style={styles.mapRow}>
             {hasCoordinates ? (
               <Pressable
-                style={styles.showOnMapButton}
+                style={[
+                  styles.showOnMapButton,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                  },
+                ]}
                 onPress={() =>
                   navigateToGroundOnMap(
                     ground.geolocation!.lat,
@@ -351,8 +400,8 @@ export default function GroundDetailScreen() {
                   )
                 }
               >
-                <Ionicons name="map-outline" size={16} color="#208AEF" />
-                <Text style={styles.showOnMapText}>
+                <Ionicons name="map-outline" size={16} color={colors.primary} />
+                <Text style={[styles.showOnMapText, { color: colors.primary }]}>
                   {t('groundDetail.showOnMap')}
                 </Text>
               </Pressable>
@@ -360,21 +409,39 @@ export default function GroundDetailScreen() {
               <View />
             )}
             <View style={styles.distanceBlock}>
-              <Ionicons name="navigate-outline" size={14} color="#6080A8" />
-              <Text style={styles.distanceText}>{displayDistance}</Text>
+              <Ionicons
+                name="navigate-outline"
+                size={14}
+                color={colors.textSecondary}
+              />
+              <Text style={[styles.distanceText, { color: colors.textSecondary }]}>
+                {displayDistance}
+              </Text>
             </View>
           </View>
 
           {surfacesList.length > 0 && (
             <>
-              <Text style={styles.sectionTitle}>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
                 {t('groundDetail.surface')}
               </Text>
               <View style={styles.surfacesWrap}>
                 {surfacesList.map((cov, idx) => (
-                  <View key={`${cov}-${idx}`} style={styles.surfaceChip}>
-                    <Ionicons name="layers-outline" size={13} color="#208AEF" />
-                    <Text style={styles.surfaceChipText}>
+                  <View
+                    key={`${cov}-${idx}`}
+                    style={[
+                      styles.surfaceChip,
+                      { backgroundColor: colors.primaryBg },
+                    ]}
+                  >
+                    <Ionicons
+                      name="layers-outline"
+                      size={13}
+                      color={colors.primary}
+                    />
+                    <Text
+                      style={[styles.surfaceChipText, { color: colors.textPrimary }]}
+                    >
                       {t(getSurfaceKey(cov))}
                     </Text>
                   </View>
@@ -383,30 +450,42 @@ export default function GroundDetailScreen() {
             </>
           )}
 
-          <Text style={styles.sectionTitle}>{t('groundDetail.about')}</Text>
-          <Text style={styles.description}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+            {t('groundDetail.about')}
+          </Text>
+          <Text style={[styles.description, { color: colors.textSecondary }]}>
             {ground.description || t('groundDetail.noDescription')}
           </Text>
 
-          <Text style={styles.sectionTitle}>{t('groundForm.amenities')}</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+            {t('groundForm.amenities')}
+          </Text>
           {amenitiesList.length > 0 ? (
             <View style={styles.amenitiesContainer}>
               {amenitiesList.map((amenity, idx) => (
-                <View key={`${amenity}-${idx}`} style={styles.amenityChip}>
+                <View
+                  key={`${amenity}-${idx}`}
+                  style={[
+                    styles.amenityChip,
+                    { backgroundColor: colors.primaryBg },
+                  ]}
+                >
                   <Ionicons
                     name={getAmenityIcon(amenity) as any}
                     size={14}
-                    color="#208AEF"
+                    color={colors.primary}
                     style={{ marginRight: 6 }}
                   />
-                  <Text style={styles.amenityText}>
+                  <Text
+                    style={[styles.amenityText, { color: colors.textPrimary }]}
+                  >
                     {t(getAmenityKey(amenity))}
                   </Text>
                 </View>
               ))}
             </View>
           ) : (
-            <Text style={styles.emptyAmenities}>
+            <Text style={[styles.emptyAmenities, { color: colors.textTertiary }]}>
               {t('groundDetail.noAmenities')}
             </Text>
           )}
@@ -414,11 +493,11 @@ export default function GroundDetailScreen() {
           {activeEvents.length > 0 && (
             <>
               <View style={styles.sectionHeaderRow}>
-                <View style={styles.liveDot} />
+                <View style={[styles.liveDot, { backgroundColor: colors.accent }]} />
                 <Text
                   style={[
                     styles.sectionTitle,
-                    { marginBottom: 0, marginTop: 0 },
+                    { marginBottom: 0, marginTop: 0, color: colors.textPrimary },
                   ]}
                 >
                   {t('groundDetail.liveNow', { count: activeEvents.length })}
@@ -430,7 +509,7 @@ export default function GroundDetailScreen() {
             </>
           )}
 
-          <Text style={styles.sectionTitle}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
             {t('groundDetail.upcomingEvents', {
               count: upcomingEvents.length,
             })}
@@ -438,7 +517,7 @@ export default function GroundDetailScreen() {
           {upcomingEvents.length > 0 ? (
             upcomingEvents.map(renderEventCard)
           ) : (
-            <Text style={styles.emptyEvents}>
+            <Text style={[styles.emptyEvents, { color: colors.textTertiary }]}>
               {t('groundDetail.noUpcoming')}
             </Text>
           )}
@@ -446,24 +525,29 @@ export default function GroundDetailScreen() {
           {pastEvents.length > 0 && (
             <>
               <Pressable
-                style={styles.historyToggle}
+                style={[
+                  styles.historyToggle,
+                  { backgroundColor: colors.surfaceSecondary },
+                ]}
                 onPress={() => setShowHistory((v) => !v)}
               >
                 <View style={styles.historyToggleLeft}>
                   <Ionicons
                     name="time-outline"
                     size={18}
-                    color="#6080A8"
+                    color={colors.textSecondary}
                     style={{ marginRight: 8 }}
                   />
-                  <Text style={styles.historyToggleText}>
+                  <Text
+                    style={[styles.historyToggleText, { color: colors.textSecondary }]}
+                  >
                     {t('groundDetail.history', { count: pastEvents.length })}
                   </Text>
                 </View>
                 <Ionicons
                   name={showHistory ? 'chevron-up' : 'chevron-down'}
                   size={18}
-                  color="#6080A8"
+                  color={colors.textSecondary}
                 />
               </Pressable>
 
@@ -477,9 +561,24 @@ export default function GroundDetailScreen() {
         </View>
       </ScrollView>
 
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
+      <View
+        style={[
+          styles.bottomBar,
+          {
+            paddingBottom: insets.bottom + 12,
+            backgroundColor: colors.background,
+            borderTopColor: colors.border,
+          },
+        ]}
+      >
         <Pressable
-          style={styles.createEventButton}
+          style={[
+            styles.createEventButton,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.primary,
+            },
+          ]}
           onPress={() => {
             if (user) {
               router.push({
@@ -504,10 +603,10 @@ export default function GroundDetailScreen() {
           <Ionicons
             name="calendar-outline"
             size={18}
-            color="#208AEF"
+            color={colors.primary}
             style={{ marginRight: 8 }}
           />
-          <Text style={styles.createEventButtonText}>
+          <Text style={[styles.createEventButtonText, { color: colors.primary }]}>
             {t('groundDetail.createEventButton')}
           </Text>
         </Pressable>
@@ -517,7 +616,7 @@ export default function GroundDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1 },
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   imageContainer: { width: '100%', height: 260, position: 'relative' },
   headerOverlay: {
@@ -533,11 +632,10 @@ const styles = StyleSheet.create({
   iconButton: {
     width: 40,
     height: 40,
-    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#334A77',
+    shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -549,7 +647,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#FF8000',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 10,
@@ -577,12 +674,12 @@ const styles = StyleSheet.create({
     gap: 4,
     marginBottom: 8,
   },
-  ratingText: { fontSize: 14, fontWeight: '700', color: '#334A77' },
-  reviewsText: { color: '#BACAD6', fontWeight: '400' },
-  seeAllText: { fontSize: 13, color: '#208AEF', fontWeight: '600' },
-  noReviewsText: { fontSize: 13, color: '#208AEF', fontWeight: '600' },
-  title: { fontSize: 24, fontWeight: '800', color: '#334A77', marginTop: 4 },
-  address: { fontSize: 14, color: '#6080A8', marginTop: 4 },
+  ratingText: { fontSize: 14, fontWeight: '700' },
+  reviewsText: { fontWeight: '400' },
+  seeAllText: { fontSize: 13, fontWeight: '600' },
+  noReviewsText: { fontSize: 13, fontWeight: '600' },
+  title: { fontSize: 24, fontWeight: '800', marginTop: 4 },
+  address: { fontSize: 14, marginTop: 4 },
   mapRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -598,16 +695,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
-    backgroundColor: '#FFFFFF',
   },
-  showOnMapText: { fontSize: 13, fontWeight: '600', color: '#208AEF' },
+  showOnMapText: { fontSize: 13, fontWeight: '600' },
   distanceBlock: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  distanceText: { fontSize: 13, fontWeight: '600', color: '#6080A8' },
+  distanceText: { fontSize: 13, fontWeight: '600' },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#334A77',
     marginTop: 24,
     marginBottom: 12,
   },
@@ -618,35 +712,31 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 12,
   },
-  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#27AE60' },
-  description: { fontSize: 14, color: '#6080A8', lineHeight: 20 },
+  liveDot: { width: 8, height: 8, borderRadius: 4 },
+  description: { fontSize: 14, lineHeight: 20 },
   surfacesWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   surfaceChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#F0F6FC',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
   },
-  surfaceChipText: { fontSize: 13, color: '#334A77', fontWeight: '500' },
+  surfaceChipText: { fontSize: 13, fontWeight: '500' },
   amenitiesContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   amenityChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0F6FC',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
   },
-  amenityText: { fontSize: 13, color: '#334A77', fontWeight: '500' },
-  emptyAmenities: { fontSize: 13, color: '#BACAD6', fontStyle: 'italic' },
+  amenityText: { fontSize: 13, fontWeight: '500' },
+  emptyAmenities: { fontSize: 13, fontStyle: 'italic' },
   eventCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     padding: 12,
     marginBottom: 10,
@@ -655,20 +745,18 @@ const styles = StyleSheet.create({
   eventDateBadge: {
     width: 44,
     height: 44,
-    backgroundColor: '#EBF3FF',
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  eventDateText: { fontSize: 16, fontWeight: '800', color: '#208AEF' },
-  eventMonthText: { fontSize: 9, fontWeight: '700', color: '#208AEF' },
+  eventDateText: { fontSize: 16, fontWeight: '800' },
+  eventMonthText: { fontSize: 9, fontWeight: '700' },
   eventInfo: { flex: 1, marginLeft: 12 },
-  eventTitle: { fontSize: 14, fontWeight: '600', color: '#334A77' },
+  eventTitle: { fontSize: 14, fontWeight: '600' },
   eventMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  eventMetaText: { fontSize: 12, color: '#6080A8', marginLeft: 4 },
+  eventMetaText: { fontSize: 12, marginLeft: 4 },
   emptyEvents: {
     fontSize: 14,
-    color: '#BACAD6',
     fontStyle: 'italic',
     marginTop: 4,
   },
@@ -678,22 +766,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 14,
     paddingHorizontal: 12,
-    backgroundColor: '#F8FAFC',
     borderRadius: 12,
     marginTop: 24,
   },
   historyToggleLeft: { flexDirection: 'row', alignItems: 'center' },
-  historyToggleText: { fontSize: 14, fontWeight: '700', color: '#6080A8' },
+  historyToggleText: { fontSize: 14, fontWeight: '700' },
   bottomBar: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#E6F4FE',
     zIndex: 99,
   },
   createEventButton: {
@@ -701,11 +786,9 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#208AEF',
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
   },
-  createEventButtonText: { color: '#208AEF', fontSize: 15, fontWeight: '600' },
+  createEventButtonText: { fontSize: 15, fontWeight: '600' },
 });

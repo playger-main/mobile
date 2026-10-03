@@ -40,6 +40,7 @@ import {
   DEFAULT_CITY_CENTER,
 } from '@/constants/location';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface MapComponentProps {
   region: {
@@ -109,6 +110,7 @@ export default function MapComponent({
 }: MapComponentProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const { theme, colors } = useTheme();
   const events = useUnit($events);
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
@@ -125,12 +127,10 @@ export default function MapComponent({
 
   const initialCenteringDoneRef = useRef(false);
 
-  // ✅ Автозапрос локации при монтировании
   useEffect(() => {
     (async () => {
       try {
         const status = await checkLocationPermissionFx();
-
         if (status === 'denied') {
           Alert.alert(
             t('location.accessTitle'),
@@ -156,13 +156,10 @@ export default function MapComponent({
         if (result?.location) {
           detectCityFx(result.location);
         }
-      } catch {
-        // ignore
-      }
+      } catch {}
     })();
   }, []);
 
-  // ✅ Стартовое центрирование: userLocation → cityCenter
   useEffect(() => {
     if (initialCenteringDoneRef.current) return;
 
@@ -205,7 +202,6 @@ export default function MapComponent({
     return () => clearTimeout(fallbackTimer);
   }, [userLocation, cityCenter]);
 
-  // ✅ Реакция на фокус (переход с другого экрана)
   useEffect(() => {
     if (!mapFocusTarget) return;
 
@@ -228,7 +224,6 @@ export default function MapComponent({
     return () => clearTimeout(timer);
   }, [mapFocusTarget]);
 
-  // ✅ Центрирование по кнопке
   const handleLocatePress = useCallback(async () => {
     setIsLocating(true);
     try {
@@ -288,7 +283,6 @@ export default function MapComponent({
     }
   }, [cityCenter]);
 
-  // 1. Готовим "сырые" маркеры
   const rawMarkers: (GroundMapMarker & { raw: ExtendedGroundItem })[] = useMemo(() => {
     return grounds
       .filter((g) => g.geolocation?.lat && g.geolocation?.lng)
@@ -313,7 +307,6 @@ export default function MapComponent({
       });
   }, [grounds, events]);
 
-  // 2. Supercluster
   const supercluster = useMemo(() => {
     const index = new Supercluster({
       radius: 60,
@@ -338,7 +331,6 @@ export default function MapComponent({
     return index;
   }, [rawMarkers]);
 
-  // 3. Кластеры для текущего региона
   const clusters = useMemo(() => {
     const zoom = Math.round(
       Math.log2(360 / Math.max(currentRegion.latitudeDelta, 0.0001)),
@@ -353,7 +345,6 @@ export default function MapComponent({
     return supercluster.getClusters(bbox, zoom);
   }, [supercluster, currentRegion]);
 
-  // 4. Клик по одиночному маркеру
   const handleMarkerPress = useCallback(
     (marker: GroundMapMarker & { raw: ExtendedGroundItem }) => {
       if (onMarkerPress) {
@@ -365,7 +356,6 @@ export default function MapComponent({
     [onMarkerPress, router],
   );
 
-  // 5. Клик по кластеру
   const handleClusterPress = useCallback(
     (clusterId: number) => {
       const leaves = supercluster.getLeaves(clusterId, Infinity) as ClusterPoint[];
@@ -444,6 +434,7 @@ export default function MapComponent({
         showsUserLocation={true}
         showsMyLocationButton={false}
         toolbarEnabled={false}
+        userInterfaceStyle={theme === 'dark' ? 'dark' : 'light'}
       >
         {clusters.map((feature: any) => {
           const [longitude, latitude] = feature.geometry.coordinates;
@@ -483,13 +474,14 @@ export default function MapComponent({
         })}
       </MapView>
 
-      {/* Кнопка «Моё местоположение» — в правом ВЕРХНЕМ углу */}
       <Pressable
         style={({ pressed }) => [
           styles.locateButton,
           {
             top: topOffset,
             opacity: pressed ? 0.7 : 1,
+            backgroundColor: colors.surface,
+            shadowColor: colors.shadow,
           },
         ]}
         onPress={handleLocatePress}
@@ -498,7 +490,7 @@ export default function MapComponent({
         <Ionicons
           name={isLocating ? 'hourglass-outline' : 'locate'}
           size={22}
-          color="#208AEF"
+          color={colors.primary}
         />
       </Pressable>
 
@@ -524,10 +516,8 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#334A77',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,

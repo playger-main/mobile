@@ -40,12 +40,14 @@ import {
 } from '@/utils/eventStatus';
 
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { theme, colors } = useTheme();
 
   const { event, isLoading, userSession, toggleJoin, isJoining } = useUnit({
     event: $currentEvent,
@@ -101,8 +103,10 @@ export default function EventDetailScreen() {
 
   if (isLoading || !event) {
     return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#208AEF" />
+      <View
+        style={[styles.loaderContainer, { backgroundColor: colors.listBackground }]}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -136,37 +140,71 @@ export default function EventDetailScreen() {
   const playersList = Array.isArray(event.players) ? [...event.players] : [];
 
   let buttonText = t('event.detail.join');
-  let buttonStyle = [styles.joinButton, styles.primaryJoinBg];
+  let buttonStyle: any[] = [
+    styles.joinButton,
+    { backgroundColor: colors.primaryDark },
+  ];
+  let buttonTextColor: string | undefined = '#FFFFFF';
   let buttonDisabled = false;
 
   if (isFinished) {
     buttonText = t('event.detail.finished');
-    buttonStyle = [styles.joinButton, styles.disabledBtnBg];
+    buttonStyle = [
+      styles.joinButton,
+      { backgroundColor: colors.disabledBg },
+    ];
+    buttonTextColor = colors.textTertiary;
     buttonDisabled = true;
   } else if (isJoined) {
     buttonText = t('event.detail.leave');
-    buttonStyle = [styles.joinButton, styles.leaveBtnBg];
+    buttonStyle = [
+      styles.joinButton,
+      {
+        backgroundColor: colors.surface,
+        borderWidth: 1,
+        borderColor: colors.danger,
+      },
+    ];
+    buttonTextColor = colors.danger;
   } else if (isFull) {
     buttonText = t('event.detail.full');
-    buttonStyle = [styles.joinButton, styles.disabledBtnBg];
+    buttonStyle = [
+      styles.joinButton,
+      { backgroundColor: colors.disabledBg },
+    ];
+    buttonTextColor = colors.textTertiary;
     buttonDisabled = true;
   }
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={[styles.customHeader, { paddingTop: insets.top + 6 }]}>
+    <View style={[styles.container, { backgroundColor: colors.listBackground }]}>
+      <View
+        style={[
+          styles.customHeader,
+          {
+            paddingTop: insets.top + 6,
+            backgroundColor: colors.background,
+            borderColor: colors.borderSubtle,
+          },
+        ]}
+      >
         <Pressable onPress={handleBack} style={styles.backButton} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color="#208AEF" />
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </Pressable>
-        <Text style={styles.headerTitle}>{t('event.detail.header')}</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+          {t('event.detail.header')}
+        </Text>
         {canEdit ? (
           <Pressable
             onPress={() => router.push(`/event/edit?id=${event.id}`)}
             style={styles.editButton}
             hitSlop={12}
           >
-            <Ionicons name="create-outline" size={22} color="#208AEF" />
+            <Ionicons
+              name="create-outline"
+              size={22}
+              color={colors.primary}
+            />
           </Pressable>
         ) : (
           <View style={{ width: 24 }} />
@@ -181,16 +219,15 @@ export default function EventDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.badgesRow}>
-          {sportsList.length > 0 ? (            
+          {sportsList.length > 0 ? (
             sportsList.slice(0, 4).map((sportId, idx) => {
-              const style = getBadgeStyle(sportId);
+              const style = getBadgeStyle(sportId, theme);
               const label = t(getSportKey(sportId));
               return (
                 <View
                   key={`${sportId}-${idx}`}
                   style={[styles.sportBadge, { backgroundColor: style.bg }]}
                 >
-                  ...
                   <Text style={[styles.sportText, { color: style.text }]}>
                     {label.toUpperCase()}
                   </Text>
@@ -198,16 +235,28 @@ export default function EventDetailScreen() {
               );
             })
           ) : (
-            <View style={[styles.sportBadge, { backgroundColor: '#F0F4F8' }]}>
-              <Text style={[styles.sportText, { color: '#6080A8' }]}>
+            <View
+              style={[
+                styles.sportBadge,
+                { backgroundColor: colors.surfaceSecondary },
+              ]}
+            >
+              <Text style={[styles.sportText, { color: colors.textSecondary }]}>
                 {t('sport.all').toUpperCase()}
               </Text>
             </View>
           )}
 
           {sportsList.length > 4 && (
-            <View style={styles.moreBadge}>
-              <Text style={styles.moreBadgeText}>
+            <View
+              style={[
+                styles.moreBadge,
+                { backgroundColor: colors.surfaceSecondary },
+              ]}
+            >
+              <Text
+                style={[styles.moreBadgeText, { color: colors.textSecondary }]}
+              >
                 +{sportsList.length - 4}
               </Text>
             </View>
@@ -222,11 +271,19 @@ export default function EventDetailScreen() {
           </View>
         </View>
 
-        <Text style={styles.title}>{event.name}</Text>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>
+          {event.name}
+        </Text>
 
         {event.creator && (
           <Pressable
-            style={styles.hostCard}
+            style={[
+              styles.hostCard,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
+            ]}
             onPress={() =>
               router.push({
                 pathname: '/user/[id]',
@@ -242,10 +299,18 @@ export default function EventDetailScreen() {
               <Image
                 key={event.creator.avatar}
                 source={{ uri: event.creator.avatar }}
-                style={styles.hostAvatarImage}
+                style={[
+                  styles.hostAvatarImage,
+                  { backgroundColor: colors.surfaceSecondary },
+                ]}
               />
             ) : (
-              <View style={styles.hostAvatar}>
+              <View
+                style={[
+                  styles.hostAvatar,
+                  { backgroundColor: colors.primary },
+                ]}
+              >
                 <Text style={styles.hostAvatarText}>
                   {event.creator.name?.charAt(0).toUpperCase() || '?'}
                 </Text>
@@ -253,12 +318,23 @@ export default function EventDetailScreen() {
             )}
 
             <View style={{ flex: 1 }}>
-              <Text style={styles.hostLabel}>{t('event.detail.hostedBy')}</Text>
-              <Text style={styles.hostName} numberOfLines={1}>
+              <Text
+                style={[styles.hostLabel, { color: colors.textTertiary }]}
+              >
+                {t('event.detail.hostedBy')}
+              </Text>
+              <Text
+                style={[styles.hostName, { color: colors.textPrimary }]}
+                numberOfLines={1}
+              >
                 {event.creator.name || 'User'}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color={colors.textTertiary}
+            />
           </Pressable>
         )}
 
@@ -266,7 +342,7 @@ export default function EventDetailScreen() {
           date={event.date}
           startTime={event.startTime}
           duration={event.duration || '60m'}
-          level={event.level || 'all'}   // ✅ было 'Intermediate'
+          level={event.level || 'all'}
           currentPlayers={currentPlayers}
           maxPlayers={maxPlayers}
           status={status}
@@ -286,15 +362,27 @@ export default function EventDetailScreen() {
           longitude={event.ground?.geolocation?.lng}
         />
 
-        <Text style={styles.sectionTitle}>{t('event.detail.details')}</Text>
-        <Text style={styles.descriptionText}>
+        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+          {t('event.detail.details')}
+        </Text>
+        <Text style={[styles.descriptionText, { color: colors.textSecondary }]}>
           {event.description || t('event.detail.noDetails')}
         </Text>
       </ScrollView>
 
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
+      <View
+        style={[
+          styles.bottomBar,
+          {
+            paddingBottom: insets.bottom + 12,
+            backgroundColor: colors.background,
+            borderColor: colors.borderSubtle,
+            shadowColor: colors.shadow,
+          },
+        ]}
+      >
         <Pressable
-          style={[buttonStyle, isJoining && styles.disabledBtnBg]}
+          style={[buttonStyle, isJoining && { backgroundColor: colors.disabledBg }]}
           onPress={handleJoinToggleAction}
           disabled={isJoining || buttonDisabled}
         >
@@ -302,7 +390,10 @@ export default function EventDetailScreen() {
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
             <Text
-              style={[styles.joinButtonText, isJoined && styles.leaveBtnText]}
+              style={[
+                styles.joinButtonText,
+                { color: buttonTextColor },
+              ]}
             >
               {buttonText}
             </Text>
@@ -333,7 +424,7 @@ export default function EventDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1 },
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   customHeader: {
     flexDirection: 'row',
@@ -342,13 +433,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderColor: '#F0F6FC',
   },
   backButton: { padding: 4 },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
   editButton: { padding: 4 },
   scrollContent: { paddingHorizontal: 16, paddingTop: 16 },
-
   badgesRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -363,37 +452,30 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
   },
-  sportDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   sportText: { fontSize: 11, fontWeight: '700' },
   moreBadge: {
-    backgroundColor: '#F0F6FC',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
   },
-  moreBadgeText: { fontSize: 11, fontWeight: '700', color: '#6080A8' },
+  moreBadgeText: { fontSize: 11, fontWeight: '700' },
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
   },
   statusText: { fontSize: 11, fontWeight: '700' },
-
   title: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#334A77',
     marginBottom: 12,
   },
-
   hostCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     padding: 12,
-    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     marginBottom: 20,
   },
@@ -401,7 +483,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#006EE6',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -409,38 +490,32 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F0F4F8',
   },
   hostAvatarText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 },
-  hostLabel: { fontSize: 11, color: '#BACAD6', fontWeight: '500' },
-  hostName: { fontSize: 14, color: '#334A77', fontWeight: '700', marginTop: 1 },
-
+  hostLabel: { fontSize: 11, fontWeight: '500' },
+  hostName: { fontSize: 14, fontWeight: '700', marginTop: 1 },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#334A77',
     marginBottom: 8,
   },
-  descriptionText: { fontSize: 14, color: '#6080A8', lineHeight: 20 },
+  descriptionText: { fontSize: 14, lineHeight: 20 },
   bottomBar: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderColor: '#F0F6FC',
     ...Platform.select({
       ios: {
-        shadowColor: '#334A77',
         shadowOpacity: 0.05,
         shadowRadius: 4,
         shadowOffset: { width: 0, height: -2 },
       },
       android: { elevation: 8 },
-      web: { boxShadow: '0px -2px 6px rgba(51, 74, 119, 0.03)' },
+      web: { boxShadow: '0px -2px 6px rgba(0, 0, 0, 0.15)' },
     }),
   },
   joinButton: {
@@ -450,13 +525,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  primaryJoinBg: { backgroundColor: '#208AEF' },
-  leaveBtnBg: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#FF3B30',
-  },
-  disabledBtnBg: { backgroundColor: '#BACAD6' },
-  joinButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
-  leaveBtnText: { color: '#FF3B30' },
+  joinButtonText: { fontSize: 15, fontWeight: '700' },
 });

@@ -8,6 +8,7 @@ import { useNavigation } from 'expo-router';
 import { DrawerActions } from 'expo-router/react-navigation';
 
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface SearchGroundsProps {
   value: string;
@@ -17,6 +18,7 @@ interface SearchGroundsProps {
 export default function SearchGrounds({ value, onChangeText }: SearchGroundsProps) {
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   return (
     <SafeAreaView style={styles.outerWrapper} edges={[]}>
@@ -24,23 +26,35 @@ export default function SearchGrounds({ value, onChangeText }: SearchGroundsProp
         onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
         style={({ pressed }) => [
           styles.menuButton,
-          { opacity: pressed ? 0.7 : 1 },
+          {
+            backgroundColor: colors.surface,
+            shadowColor: colors.shadow,
+            opacity: pressed ? 0.7 : 1,
+          },
         ]}
       >
-        <Ionicons name="menu-outline" size={24} color="#334A77" />
+        <Ionicons name="menu-outline" size={24} color={colors.textPrimary} />
       </Pressable>
 
-      <View style={styles.searchContainer}>
+      <View
+        style={[
+          styles.searchContainer,
+          {
+            backgroundColor: colors.surface,
+            shadowColor: colors.shadow,
+          },
+        ]}
+      >
         <Ionicons
           name="search-outline"
           size={20}
-          color="#6080A8"
+          color={colors.textSecondary}
           style={styles.searchIcon}
         />
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: colors.textPrimary }]}
           placeholder={t('grounds.searchPlaceholder')}
-          placeholderTextColor="#6080A8"
+          placeholderTextColor={colors.textTertiary}
           value={value}
           onChangeText={onChangeText}
         />
@@ -60,11 +74,9 @@ const styles = StyleSheet.create({
   menuButton: {
     width: 48,
     height: 48,
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -74,11 +86,9 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     paddingHorizontal: 14,
     height: 48,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -88,7 +98,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
-    color: '#334A77',
     fontWeight: '400',
   },
 });

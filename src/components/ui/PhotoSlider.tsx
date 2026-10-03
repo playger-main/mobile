@@ -11,11 +11,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTheme } from '@/hooks/useTheme';
+
 interface PhotoSliderProps {
   photos: string[];
-  /** ✅ Индекс главного фото (аватара) — отмечается зелёной точкой */
   mainIndex?: number;
-  /** Стартовый слайд */
   initialIndex?: number;
   height?: number;
   placeholder?: React.ReactNode;
@@ -29,6 +29,7 @@ export default function PhotoSlider({
   placeholder,
 }: PhotoSliderProps) {
   const { width } = useWindowDimensions();
+  const { colors } = useTheme();
   const scrollRef = useRef<ScrollView | null>(null);
   const safeIndex = Math.max(0, Math.min(initialIndex, photos.length - 1));
   const [currentIndex, setCurrentIndex] = useState(safeIndex);
@@ -43,9 +44,18 @@ export default function PhotoSlider({
 
   if (photos.length === 0) {
     return (
-      <View style={[styles.placeholderWrap, { height }]}>
+      <View
+        style={[
+          styles.placeholderWrap,
+          { height, backgroundColor: colors.surfaceSecondary },
+        ]}
+      >
         {placeholder ?? (
-          <Ionicons name="image-outline" size={48} color="#BACAD6" />
+          <Ionicons
+            name="image-outline"
+            size={48}
+            color={colors.textTertiary}
+          />
         )}
       </View>
     );
@@ -77,17 +87,18 @@ export default function PhotoSlider({
             const isCurrent = i === currentIndex;
             const isMain = i === mainIndex && !isCurrent;
 
-            // ✅ Логика цвета:
-            //   current        → синяя
-            //   main (не current) → зелёная
-            //   остальные      → светло-серая
-            const dotStyle = isCurrent
-              ? styles.dotCurrent
+            const bg = isCurrent
+              ? '#208AEF'
               : isMain
-                ? styles.dotMain
-                : styles.dotDefault;
+                ? '#27AE60'
+                : 'rgba(0, 0, 0, 0.35)';
 
-            return <View key={i} style={[styles.dot, dotStyle]} />;
+            return (
+              <View
+                key={i}
+                style={[styles.dot, { backgroundColor: bg }]}
+              />
+            );
           })}
         </View>
       )}
@@ -95,14 +106,13 @@ export default function PhotoSlider({
   );
 }
 
-const DOT_SIZE = 10;
+const DOT_SIZE = 8;
 
 const styles = StyleSheet.create({
   placeholderWrap: {
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F0F4F8',
   },
   dotsRow: {
     position: 'absolute',
@@ -117,21 +127,12 @@ const styles = StyleSheet.create({
     width: DOT_SIZE,
     height: DOT_SIZE,
     borderRadius: DOT_SIZE / 2,
-    // ✅ Единая обводка, чтобы точки на светлом фоне фото были заметны
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.9)',
-  },
-  dotDefault: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-  },
-  dotCurrent: {
-    // ✅ Синяя — текущий слайд
-    backgroundColor: '#208AEF',
+    borderWidth: 1.5,
     borderColor: '#FFFFFF',
-  },
-  dotMain: {
-    // ✅ Зелёная — главное фото (когда оно НЕ текущее)
-    backgroundColor: '#27AE60',
-    borderColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.4,
+    shadowRadius: 2,
+    elevation: 2,
   },
 });

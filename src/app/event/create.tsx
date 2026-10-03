@@ -25,11 +25,13 @@ import { $grounds, fetchGroundsFx } from '@/effector/store';
 import GroundPickerModal from '@/components/ui/GroundPickerModal';
 import { useTranslation } from '@/i18n';
 import { SKILL_LEVELS, getSkillLevelKey } from '@/constants/skillLevels';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function CreateEventScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
+  const { theme, colors } = useTheme();
   const { groundId: initialGroundId } = useLocalSearchParams<{ groundId: string }>();
 
   const grounds = useUnit($grounds);
@@ -41,7 +43,7 @@ export default function CreateEventScreen() {
   );
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
-  const [skillLevel, setSkillLevel] = useState<string>('all'); 
+  const [skillLevel, setSkillLevel] = useState<string>('all');
   const [playersNeeded, setPlayersNeeded] = useState(10);
   const [duration, setDuration] = useState(90);
   const [description, setDescription] = useState('');
@@ -110,7 +112,6 @@ export default function CreateEventScreen() {
     setSelectedGroundId(ground.id);
     setShowGroundPicker(false);
   };
- 
 
   const handlePublish = async () => {
     Keyboard.dismiss();
@@ -174,15 +175,28 @@ export default function CreateEventScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.listBackground }]}
     >
-      <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: insets.top + 6,
+            backgroundColor: colors.background,
+            borderColor: colors.borderSubtle,
+          },
+        ]}
+      >
         <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color="#006EE6" />
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>{t('events.create.title')}</Text>
-          <Text style={styles.headerSubtitle}>{t('events.create.subtitle')}</Text>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+            {t('events.create.title')}
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textTertiary }]}>
+            {t('events.create.subtitle')}
+          </Text>
         </View>
         <View style={{ width: 32 }} />
       </View>
@@ -193,54 +207,85 @@ export default function CreateEventScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 120 }]}
       >
-        <Text style={styles.inputLabel}>{t('events.form.titleLabel')}</Text>
+        <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+          {t('events.form.titleLabel')}
+        </Text>
         <TextInput
-          style={styles.textField}
+          style={[
+            styles.textField,
+            {
+              color: colors.textPrimary,
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
           placeholder={t('events.form.titlePlaceholder')}
-          placeholderTextColor="#BACAD6"
+          placeholderTextColor={colors.textTertiary}
           value={title}
           onChangeText={setTitle}
         />
 
         <View style={styles.groundLabelRow}>
-          <Text style={styles.inputLabel}>{t('events.form.ground')}</Text>
+          <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+            {t('events.form.ground')}
+          </Text>
           <Pressable
             style={styles.pickOnMapLink}
             onPress={() => setShowGroundPicker(true)}
             hitSlop={6}
           >
-            <Ionicons name="map-outline" size={14} color="#208AEF" />
-            <Text style={styles.pickOnMapText}>{t('events.form.pickOnMap')}</Text>
+            <Ionicons name="map-outline" size={14} color={colors.primary} />
+            <Text style={[styles.pickOnMapText, { color: colors.primary }]}>
+              {t('events.form.pickOnMap')}
+            </Text>
           </Pressable>
         </View>
 
         <Pressable
-          style={styles.selectorField}
+          style={[
+            styles.selectorField,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
           onPress={() => setShowGroundPicker(true)}
         >
           <Text
             style={[
               styles.selectorText,
-              !selectedGround && styles.selectorPlaceholder,
+              { color: colors.textPrimary },
+              !selectedGround && { color: colors.textTertiary, fontWeight: '400' },
             ]}
             numberOfLines={1}
           >
             {selectedGround?.name || t('events.form.selectGround')}
           </Text>
-          <Ionicons name="chevron-down" size={18} color="#6080A8" />
+          <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
         </Pressable>
 
         {selectedGround?.address ? (
-          <Text style={styles.selectedGroundAddress} numberOfLines={1}>
-            <Ionicons name="location-outline" size={12} color="#6080A8" />{' '}
+          <Text
+            style={[styles.selectedGroundAddress, { color: colors.textSecondary }]}
+            numberOfLines={1}
+          >
+            <Ionicons name="location-outline" size={12} color={colors.textSecondary} />{' '}
             {selectedGround.address}
           </Text>
         ) : null}
 
         {isGroundUnconfirmed && (
-          <View style={styles.warningNotice}>
-            <Ionicons name="warning-outline" size={18} color="#FF8000" />
-            <Text style={styles.warningNoticeText}>
+          <View
+            style={[
+              styles.warningNotice,
+              {
+                backgroundColor: colors.warningBg,
+                borderColor: colors.warning + '80',
+              },
+            ]}
+          >
+            <Ionicons name="warning-outline" size={18} color={colors.warning} />
+            <Text style={[styles.warningNoticeText, { color: colors.warning }]}>
               {t('events.form.groundPendingHint')}
             </Text>
           </View>
@@ -248,23 +293,51 @@ export default function CreateEventScreen() {
 
         <View style={styles.rowContainer}>
           <View style={styles.flexItem}>
-            <Text style={styles.inputLabel}>{t('events.form.date')}</Text>
-            <Pressable style={styles.iconInputField} onPress={handleOpenDatePicker}>
-              <Text style={styles.iconInputText}>{formattedDate}</Text>
-              <Ionicons name="calendar-outline" size={16} color="#334A77" />
+            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+              {t('events.form.date')}
+            </Text>
+            <Pressable
+              style={[
+                styles.iconInputField,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+              ]}
+              onPress={handleOpenDatePicker}
+            >
+              <Text style={[styles.iconInputText, { color: colors.textPrimary }]}>
+                {formattedDate}
+              </Text>
+              <Ionicons name="calendar-outline" size={16} color={colors.textPrimary} />
             </Pressable>
           </View>
 
           <View style={styles.flexItem}>
-            <Text style={styles.inputLabel}>{t('events.form.time')}</Text>
-            <Pressable style={styles.iconInputField} onPress={handleOpenTimePicker}>
-              <Text style={styles.iconInputText}>{formattedTime}</Text>
-              <Ionicons name="time-outline" size={16} color="#334A77" />
+            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+              {t('events.form.time')}
+            </Text>
+            <Pressable
+              style={[
+                styles.iconInputField,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+              ]}
+              onPress={handleOpenTimePicker}
+            >
+              <Text style={[styles.iconInputText, { color: colors.textPrimary }]}>
+                {formattedTime}
+              </Text>
+              <Ionicons name="time-outline" size={16} color={colors.textPrimary} />
             </Pressable>
           </View>
         </View>
 
-        <Text style={styles.inputLabel}>{t('events.form.skillLevel')}</Text>
+        <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+          {t('events.form.skillLevel')}
+        </Text>
         <View style={styles.chipsWrapContainer}>
           {SKILL_LEVELS.map((level) => {
             const isSelected = skillLevel === level;
@@ -272,9 +345,20 @@ export default function CreateEventScreen() {
               <Pressable
                 key={level}
                 onPress={() => setSkillLevel(level)}
-                style={[styles.chipItem, isSelected && styles.chipItemSelected]}
+                style={[
+                  styles.chipItem,
+                  {
+                    backgroundColor: isSelected ? colors.primary : colors.surface,
+                    borderColor: isSelected ? colors.primary : colors.border,
+                  },
+                ]}
               >
-                <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                <Text
+                  style={[
+                    styles.chipText,
+                    { color: isSelected ? '#FFFFFF' : colors.textPrimary },
+                  ]}
+                >
                   {t(getSkillLevelKey(level))}
                 </Text>
               </Pressable>
@@ -284,49 +368,110 @@ export default function CreateEventScreen() {
 
         <View style={styles.rowContainer}>
           <View style={styles.flexItem}>
-            <Text style={styles.inputLabel}>{t('events.form.playersNeeded')}</Text>
-            <View style={styles.counterBlock}>
+            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+              {t('events.form.playersNeeded')}
+            </Text>
+            <View
+              style={[
+                styles.counterBlock,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
               <Pressable
-                style={styles.counterButton}
+                style={[
+                  styles.counterButton,
+                  { backgroundColor: colors.surfaceSecondary },
+                ]}
                 onPress={() => setPlayersNeeded(Math.max(2, playersNeeded - 1))}
               >
-                <Text style={styles.counterButtonText}>-</Text>
+                <Text
+                  style={[styles.counterButtonText, { color: colors.textPrimary }]}
+                >
+                  -
+                </Text>
               </Pressable>
-              <Text style={styles.counterValue}>{playersNeeded}</Text>
+              <Text style={[styles.counterValue, { color: colors.textPrimary }]}>
+                {playersNeeded}
+              </Text>
               <Pressable
-                style={styles.counterButton}
+                style={[
+                  styles.counterButton,
+                  { backgroundColor: colors.surfaceSecondary },
+                ]}
                 onPress={() => setPlayersNeeded(playersNeeded + 1)}
               >
-                <Text style={styles.counterButtonText}>+</Text>
+                <Text
+                  style={[styles.counterButtonText, { color: colors.textPrimary }]}
+                >
+                  +
+                </Text>
               </Pressable>
             </View>
           </View>
 
           <View style={styles.flexItem}>
-            <Text style={styles.inputLabel}>{t('events.form.duration')}</Text>
-            <View style={styles.counterBlock}>
+            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+              {t('events.form.duration')}
+            </Text>
+            <View
+              style={[
+                styles.counterBlock,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
               <Pressable
-                style={styles.counterButton}
+                style={[
+                  styles.counterButton,
+                  { backgroundColor: colors.surfaceSecondary },
+                ]}
                 onPress={() => setDuration(Math.max(15, duration - 15))}
               >
-                <Text style={styles.counterButtonText}>-</Text>
+                <Text
+                  style={[styles.counterButtonText, { color: colors.textPrimary }]}
+                >
+                  -
+                </Text>
               </Pressable>
-              <Text style={styles.counterValue}>{duration}</Text>
+              <Text style={[styles.counterValue, { color: colors.textPrimary }]}>
+                {duration}
+              </Text>
               <Pressable
-                style={styles.counterButton}
+                style={[
+                  styles.counterButton,
+                  { backgroundColor: colors.surfaceSecondary },
+                ]}
                 onPress={() => setDuration(duration + 15)}
               >
-                <Text style={styles.counterButtonText}>+</Text>
+                <Text
+                  style={[styles.counterButtonText, { color: colors.textPrimary }]}
+                >
+                  +
+                </Text>
               </Pressable>
             </View>
           </View>
         </View>
 
-        <Text style={styles.inputLabel}>{t('events.form.description')}</Text>
+        <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+          {t('events.form.description')}
+        </Text>
         <TextInput
-          style={styles.textareaField}
+          style={[
+            styles.textareaField,
+            {
+              color: colors.textPrimary,
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
           placeholder={t('events.form.descriptionPlaceholder')}
-          placeholderTextColor="#BACAD6"
+          placeholderTextColor={colors.textTertiary}
           multiline
           numberOfLines={4}
           textAlignVertical="top"
@@ -339,10 +484,21 @@ export default function CreateEventScreen() {
         <>
           <Modal visible={showDatePicker} animationType="slide" transparent>
             <View style={styles.iosModalOverlay}>
-              <View style={styles.iosModalContent}>
-                <View style={styles.iosModalHeaderRow}>
+              <View
+                style={[styles.iosModalContent, { backgroundColor: colors.surface }]}
+              >
+                <View
+                  style={[
+                    styles.iosModalHeaderRow,
+                    { borderColor: colors.borderSubtle },
+                  ]}
+                >
                   <Pressable onPress={() => setShowDatePicker(false)}>
-                    <Text style={styles.iosCancelText}>{t('common.cancel')}</Text>
+                    <Text
+                      style={[styles.iosCancelText, { color: colors.textSecondary }]}
+                    >
+                      {t('common.cancel')}
+                    </Text>
                   </Pressable>
                   <Pressable
                     onPress={() => {
@@ -350,7 +506,11 @@ export default function CreateEventScreen() {
                       setShowDatePicker(false);
                     }}
                   >
-                    <Text style={styles.iosConfirmText}>{t('common.ok')}</Text>
+                    <Text
+                      style={[styles.iosConfirmText, { color: colors.primary }]}
+                    >
+                      {t('common.ok')}
+                    </Text>
                   </Pressable>
                 </View>
                 <DateTimePicker
@@ -359,6 +519,7 @@ export default function CreateEventScreen() {
                   display="spinner"
                   minimumDate={new Date()}
                   onValueChange={handleDateValueChange}
+                  themeVariant={theme === 'dark' ? 'dark' : 'light'}
                 />
               </View>
             </View>
@@ -366,10 +527,21 @@ export default function CreateEventScreen() {
 
           <Modal visible={showTimePicker} animationType="slide" transparent>
             <View style={styles.iosModalOverlay}>
-              <View style={styles.iosModalContent}>
-                <View style={styles.iosModalHeaderRow}>
+              <View
+                style={[styles.iosModalContent, { backgroundColor: colors.surface }]}
+              >
+                <View
+                  style={[
+                    styles.iosModalHeaderRow,
+                    { borderColor: colors.borderSubtle },
+                  ]}
+                >
                   <Pressable onPress={() => setShowTimePicker(false)}>
-                    <Text style={styles.iosCancelText}>{t('common.cancel')}</Text>
+                    <Text
+                      style={[styles.iosCancelText, { color: colors.textSecondary }]}
+                    >
+                      {t('common.cancel')}
+                    </Text>
                   </Pressable>
                   <Pressable
                     onPress={() => {
@@ -377,7 +549,11 @@ export default function CreateEventScreen() {
                       setShowTimePicker(false);
                     }}
                   >
-                    <Text style={styles.iosConfirmText}>{t('common.ok')}</Text>
+                    <Text
+                      style={[styles.iosConfirmText, { color: colors.primary }]}
+                    >
+                      {t('common.ok')}
+                    </Text>
                   </Pressable>
                 </View>
                 <DateTimePicker
@@ -386,6 +562,7 @@ export default function CreateEventScreen() {
                   is24Hour={true}
                   display="spinner"
                   onValueChange={handleTimeValueChange}
+                  themeVariant={theme === 'dark' ? 'dark' : 'light'}
                 />
               </View>
             </View>
@@ -412,20 +589,25 @@ export default function CreateEventScreen() {
         />
       )}
 
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
+      <View
+        style={[
+          styles.bottomBar,
+          {
+            paddingBottom: insets.bottom + 12,
+            backgroundColor: colors.background,
+            borderColor: colors.borderSubtle,
+          },
+        ]}
+      >
         <Pressable
-          style={[
-            styles.publishButton,
-            isFormValid ? styles.publishButtonActive : styles.publishButtonDisabled,
-            isSubmitting && styles.buttonDisabled,
-          ]}
+          style={[styles.publishButton, { backgroundColor: colors.primaryDark }]}
           onPress={handlePublish}
           disabled={isSubmitting || !isFormValid}
         >
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={styles.publishButtonText}>
+            <Text style={[styles.publishButtonText, { color: '#FFFFFF' }]}>
               {t('events.form.publishButton')}
             </Text>
           )}
@@ -443,7 +625,7 @@ export default function CreateEventScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -451,18 +633,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderColor: '#F0F6FC',
-    backgroundColor: '#FFFFFF',
   },
   backButton: { padding: 4 },
   headerTitleContainer: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
-  headerSubtitle: { fontSize: 12, color: '#BACAD6', fontWeight: '500', marginTop: 1 },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
+  headerSubtitle: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   scrollContent: { paddingHorizontal: 16, paddingTop: 20 },
   inputLabel: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#000000',
     marginBottom: 8,
     marginTop: 16,
   },
@@ -470,12 +649,9 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 48,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 14,
-    color: '#334A77',
-    backgroundColor: '#FFFFFF',
   },
   groundLabelRow: {
     flexDirection: 'row',
@@ -490,35 +666,29 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingBottom: 2,
   },
-  pickOnMapText: { fontSize: 13, fontWeight: '700', color: '#208AEF' },
+  pickOnMapText: { fontSize: 13, fontWeight: '700' },
   selectorField: {
     width: '100%',
     height: 48,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
   },
   selectorText: {
     fontSize: 14,
-    color: '#334A77',
     fontWeight: '500',
     flex: 1,
     marginRight: 8,
   },
-  selectorPlaceholder: { color: '#BACAD6', fontWeight: '400' },
-  selectedGroundAddress: { fontSize: 12, color: '#6080A8', marginTop: 6, marginLeft: 2 },
+  selectedGroundAddress: { fontSize: 12, marginTop: 6, marginLeft: 2 },
   warningNotice: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 8,
-    backgroundColor: '#FFF8EC',
     borderWidth: 1,
-    borderColor: '#FFE0B2',
     borderRadius: 12,
     padding: 12,
     marginTop: 12,
@@ -526,7 +696,6 @@ const styles = StyleSheet.create({
   warningNoticeText: {
     flex: 1,
     fontSize: 12,
-    color: '#B45F06',
     fontWeight: '500',
     lineHeight: 17,
   },
@@ -536,15 +705,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 48,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
   },
-  iconInputText: { fontSize: 14, color: '#334A77', fontWeight: '500' },
+  iconInputText: { fontSize: 14, fontWeight: '500' },
   chipsWrapContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -555,48 +722,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
   },
-  chipItemSelected: { backgroundColor: '#006EE6', borderColor: '#006EE6' },
-  chipText: { fontSize: 13, color: '#334A77', fontWeight: '600' },
-  chipTextSelected: { color: '#FFFFFF' },
+  chipText: { fontSize: 13, fontWeight: '600' },
   counterBlock: {
     height: 48,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
   },
   counterButton: {
     width: 44,
     height: '100%',
-    backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  counterButtonText: { fontSize: 20, fontWeight: '600', color: '#334A77' },
+  counterButtonText: { fontSize: 20, fontWeight: '600' },
   counterValue: {
     flex: 1,
     textAlign: 'center',
     fontSize: 15,
     fontWeight: '700',
-    color: '#334A77',
   },
   textareaField: {
     width: '100%',
     height: 100,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     padding: 14,
     fontSize: 14,
-    color: '#334A77',
-    backgroundColor: '#FFFFFF',
     lineHeight: 20,
   },
   bottomBar: {
@@ -604,11 +760,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderColor: '#F0F6FC',
     zIndex: 99,
   },
   publishButton: {
@@ -618,17 +772,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  publishButtonActive: { backgroundColor: '#006EE6' },
-  publishButtonDisabled: { backgroundColor: '#BACAD6' },
   publishButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-  buttonDisabled: { backgroundColor: '#BACAD6' },
   iosModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'flex-end',
   },
   iosModalContent: {
-    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 40,
@@ -639,8 +789,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderColor: '#F0F6FC',
   },
-  iosCancelText: { fontSize: 16, color: '#6080A8', fontWeight: '500' },
-  iosConfirmText: { fontSize: 16, color: '#006EE6', fontWeight: '700' },
+  iosCancelText: { fontSize: 16, fontWeight: '500' },
+  iosConfirmText: { fontSize: 16, fontWeight: '700' },
 });

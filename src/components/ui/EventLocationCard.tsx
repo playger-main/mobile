@@ -4,6 +4,7 @@ import { StyleSheet, View, Text, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { navigateToGroundOnMap } from '@/utils/navigateToGround';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface EventLocationCardProps {
   name: string;
@@ -23,6 +24,7 @@ export default function EventLocationCard({
   onPress,
 }: EventLocationCardProps) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const [imageError, setImageError] = useState(false);
   const showImage = !!avatar && !imageError;
 
@@ -35,8 +37,22 @@ export default function EventLocationCard({
   };
 
   return (
-    <Pressable style={styles.locationCard} onPress={handlePress}>
-      <View style={styles.locationImageContainer}>
+    <Pressable
+      style={[
+        styles.locationCard,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+        },
+      ]}
+      onPress={handlePress}
+    >
+      <View
+        style={[
+          styles.locationImageContainer,
+          { backgroundColor: colors.surfaceSecondary },
+        ]}
+      >
         {showImage ? (
           <Image
             key={avatar!}
@@ -46,20 +62,37 @@ export default function EventLocationCard({
             onError={() => setImageError(true)}
           />
         ) : (
-          <View style={styles.locationImagePlaceholder}>
-            <Ionicons name="image-outline" size={20} color="#BACAD6" />
+          <View
+            style={[
+              styles.locationImagePlaceholder,
+              { backgroundColor: colors.surfaceSecondary },
+            ]}
+          >
+            <Ionicons
+              name="image-outline"
+              size={20}
+              color={colors.textTertiary}
+            />
           </View>
         )}
       </View>
 
       <View style={styles.locationInfo}>
-        <Text style={styles.locationSubtitle}>
+        <Text
+          style={[styles.locationSubtitle, { color: colors.textTertiary }]}
+        >
           {t('eventLocation.subtitle')}
         </Text>
-        <Text style={styles.locationName} numberOfLines={1}>
+        <Text
+          style={[styles.locationName, { color: colors.textPrimary }]}
+          numberOfLines={1}
+        >
           {name}
         </Text>
-        <Text style={styles.locationAddress} numberOfLines={1}>
+        <Text
+          style={[styles.locationAddress, { color: colors.textSecondary }]}
+          numberOfLines={1}
+        >
           {address}
         </Text>
       </View>
@@ -67,7 +100,7 @@ export default function EventLocationCard({
       <Ionicons
         name="map-outline"
         size={20}
-        color="#208AEF"
+        color={colors.primary}
         style={styles.locationArrow}
       />
     </Pressable>
@@ -78,9 +111,7 @@ const styles = StyleSheet.create({
   locationCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     padding: 12,
     marginBottom: 24,
@@ -90,7 +121,6 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: '#F0F4F8',
   },
   locationImage: {
     width: '100%',
@@ -105,18 +135,15 @@ const styles = StyleSheet.create({
   locationInfo: { flex: 1, marginLeft: 12, marginRight: 8 },
   locationSubtitle: {
     fontSize: 11,
-    color: '#BACAD6',
     fontWeight: '500',
   },
   locationName: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#334A77',
     marginTop: 1,
   },
   locationAddress: {
     fontSize: 12,
-    color: '#6080A8',
     marginTop: 1,
   },
   locationArrow: { marginLeft: 'auto' },

@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface AuthWelcomeProps {
   onGetStarted: () => void;
@@ -23,6 +24,7 @@ export default function AuthWelcome({ onGetStarted, bottomInset }: AuthWelcomePr
   const navigation = useNavigation();
   const { height: windowHeight } = useWindowDimensions();
   const { t } = useTranslation();
+  const { theme, colors } = useTheme();
 
   useEffect(() => {
     navigation.setOptions({
@@ -30,63 +32,77 @@ export default function AuthWelcome({ onGetStarted, bottomInset }: AuthWelcomePr
     });
   }, [navigation]);
 
-  // Адаптивная высота картинки: не больше 34% экрана на маленьких устройствах
   const imageHeight = Math.min(windowHeight * 0.36, 280);
 
+  // ✅ Градиент под тему (светлая → white, тёмная → background)
+  const fadeColors: [string, string, string] =
+    theme === 'dark'
+      ? ['rgba(15, 17, 21, 0)', 'rgba(15, 17, 21, 0.5)', '#0F1115']
+      : ['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.5)', '#FFFFFF'];
+
   return (
-    <View style={styles.container}>
-      {/* ==== SCROLLABLE CONTENT ==== */}
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         bounces={false}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: bottomInset + 16 },
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 16 }]}
       >
-        {/* Image */}
         <View style={[styles.imageContainer, { height: imageHeight }]}>
           <Image
             source={require('../../assets/images/onboarding-sports.png')}
             style={styles.image}
             resizeMode="cover"
           />
-
-          <LinearGradient
-            colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.5)', '#FFFFFF']}
-            style={styles.imageFadeGradient}
-          />
+          <LinearGradient colors={fadeColors} style={styles.imageFadeGradient} />
         </View>
 
-        {/* Text content */}
         <View style={styles.content}>
-          <Text style={styles.title}>{t('auth.welcome.title')}</Text>
-          <Text style={styles.subtitle}>{t('auth.welcome.subtitle')}</Text>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>
+            {t('auth.welcome.title')}
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            {t('auth.welcome.subtitle')}
+          </Text>
 
           <View style={styles.bulletList}>
             <View style={styles.bulletItem}>
-              <View style={[styles.bulletIconContainer, { backgroundColor: '#EBF3FF' }]}>
-                <Ionicons name="calendar" size={16} color="#208AEF" />
+              <View
+                style={[
+                  styles.bulletIconContainer,
+                  { backgroundColor: colors.primaryBg },
+                ]}
+              >
+                <Ionicons name="calendar" size={16} color={colors.primary} />
               </View>
-              <Text style={styles.bulletText} numberOfLines={2}>
+              <Text style={[styles.bulletText, { color: colors.textPrimary }]} numberOfLines={2}>
                 {t('auth.welcome.bullet1')}
               </Text>
             </View>
 
             <View style={styles.bulletItem}>
-              <View style={[styles.bulletIconContainer, { backgroundColor: '#EAF9F5' }]}>
-                <Ionicons name="heart-outline" size={16} color="#27AE60" />
+              <View
+                style={[
+                  styles.bulletIconContainer,
+                  { backgroundColor: colors.accentBg },
+                ]}
+              >
+                <Ionicons name="heart-outline" size={16} color={colors.accent} />
               </View>
-              <Text style={styles.bulletText} numberOfLines={2}>
+              <Text style={[styles.bulletText, { color: colors.textPrimary }]} numberOfLines={2}>
                 {t('auth.welcome.bullet2')}
               </Text>
             </View>
 
             <View style={styles.bulletItem}>
-              <View style={[styles.bulletIconContainer, { backgroundColor: '#FFF0E6' }]}>
-                <Ionicons name="trophy-outline" size={16} color="#FF8000" />
+              <View
+                style={[
+                  styles.bulletIconContainer,
+                  { backgroundColor: colors.warningBg },
+                ]}
+              >
+                <Ionicons name="trophy-outline" size={16} color={colors.warning} />
               </View>
-              <Text style={styles.bulletText} numberOfLines={2}>
+              <Text style={[styles.bulletText, { color: colors.textPrimary }]} numberOfLines={2}>
                 {t('auth.welcome.bullet3')}
               </Text>
             </View>
@@ -94,14 +110,20 @@ export default function AuthWelcome({ onGetStarted, bottomInset }: AuthWelcomePr
         </View>
       </ScrollView>
 
-      {/* ==== STICKY BUTTON ==== */}
       <View
         style={[
           styles.bottomBar,
-          { paddingBottom: bottomInset + 16 },
+          {
+            backgroundColor: colors.background,
+            borderTopColor: colors.borderSubtle,
+            paddingBottom: bottomInset,
+          },
         ]}
       >
-        <Pressable style={styles.primaryButton} onPress={onGetStarted}>
+        <Pressable
+          style={[styles.primaryButton, { backgroundColor: colors.primaryDark }]}
+          onPress={onGetStarted}
+        >
           <Ionicons
             name="log-in-outline"
             size={20}
@@ -118,10 +140,8 @@ export default function AuthWelcome({ onGetStarted, bottomInset }: AuthWelcomePr
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-
+  container: { flex: 1 },
   scrollContent: { flexGrow: 1 },
-
   imageContainer: { width: '100%', position: 'relative' },
   image: { width: '100%', height: '100%' },
   imageFadeGradient: {
@@ -131,29 +151,11 @@ const styles = StyleSheet.create({
     right: 0,
     height: 140,
   },
-
-  content: {
-    paddingHorizontal: 24,
-    paddingTop: 4,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#000000',
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#6080A8',
-    lineHeight: 21,
-    marginTop: 10,
-  },
+  content: { paddingHorizontal: 24, paddingTop: 4 },
+  title: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+  subtitle: { fontSize: 14, lineHeight: 21, marginTop: 10 },
   bulletList: { gap: 14, marginTop: 22 },
-  bulletItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
+  bulletItem: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   bulletIconContainer: {
     width: 38,
     height: 38,
@@ -161,34 +163,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bulletText: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#334A77',
-    lineHeight: 19,
-  },
-
+  bulletText: { flex: 1, fontSize: 16, fontWeight: '600', lineHeight: 19 },
   bottomBar: {
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 24,
     paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F0F6FC',
+    // borderTopWidth: 1,
   },
   primaryButton: {
     width: '100%',
     height: 52,
-    backgroundColor: '#006EE6',
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
   },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
+  primaryButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   iconMargin: { marginRight: 6 },
 });

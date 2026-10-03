@@ -1,12 +1,17 @@
 // src/app/_layout.tsx
 import React, { useEffect } from 'react';
 import {
-  useColorScheme,
   View,
   ActivityIndicator,
   AppState,
+  Appearance,               // ✅ NEW
 } from 'react-native';
-import { Stack, ThemeProvider, DarkTheme, DefaultTheme } from 'expo-router';
+import {
+  Stack,
+  ThemeProvider,
+  DarkTheme as NavDarkTheme,
+  DefaultTheme as NavLightTheme,
+} from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
@@ -28,32 +33,39 @@ import {
 
 import { DEFAULT_CITY_CENTER } from '@/constants/location';
 import { registerCalendarLocales, setCalendarLocale } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
-// ✅ Регистрируем локали календаря ДО первого рендера
 registerCalendarLocales();
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
-  const { isHydrating } = useUnit({
-    isHydrating: $isHydrating,
-  });
-
-  // ✅ Текущий язык приложения — для синхронизации локали календаря
+  const { isHydrating } = useUnit({ isHydrating: $isHydrating });
   const appLanguage = useUnit($appLanguage);
+
+  // ✅ Тема приложения
+  const { theme, colors } = useTheme();
 
   const [fontsLoaded, fontError] = useFonts({
     ...Ionicons.font,
   });
+
+  // ✅ Синхронизация локали календаря с языком
+  useEffect(() => {
+    setCalendarLocale(appLanguage);
+  }, [appLanguage]);
+
+  // ✅ NEW: синхронизируем нативную тему (Alert, клавиатура, системные пикеры)
+  // с нашей темой приложения
+  useEffect(() => {
+    Appearance.setColorScheme(theme);
+  }, [theme]);
 
   // ✅ Гидратация при старте
   useEffect(() => {
     hydrateSessionFx();
     hydrateSettingsFx();
 
-    // Запрос локации + определение города
     (async () => {
       try {
         const status = await checkLocationPermissionFx();
@@ -69,28 +81,19 @@ export default function RootLayout() {
     })();
   }, []);
 
-  // ✅ Синхронизируем активную локаль календаря с текущим языком
-  useEffect(() => {
-    setCalendarLocale(appLanguage);
-  }, [appLanguage]);
-
-  // ✅ AppState — при возврате в приложение обновляем данные
+  // ✅ AppState
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'active') {
-        console.log('[AppState] App is active → refreshing data');
-        // Перепроверяем сессию (мог протухнуть токен)
         hydrateSessionFx();
-        // Подтягиваем свежие данные
         fetchGroundsFx();
         fetchAllEventsFx();
       }
     });
-
     return () => subscription.remove();
   }, []);
 
-  // Скрываем Splash Screen
+  // ✅ Splash Screen
   useEffect(() => {
     const assetsReady = fontsLoaded || fontError;
     if (assetsReady && !isHydrating) {
@@ -105,36 +108,49 @@ export default function RootLayout() {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: '#FFFFFF',
+          backgroundColor: colors.background,
         }}
       >
-        <ActivityIndicator size="large" color="#208AEF" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
+  const navTheme = {
+    ...(theme === 'dark' ? NavDarkTheme : NavLightTheme),
+    colors: {
+      ...(theme === 'dark' ? NavDarkTheme.colors : NavLightTheme.colors),
+      background: colors.background,
+      card: colors.surface,
+      text: colors.textPrimary,
+      border: colors.border,
+      primary: colors.primary,
+    },
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <StatusBar style="auto" />
+      <ThemeProvider value={navTheme}>
+        <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
 
         <Stack screenOptions={{ headerShown: false }}>
+          {/* ...все Stack.Screen без изменений... */}
           <Stack.Screen name="(drawer)" />
-          <Stack.Screen name="ground/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="ground/create" options={{ headerShown: false }} />
-          <Stack.Screen name="ground/edit" options={{ headerShown: false }} />
-          <Stack.Screen name="ground/moderation" options={{ headerShown: false }} />
-          <Stack.Screen name="reviews/ground/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="event/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="event/create" options={{ headerShown: false }} />
-          <Stack.Screen name="event/edit" options={{ headerShown: false }} />
-          <Stack.Screen name="user/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="user/edit" options={{ headerShown: false }} />
-          <Stack.Screen name="user/change-email" options={{ headerShown: false }} />
-          <Stack.Screen name="user/joined" options={{ headerShown: false }} />
-          <Stack.Screen name="user/favorites" options={{ headerShown: false }} />
-          <Stack.Screen name="user/created" options={{ headerShown: false }} />
-          <Stack.Screen name="user/reviews" options={{ headerShown: false }} />
+          <Stack.Screen name="ground/[id]" />
+          <Stack.Screen name="ground/create" />
+          <Stack.Screen name="ground/edit" />
+          <Stack.Screen name="ground/moderation" />
+          <Stack.Screen name="reviews/ground/[id]" />
+          <Stack.Screen name="event/[id]" />
+          <Stack.Screen name="event/create" />
+          <Stack.Screen name="event/edit" />
+          <Stack.Screen name="user/[id]" />
+          <Stack.Screen name="user/edit" />
+          <Stack.Screen name="user/change-email" />
+          <Stack.Screen name="user/joined" />
+          <Stack.Screen name="user/favorites" />
+          <Stack.Screen name="user/created" />
+          <Stack.Screen name="user/reviews" />
         </Stack>
       </ThemeProvider>
     </GestureHandlerRootView>

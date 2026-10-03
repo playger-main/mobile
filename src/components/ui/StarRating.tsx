@@ -2,6 +2,7 @@
 import React from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/hooks/useTheme';
 
 interface StarRatingProps {
   value: number; // 0..5
@@ -18,6 +19,7 @@ export default function StarRating({
   onChange,
   activeColor = '#FFCC00',
 }: StarRatingProps) {
+  const { colors } = useTheme();
   const interactive = typeof onChange === 'function';
 
   return (
@@ -25,7 +27,7 @@ export default function StarRating({
       {[1, 2, 3, 4, 5].map((star) => {
         const isFilled = star <= value;
         const icon = isFilled ? 'star' : 'star-outline';
-        const color = isFilled ? activeColor : '#D0DBEA';
+        const color = isFilled ? activeColor : colors.textTertiary;
 
         if (!interactive) {
           return (

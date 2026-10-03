@@ -6,6 +6,7 @@ import { ServerEventItem } from '@/effector/events/async/events';
 import EventListCard from './EventListCard';
 import { useTranslation } from '@/i18n';
 import type { Language } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 const LOCALE_MAP: Record<Language, string> = {
   en: 'en-US',
@@ -23,6 +24,7 @@ interface ListEventsProps {
 
 export default function ListEvents({ events, selectedDate }: ListEventsProps) {
   const { t, lang } = useTranslation();
+  const { colors } = useTheme();
 
   const getHeaderDateTitle = (dateStr: string) => {
     const eventDate = new Date(dateStr);
@@ -50,9 +52,9 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
       contentContainerStyle={styles.listContainer}
       ListHeaderComponent={
         <View style={styles.listHeader}>
-          <Text style={styles.headerTitle}>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
             {getHeaderDateTitle(selectedDate)}{' '}
-            <Text style={styles.countText}>
+            <Text style={[styles.countText, { color: colors.textTertiary }]}>
               · {t(countKey, { count: events.length })}
             </Text>
           </Text>
@@ -60,8 +62,14 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
       }
       ListEmptyComponent={
         <View style={styles.emptyContainer}>
-          <Ionicons name="calendar-outline" size={48} color="#BACAD6" />
-          <Text style={styles.emptyText}>{t('events.noEventsForDay')}</Text>
+          <Ionicons
+            name="calendar-outline"
+            size={48}
+            color={colors.textTertiary}
+          />
+          <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
+            {t('events.noEventsForDay')}
+          </Text>
         </View>
       }
     />
@@ -71,13 +79,13 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
 const styles = StyleSheet.create({
   listContainer: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 100 },
   listHeader: { marginBottom: 14 },
-  headerTitle: { fontSize: 15, fontWeight: '700', color: '#334A77' },
-  countText: { color: '#BACAD6', fontWeight: '400' },
+  headerTitle: { fontSize: 15, fontWeight: '700' },
+  countText: { fontWeight: '400' },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 40,
     gap: 8,
   },
-  emptyText: { fontSize: 14, color: '#BACAD6', fontWeight: '500' },
+  emptyText: { fontSize: 14, fontWeight: '500' },
 });

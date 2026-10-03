@@ -3,9 +3,11 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { ACTIVITY_COLORS } from '@/utils/groundActivity';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function MapLegend() {
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   const items: Array<{
     key: 'active' | 'upcoming' | 'none';
@@ -17,7 +19,16 @@ export default function MapLegend() {
   ];
 
   return (
-    <View style={styles.container} pointerEvents="none">
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surface,
+          shadowColor: colors.shadow,
+        },
+      ]}
+      pointerEvents="none"
+    >
       {items.map(({ key, labelKey }) => (
         <View key={key} style={styles.row}>
           <View
@@ -26,7 +37,9 @@ export default function MapLegend() {
               { backgroundColor: ACTIVITY_COLORS[key].bg },
             ]}
           />
-          <Text style={styles.label}>{t(labelKey)}</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>
+            {t(labelKey)}
+          </Text>
         </View>
       ))}
     </View>
@@ -35,11 +48,9 @@ export default function MapLegend() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 10,
     paddingVertical: 8,
     paddingHorizontal: 10,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 4,
@@ -58,7 +69,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    color: '#334A77',
     fontWeight: '500',
   },
 });

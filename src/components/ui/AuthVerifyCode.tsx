@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface AuthVerifyCodeProps {
   onSubmit: (code: string) => void;
@@ -27,6 +28,7 @@ export default function AuthVerifyCode({
   errorMessage,
 }: AuthVerifyCodeProps) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const [code, setCode] = useState('');
   const [countdown, setCountdown] = useState(60);
 
@@ -43,22 +45,39 @@ export default function AuthVerifyCode({
     setCountdown(60);
   };
 
+  const canSubmit = code.length === 6 && !isSubmitting;
+
   return (
-    <View style={styles.formContainer}>
-      <View style={styles.logoIconBlock}>
+    <View style={[styles.formContainer, { backgroundColor: colors.listBackground }]}>
+      <View style={[styles.logoIconBlock, { backgroundColor: colors.primary }]}>
         <Ionicons name="mail-open-outline" size={32} color="#FFFFFF" />
       </View>
 
-      <Text style={styles.formTitle}>{t('auth.verify.title')}</Text>
-      <Text style={styles.formSubtitle}>{t('auth.verify.subtitle')}</Text>
+      <Text style={[styles.formTitle, { color: colors.textPrimary }]}>
+        {t('auth.verify.title')}
+      </Text>
+      <Text style={[styles.formSubtitle, { color: colors.textSecondary }]}>
+        {t('auth.verify.subtitle')}
+      </Text>
 
-      {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+      {errorMessage && (
+        <Text style={[styles.errorText, { color: colors.danger }]}>
+          {errorMessage}
+        </Text>
+      )}
 
       <View style={styles.inputGroup}>
         <TextInput
-          style={styles.inputField}
+          style={[
+            styles.inputField,
+            {
+              color: colors.textPrimary,
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
           placeholder="000000"
-          placeholderTextColor="#BACAD6"
+          placeholderTextColor={colors.textTertiary}
           value={code}
           onChangeText={setCode}
           keyboardType="number-pad"
@@ -69,17 +88,14 @@ export default function AuthVerifyCode({
       </View>
 
       <Pressable
-        style={[
-          styles.primaryButton,
-          (isSubmitting || code.length < 6) && styles.buttonDisabled,
-        ]}
+        style={[styles.primaryButton, { backgroundColor: colors.primaryDark }]}
         onPress={() => onSubmit(code.trim())}
-        disabled={isSubmitting || code.length < 6}
+        disabled={!canSubmit}
       >
         {isSubmitting ? (
           <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
-          <Text style={styles.primaryButtonText}>
+          <Text style={[styles.primaryButtonText, { color: '#FFFFFF' }]}>
             {t('auth.verify.button')}
           </Text>
         )}
@@ -87,12 +103,12 @@ export default function AuthVerifyCode({
 
       <View style={styles.resendContainer}>
         {countdown > 0 ? (
-          <Text style={styles.resendTimerText}>
+          <Text style={[styles.resendTimerText, { color: colors.textTertiary }]}>
             {t('auth.verify.resendIn', { count: countdown })}
           </Text>
         ) : (
           <Pressable onPress={handleResendPress}>
-            <Text style={styles.resendLinkText}>
+            <Text style={[styles.resendLinkText, { color: colors.primary }]}>
               {t('auth.verify.resend')}
             </Text>
           </Pressable>
@@ -100,7 +116,7 @@ export default function AuthVerifyCode({
       </View>
 
       <Pressable style={styles.backButton} onPress={onBackToSignUp}>
-        <Text style={styles.backButtonText}>
+        <Text style={[styles.backButtonText, { color: colors.textSecondary }]}>
           {t('auth.verify.backToRegistration')}
         </Text>
       </Pressable>
@@ -109,83 +125,45 @@ export default function AuthVerifyCode({
 }
 
 const styles = StyleSheet.create({
-  formContainer: {
-    flex: 1,
-    paddingHorizontal: 24,
-    justifyContent: 'center',
-  },
+  formContainer: { flex: 1, paddingHorizontal: 24, justifyContent: 'center' },
   logoIconBlock: {
     width: 56,
     height: 56,
-    backgroundColor: '#208AEF',
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
   },
-  formTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#334A77',
-    marginBottom: 6,
-  },
-  formSubtitle: {
-    fontSize: 14,
-    color: '#6080A8',
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-  errorText: {
-    color: '#FF3B30',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
+  formTitle: { fontSize: 24, fontWeight: '800', marginBottom: 6 },
+  formSubtitle: { fontSize: 14, lineHeight: 20, marginBottom: 20 },
+  errorText: { fontSize: 13, fontWeight: '600', marginBottom: 12 },
   inputGroup: { gap: 12, marginBottom: 24 },
   inputField: {
     width: '100%',
     height: 52,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 24,
     fontWeight: '800',
     letterSpacing: 6,
     textAlign: 'center',
-    color: '#334A77',
-    backgroundColor: '#FFFFFF',
   },
   primaryButton: {
     width: '100%',
     height: 50,
-    backgroundColor: '#208AEF',
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  buttonDisabled: { backgroundColor: '#BACAD6' },
+  primaryButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   resendContainer: { alignItems: 'center', marginTop: 20 },
-  resendTimerText: {
-    fontSize: 14,
-    color: '#BACAD6',
-    fontWeight: '500',
-  },
+  resendTimerText: { fontSize: 14, fontWeight: '500' },
   resendLinkText: {
     fontSize: 14,
-    color: '#208AEF',
     fontWeight: '700',
     textDecorationLine: 'underline',
   },
   backButton: { alignItems: 'center', marginTop: 24 },
-  backButtonText: {
-    fontSize: 14,
-    color: '#6080A8',
-    fontWeight: '600',
-  },
+  backButtonText: { fontSize: 14, fontWeight: '600' },
 });

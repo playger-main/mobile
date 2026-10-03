@@ -1,12 +1,6 @@
 // src/components/ui/CardGround.tsx
 import React, { useMemo, useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Image,
-} from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useUnit } from 'effector-react';
 
@@ -19,6 +13,7 @@ import {
 } from '@/effector/store';
 import { calculateDistance, formatDistance } from '@/utils/distance';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 export interface ExtendedGroundItem {
   id: string;
@@ -53,6 +48,7 @@ export default function CardGround({
   onToggleFavorite,
 }: CardGroundProps) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
   const upcomingByGround = useUnit($upcomingEventsCountByGround);
@@ -62,7 +58,7 @@ export default function CardGround({
     setImageError(false);
   }, [item.avatar]);
 
-  const sportsList: string[] = useMemo(() => {
+  const sportsList = useMemo(() => {
     if (Array.isArray(item.kindofsport) && item.kindofsport.length > 0) {
       return item.kindofsport;
     }
@@ -89,8 +85,18 @@ export default function CardGround({
   const showImage = !!item.avatar && !imageError;
 
   return (
-    <Pressable style={styles.card} onPress={onPress}>
-      <View style={styles.imageContainer}>
+    <Pressable
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          shadowColor: colors.shadow,
+        },
+      ]}
+      onPress={onPress}
+    >
+      <View style={[styles.imageContainer, { backgroundColor: colors.surfaceSecondary }]}>
         {showImage ? (
           <Image
             key={item.avatar!}
@@ -100,36 +106,29 @@ export default function CardGround({
             onError={() => setImageError(true)}
           />
         ) : (
-          <View style={styles.imagePlaceholder}>
-            <Ionicons name="image-outline" size={28} color="#BACAD6" />
+          <View style={[styles.imagePlaceholder, { backgroundColor: colors.surfaceSecondary }]}>
+            <Ionicons name="image-outline" size={28} color={colors.textTertiary} />
           </View>
         )}
 
         {upcomingCount > 0 && (
           <View style={styles.compactEventBadge}>
-            <Ionicons
-              name="calendar"
-              size={11}
-              color="#FFFFFF"
-              style={styles.badgeIcon}
-            />
+            <Ionicons name="calendar" size={11} color="#FFFFFF" style={styles.badgeIcon} />
             <Text style={styles.compactEventText}>{upcomingCount}</Text>
           </View>
         )}
 
         {item.confirmed === false && (
-          <View style={styles.pendingBadge}>
+          <View style={[styles.pendingBadge, { backgroundColor: colors.warning }]}>
             <Ionicons name="time-outline" size={11} color="#FFFFFF" />
-            <Text style={styles.pendingBadgeText}>
-              {t('grounds.pendingBadge')}
-            </Text>
+            <Text style={styles.pendingBadgeText}>{t('grounds.pendingBadge')}</Text>
           </View>
         )}
       </View>
 
       <View style={styles.infoContainer}>
         <View style={styles.headerRow}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={1}>
             {item.name}
           </Text>
           <Pressable
@@ -140,12 +139,12 @@ export default function CardGround({
             <Ionicons
               name={item.isFavorite ? 'heart' : 'heart-outline'}
               size={20}
-              color={item.isFavorite ? '#FF3B30' : '#BACAD6'}
+              color={item.isFavorite ? colors.danger : colors.textTertiary}
             />
           </Pressable>
         </View>
 
-        <Text style={styles.address} numberOfLines={1}>
+        <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>
           {item.address || t('grounds.noAddress')}
         </Text>
 
@@ -159,9 +158,7 @@ export default function CardGround({
                   key={`${sportId}-${idx}`}
                   style={[styles.categoryBadge, { backgroundColor: style.bg }]}
                 >
-                  <View
-                    style={[styles.categoryDot, { backgroundColor: style.text }]}
-                  />
+                  <View style={[styles.categoryDot, { backgroundColor: style.text }]} />
                   <Text style={[styles.categoryText, { color: style.text }]}>
                     {label.toUpperCase()}
                   </Text>
@@ -169,8 +166,8 @@ export default function CardGround({
               );
             })}
             {sportsList.length > 2 && (
-              <View style={styles.moreBadge}>
-                <Text style={styles.moreBadgeText}>
+              <View style={[styles.moreBadge, { backgroundColor: colors.primaryBg }]}>
+                <Text style={[styles.moreBadgeText, { color: colors.textSecondary }]}>
                   +{sportsList.length - 2}
                 </Text>
               </View>
@@ -181,15 +178,19 @@ export default function CardGround({
         <View style={styles.footerRow}>
           <View style={styles.ratingBlock}>
             <Ionicons name="star" size={14} color="#FFCC00" />
-            <Text style={styles.ratingText}>
+            <Text style={[styles.ratingText, { color: colors.textPrimary }]}>
               {item.avgRating ? item.avgRating.toFixed(1) : '0.0'}{' '}
-              <Text style={styles.reviewsText}>({item.eventsCount || 0})</Text>
+              <Text style={[styles.reviewsText, { color: colors.textTertiary }]}>
+                ({item.eventsCount || 0})
+              </Text>
             </Text>
           </View>
 
           <View style={styles.distanceBlock}>
-            <Ionicons name="location-outline" size={14} color="#6080A8" />
-            <Text style={styles.distanceText}>{displayDistance}</Text>
+            <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
+            <Text style={[styles.distanceText, { color: colors.textSecondary }]}>
+              {displayDistance}
+            </Text>
           </View>
         </View>
       </View>
@@ -200,13 +201,10 @@ export default function CardGround({
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
-    shadowColor: '#334A77',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -218,7 +216,6 @@ const styles = StyleSheet.create({
     height: 90,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#F0F4F8',
   },
   image: { width: '100%', height: '100%' },
   imagePlaceholder: {
@@ -226,7 +223,6 @@ const styles = StyleSheet.create({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F0F4F8',
   },
   compactEventBadge: {
     position: 'absolute',
@@ -247,7 +243,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     right: 6,
-    backgroundColor: '#FF8000',
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 6,
@@ -258,26 +253,11 @@ const styles = StyleSheet.create({
   },
   pendingBadgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
   infoContainer: { flex: 1, marginLeft: 12, justifyContent: 'space-between' },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#334A77',
-    flex: 1,
-    marginRight: 8,
-  },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  title: { fontSize: 15, fontWeight: '700', flex: 1, marginRight: 8 },
   favoriteButton: { padding: 2 },
-  address: { fontSize: 13, color: '#6080A8', marginTop: -2 },
-  sportsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-    marginTop: 6,
-  },
+  address: { fontSize: 13, marginTop: -2 },
+  sportsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 6 },
   categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -288,13 +268,12 @@ const styles = StyleSheet.create({
   categoryDot: { width: 5, height: 5, borderRadius: 2.5, marginRight: 4 },
   categoryText: { fontSize: 9, fontWeight: '700' },
   moreBadge: {
-    backgroundColor: '#F0F6FC',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
     justifyContent: 'center',
   },
-  moreBadgeText: { fontSize: 9, fontWeight: '700', color: '#6080A8' },
+  moreBadgeText: { fontSize: 9, fontWeight: '700' },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -302,18 +281,8 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   ratingBlock: { flexDirection: 'row', alignItems: 'center' },
-  ratingText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#334A77',
-    marginLeft: 4,
-  },
-  reviewsText: { color: '#BACAD6', fontWeight: '400' },
+  ratingText: { fontSize: 12, fontWeight: '600', marginLeft: 4 },
+  reviewsText: { fontWeight: '400' },
   distanceBlock: { flexDirection: 'row', alignItems: 'center' },
-  distanceText: {
-    fontSize: 12,
-    color: '#6080A8',
-    marginLeft: 2,
-    fontWeight: '500',
-  },
+  distanceText: { fontSize: 12, marginLeft: 2, fontWeight: '500' },
 });

@@ -22,6 +22,7 @@ import {
 } from '@/effector/store';
 import { GroundReview } from '@/effector/events/async/reviews';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface ReviewFormModalProps {
   visible: boolean;
@@ -39,9 +40,10 @@ export default function ReviewFormModal({
   onSuccess,
 }: ReviewFormModalProps) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ['60%', '90%'], []);
+  const snapPoints = useMemo(() => ['56%', '90%'], []);
 
   const storeReview = useUnit($myReview);
   const isCreating = useUnit(createReviewFx.pending);
@@ -56,6 +58,7 @@ export default function ReviewFormModal({
   const [comment, setComment] = useState('');
 
   const isSubmitting = isCreating || isUpdating;
+  const canSubmit = rating >= 1 && !isSubmitting;
 
   useEffect(() => {
     if (!visible) return;
@@ -137,56 +140,85 @@ export default function ReviewFormModal({
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
-      backgroundStyle={styles.sheetBackground}
+      backgroundStyle={{
+        backgroundColor: colors.surface,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        borderWidth: 1,
+        borderBottomWidth: 0,
+        borderColor: colors.border,
+      }}
       handleComponent={() => (
         <View style={styles.handleContainer}>
-          <View style={styles.handlePill} />
+          <View
+            style={[styles.handlePill, { backgroundColor: colors.textTertiary }]}
+          />
         </View>
       )}
     >
       <View style={styles.content}>
         <View style={styles.headerRow}>
-          <Text style={styles.title}>
-            {isEditing
-              ? t('reviewForm.editTitle')
-              : t('reviewForm.title')}
+          <Text style={[styles.title, { color: colors.textPrimary }]}>
+            {isEditing ? t('reviewForm.editTitle') : t('reviewForm.title')}
           </Text>
-          <Pressable onPress={onClose} hitSlop={10} style={styles.closeBtn}>
-            <Ionicons name="close" size={20} color="#6080A8" />
+          <Pressable
+            onPress={onClose}
+            hitSlop={10}
+            style={[
+              styles.closeBtn,
+              { backgroundColor: colors.surfaceSecondary },
+            ]}
+          >
+            <Ionicons name="close" size={20} color={colors.textSecondary} />
           </Pressable>
         </View>
 
-        <Text style={styles.label}>{t('reviewForm.yourRating')}</Text>
+        <Text style={[styles.label, { color: colors.textPrimary }]}>
+          {t('reviewForm.yourRating')}
+        </Text>
         <View style={styles.ratingRow}>
           <StarRating value={rating} size={36} onChange={setRating} />
         </View>
-        <Text style={styles.ratingHint}>{ratingHintText}</Text>
+        <Text style={[styles.ratingHint, { color: colors.textSecondary }]}>
+          {ratingHintText}
+        </Text>
 
-        <Text style={styles.label}>{t('reviewForm.comment')}</Text>
+        <Text style={[styles.label, { color: colors.textPrimary }]}>
+          {t('reviewForm.comment')}
+        </Text>
         <BottomSheetTextInput
-          style={styles.textarea}
+          style={[
+            styles.textarea,
+            {
+              color: colors.textPrimary,
+              backgroundColor: colors.surfaceSecondary,
+              borderColor: colors.border,
+            },
+          ]}
           value={comment}
           onChangeText={setComment}
           placeholder={t('reviewForm.commentPlaceholder')}
-          placeholderTextColor="#BACAD6"
+          placeholderTextColor={colors.textTertiary}
           multiline
           maxLength={500}
           textAlignVertical="top"
         />
-        <Text style={styles.counter}>{comment.length}/500</Text>
+        <Text style={[styles.counter, { color: colors.textTertiary }]}>
+          {comment.length}/500
+        </Text>
 
         <Pressable
           style={[
             styles.submitBtn,
-            (rating < 1 || isSubmitting) && styles.submitBtnDisabled,
+            { backgroundColor: colors.primaryDark },
           ]}
           onPress={handleSubmit}
-          disabled={rating < 1 || isSubmitting}
+          disabled={!canSubmit}
         >
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={styles.submitBtnText}>
+            <Text style={[styles.submitBtnText, { color: '#FFFFFF' }]}>
               {isEditing
                 ? t('common.saveChanges')
                 : t('reviewForm.postButton')}
@@ -201,16 +233,10 @@ export default function ReviewFormModal({
 }
 
 const styles = StyleSheet.create({
-  sheetBackground: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
   handleContainer: { alignItems: 'center', paddingVertical: 10 },
   handlePill: {
     width: 55,
     height: 4,
-    backgroundColor: '#BACAD6',
     borderRadius: 2,
   },
   content: { paddingHorizontal: 20 },
@@ -220,19 +246,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 20,
   },
-  title: { fontSize: 18, fontWeight: '700', color: '#334A77' },
+  title: { fontSize: 18, fontWeight: '700' },
   closeBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F0F6FC',
   },
   label: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#000',
     marginBottom: 8,
     marginTop: 4,
   },
@@ -240,7 +264,6 @@ const styles = StyleSheet.create({
   ratingHint: {
     textAlign: 'center',
     fontSize: 13,
-    color: '#6080A8',
     fontWeight: '600',
     marginTop: 6,
     marginBottom: 16,
@@ -248,18 +271,14 @@ const styles = StyleSheet.create({
   textarea: {
     minHeight: 100,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     padding: 14,
     fontSize: 14,
-    color: '#334A77',
-    backgroundColor: '#FFFFFF',
     lineHeight: 20,
     textAlignVertical: 'top',
   },
   counter: {
     fontSize: 11,
-    color: '#BACAD6',
     fontWeight: '500',
     textAlign: 'right',
     marginTop: 4,
@@ -268,10 +287,8 @@ const styles = StyleSheet.create({
   submitBtn: {
     height: 50,
     borderRadius: 14,
-    backgroundColor: '#006EE6',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  submitBtnDisabled: { backgroundColor: '#BACAD6' },
-  submitBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  submitBtnText: { fontSize: 16, fontWeight: '700' },
 });

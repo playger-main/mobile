@@ -15,6 +15,7 @@ import { GroundMapMarker } from '@/types/map';
 import { $userLocation, $cityCenter } from '@/effector/store';
 import { calculateDistance, formatDistance } from '@/utils/distance';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface ClusterGroundsSheetProps {
   visible: boolean;
@@ -30,6 +31,7 @@ export default function ClusterGroundsSheet({
   onSelect,
 }: ClusterGroundsSheetProps) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['50%', '85%'], []);
 
@@ -59,10 +61,21 @@ export default function ClusterGroundsSheet({
       enableDynamicSizing={false}
       enablePanDownToClose={true}
       onClose={onClose}
-      backgroundStyle={styles.background}
+      backgroundStyle={{
+        backgroundColor: colors.background,
+        borderTopLeftRadius: 18,
+        borderTopRightRadius: 18,
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 16,
+      }}
       handleComponent={() => (
         <View style={styles.handleContainer}>
-          <View style={styles.handlePill} />
+          <View
+            style={[styles.handlePill, { backgroundColor: colors.textTertiary }]}
+          />
         </View>
       )}
     >
@@ -72,18 +85,31 @@ export default function ClusterGroundsSheet({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
-          <View style={styles.header}>
+          <View
+            style={[styles.header, { borderBottomColor: colors.borderSubtle }]}
+          >
             <View style={styles.headerLeft}>
-              <Text style={styles.headerTitle}>
+              <Text
+                style={[styles.headerTitle, { color: colors.textPrimary }]}
+              >
                 {t(countKey, { count: grounds.length })}
               </Text>
-              <Text style={styles.headerSubtitle}>
+              <Text
+                style={[styles.headerSubtitle, { color: colors.textTertiary }]}
+              >
                 {t('cluster.tapToOpen')}
               </Text>
             </View>
 
-            <Pressable onPress={onClose} style={styles.closeButton} hitSlop={10}>
-              <Ionicons name="close" size={20} color="#6080A8" />
+            <Pressable
+              onPress={onClose}
+              style={[
+                styles.closeButton,
+                { backgroundColor: colors.surfaceSecondary },
+              ]}
+              hitSlop={10}
+            >
+              <Ionicons name="close" size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
         }
@@ -93,6 +119,7 @@ export default function ClusterGroundsSheet({
 
           const sportIcon = getSportIcon(item.sportId);
           const sportLabel = t(getSportKey(item.sportId));
+          const sportBadge = getBadgeStyle(item.sportId);
 
           const origin = userLocation ?? cityCenter;
           const distanceMeters = origin
@@ -107,13 +134,31 @@ export default function ClusterGroundsSheet({
             formatDistance(distanceMeters) ?? t('distance.nearby');
 
           return (
-            <Pressable style={styles.row} onPress={() => onSelect(item)}>
-              <View style={styles.imageContainer}>
+            <Pressable
+              style={[styles.row, { borderBottomColor: colors.borderSubtle }]}
+              onPress={() => onSelect(item)}
+            >
+              <View
+                style={[
+                  styles.imageContainer,
+                  { backgroundColor: colors.surfaceSecondary },
+                ]}
+              >
                 {item.avatar ? (
                   <Image source={{ uri: item.avatar }} style={styles.image} />
                 ) : (
-                  <View style={[styles.image, styles.imagePlaceholder]}>
-                    <Ionicons name="image-outline" size={22} color="#BACAD6" />
+                  <View
+                    style={[
+                      styles.image,
+                      styles.imagePlaceholder,
+                      { backgroundColor: colors.surfaceSecondary },
+                    ]}
+                  >
+                    <Ionicons
+                      name="image-outline"
+                      size={22}
+                      color={colors.textTertiary}
+                    />
                   </View>
                 )}
 
@@ -122,18 +167,24 @@ export default function ClusterGroundsSheet({
                     styles.activityIndicator,
                     {
                       backgroundColor: activityColors.bg,
-                      borderColor: '#FFFFFF',
+                      borderColor: colors.background,
                     },
                   ]}
                 />
               </View>
 
               <View style={styles.info}>
-                <Text style={styles.name} numberOfLines={1}>
+                <Text
+                  style={[styles.name, { color: colors.textPrimary }]}
+                  numberOfLines={1}
+                >
                   {item.name}
                 </Text>
                 {item.address ? (
-                  <Text style={styles.address} numberOfLines={1}>
+                  <Text
+                    style={[styles.address, { color: colors.textSecondary }]}
+                    numberOfLines={1}
+                  >
                     {item.address}
                   </Text>
                 ) : null}
@@ -142,20 +193,17 @@ export default function ClusterGroundsSheet({
                   <View
                     style={[
                       styles.sportTag,
-                      { backgroundColor: getBadgeStyle(item.sportId).bg },
+                      { backgroundColor: sportBadge.bg },
                     ]}
                   >
                     <Ionicons
                       name={sportIcon as any}
                       size={10}
-                      color={getBadgeStyle(item.sportId).text}
+                      color={sportBadge.text}
                       style={{ marginRight: 4 }}
                     />
                     <Text
-                      style={[
-                        styles.sportTagText,
-                        { color: getBadgeStyle(item.sportId).text },
-                      ]}
+                      style={[styles.sportTagText, { color: sportBadge.text }]}
                     >
                       {sportLabel.toUpperCase()}
                     </Text>
@@ -185,12 +233,27 @@ export default function ClusterGroundsSheet({
                 </View>
 
                 <View style={styles.distanceRow}>
-                  <Ionicons name="location-outline" size={12} color="#6080A8" />
-                  <Text style={styles.distanceText}>{displayDistance}</Text>
+                  <Ionicons
+                    name="location-outline"
+                    size={12}
+                    color={colors.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.distanceText,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    {displayDistance}
+                  </Text>
                 </View>
               </View>
 
-              <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={colors.textTertiary}
+              />
             </Pressable>
           );
         }}
@@ -200,21 +263,10 @@ export default function ClusterGroundsSheet({
 }
 
 const styles = StyleSheet.create({
-  background: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
-    shadowColor: '#334A77',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 16,
-  },
   handleContainer: { alignItems: 'center', paddingVertical: 10 },
   handlePill: {
     width: 55,
     height: 4,
-    backgroundColor: '#BACAD6',
     borderRadius: 2,
   },
   header: {
@@ -223,14 +275,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F6FC',
     marginBottom: 4,
   },
   headerLeft: { flex: 1 },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
   headerSubtitle: {
     fontSize: 12,
-    color: '#BACAD6',
     fontWeight: '500',
     marginTop: 2,
   },
@@ -240,7 +290,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F0F6FC',
     marginLeft: 8,
   },
   listContent: { paddingHorizontal: 16, paddingBottom: 32 },
@@ -249,7 +298,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F6FC',
     gap: 12,
   },
   imageContainer: {
@@ -258,13 +306,11 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#F0F4F8',
   },
   image: { width: '100%', height: '100%', resizeMode: 'cover' },
   imagePlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F0F4F8',
   },
   activityIndicator: {
     position: 'absolute',
@@ -276,8 +322,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   info: { flex: 1 },
-  name: { fontSize: 14, fontWeight: '700', color: '#334A77' },
-  address: { fontSize: 12, color: '#6080A8', marginTop: 2 },
+  name: { fontSize: 14, fontWeight: '700' },
+  address: { fontSize: 12, marginTop: 2 },
   tagsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -308,5 +354,5 @@ const styles = StyleSheet.create({
     gap: 4,
     marginTop: 4,
   },
-  distanceText: { fontSize: 11, color: '#6080A8', fontWeight: '500' },
+  distanceText: { fontSize: 11, fontWeight: '500' },
 });

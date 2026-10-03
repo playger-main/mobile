@@ -28,6 +28,7 @@ import {
 } from '@/effector/store';
 import { SPORT_OPTIONS, getSportKey } from '@/constants/sports';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 const AVATAR_SIZE = 100;
 
@@ -35,6 +36,7 @@ export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   const user = useUnit($userSession);
   const isSaving = useUnit(updateProfileFx.pending);
@@ -139,9 +141,11 @@ export default function EditProfileScreen() {
         city: city.trim(),
         preferredSports: sports,
       });
-      Alert.alert(t('profile.edit.successTitle'), t('profile.edit.successMessage'), [
-        { text: t('common.ok'), onPress: () => router.back() },
-      ]);
+      Alert.alert(
+        t('profile.edit.successTitle'),
+        t('profile.edit.successMessage'),
+        [{ text: t('common.ok'), onPress: () => router.back() }],
+      );
     } catch (e: any) {
       const raw = e?.response?.data?.message ?? e?.message;
       const message = Array.isArray(raw)
@@ -157,20 +161,31 @@ export default function EditProfileScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.listBackground }]}
     >
       {/* HEADER */}
-      <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: insets.top + 6,
+            backgroundColor: colors.background,
+            borderColor: colors.borderSubtle,
+          },
+        ]}
+      >
         <Pressable
           onPress={() => router.back()}
           style={styles.backButton}
           hitSlop={12}
         >
-          <Ionicons name="chevron-back" size={24} color="#006EE6" />
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>{t('profile.edit.title')}</Text>
-          <Text style={styles.headerSubtitle}>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+            {t('profile.edit.title')}
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textTertiary }]}>
             {t('profile.edit.subtitle')}
           </Text>
         </View>
@@ -191,14 +206,30 @@ export default function EditProfileScreen() {
               <Image
                 key={user.avatar}
                 source={{ uri: user.avatar }}
-                style={styles.avatarImage}
+                style={[
+                  styles.avatarImage,
+                  { backgroundColor: colors.surfaceSecondary },
+                ]}
               />
             ) : (
-              <View style={styles.avatarPlaceholder}>
+              <View
+                style={[
+                  styles.avatarPlaceholder,
+                  { backgroundColor: colors.primary },
+                ]}
+              >
                 <Text style={styles.avatarText}>{avatarLetter}</Text>
               </View>
             )}
-            <View style={styles.avatarBadge}>
+            <View
+              style={[
+                styles.avatarBadge,
+                {
+                  backgroundColor: colors.primary,
+                  borderColor: colors.background,
+                },
+              ]}
+            >
               {isUploading ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
@@ -208,7 +239,7 @@ export default function EditProfileScreen() {
           </Pressable>
 
           <Pressable onPress={handlePickAvatar} hitSlop={8}>
-            <Text style={styles.changePhotoText}>
+            <Text style={[styles.changePhotoText, { color: colors.primary }]}>
               {isUploading
                 ? t('profile.edit.uploading')
                 : t('profile.edit.changePhoto')}
@@ -217,75 +248,136 @@ export default function EditProfileScreen() {
         </View>
 
         {/* FULL NAME */}
-        <Text style={styles.inputLabel}>{t('profile.edit.fullName')}</Text>
+        <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+          {t('profile.edit.fullName')}
+        </Text>
         <TextInput
-          style={styles.textField}
+          style={[
+            styles.textField,
+            {
+              color: colors.textPrimary,
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
           value={username}
           onChangeText={setUsername}
           placeholder={t('profile.edit.namePlaceholder')}
-          placeholderTextColor="#BACAD6"
+          placeholderTextColor={colors.textTertiary}
           maxLength={50}
           autoCapitalize="words"
         />
 
         {/* EMAIL */}
-        <Text style={styles.inputLabel}>{t('profile.edit.email')}</Text>
+        <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+          {t('profile.edit.email')}
+        </Text>
         <View style={styles.emailRow}>
-          <View style={styles.emailField}>
-            <Text style={styles.emailText} numberOfLines={1}>
+          <View
+            style={[
+              styles.emailField,
+              {
+                backgroundColor: colors.surfaceSecondary,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text
+              style={[styles.emailText, { color: colors.textPrimary }]}
+              numberOfLines={1}
+            >
               {user?.email || '—'}
             </Text>
             {user?.isEmailConfirmed && (
-              <View style={styles.verifiedBadge}>
-                <Ionicons name="checkmark-circle" size={12} color="#27AE60" />
-                <Text style={styles.verifiedText}>
+              <View
+                style={[
+                  styles.verifiedBadge,
+                  { backgroundColor: colors.accentBg },
+                ]}
+              >
+                <Ionicons
+                  name="checkmark-circle"
+                  size={12}
+                  color={colors.accent}
+                />
+                <Text
+                  style={[styles.verifiedText, { color: colors.accent }]}
+                >
                   {t('profile.edit.verified')}
                 </Text>
               </View>
             )}
           </View>
           <Pressable
-            style={styles.changeEmailButton}
+            style={[
+              styles.changeEmailButton,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.primary,
+              },
+            ]}
             onPress={() => router.push('/user/change-email')}
           >
-            <Text style={styles.changeEmailText}>
+            <Text
+              style={[styles.changeEmailText, { color: colors.primary }]}
+            >
               {t('common.change')}
             </Text>
           </Pressable>
         </View>
-        <Text style={styles.hintText}>
+        <Text style={[styles.hintText, { color: colors.textTertiary }]}>
           {t('profile.edit.changeEmailHint')}
         </Text>
 
         {/* CITY */}
-        <Text style={styles.inputLabel}>{t('profile.edit.city')}</Text>
+        <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+          {t('profile.edit.city')}
+        </Text>
         <TextInput
-          style={styles.textField}
+          style={[
+            styles.textField,
+            {
+              color: colors.textPrimary,
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
           value={city}
           onChangeText={setCity}
           placeholder={t('profile.edit.cityPlaceholder')}
-          placeholderTextColor="#BACAD6"
+          placeholderTextColor={colors.textTertiary}
           maxLength={50}
           autoCapitalize="words"
         />
 
         {/* BIO */}
-        <Text style={styles.inputLabel}>{t('profile.edit.aboutMe')}</Text>
+        <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+          {t('profile.edit.aboutMe')}
+        </Text>
         <TextInput
-          style={styles.textareaField}
+          style={[
+            styles.textareaField,
+            {
+              color: colors.textPrimary,
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
           value={bio}
           onChangeText={setBio}
           placeholder={t('profile.edit.bioPlaceholder')}
-          placeholderTextColor="#BACAD6"
+          placeholderTextColor={colors.textTertiary}
           multiline
           numberOfLines={4}
           textAlignVertical="top"
           maxLength={300}
         />
-        <Text style={styles.counterText}>{bio.length}/300</Text>
+        <Text style={[styles.counterText, { color: colors.textTertiary }]}>
+          {bio.length}/300
+        </Text>
 
         {/* SPORTS */}
-        <Text style={styles.inputLabel}>
+        <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
           {t('profile.edit.preferredSports')}
         </Text>
         <View style={styles.sportsWrap}>
@@ -295,18 +387,27 @@ export default function EditProfileScreen() {
               <Pressable
                 key={sport.id}
                 onPress={() => toggleSport(sport.id)}
-                style={[styles.sportChip, active && styles.sportChipActive]}
+                style={[
+                  styles.sportChip,
+                  {
+                    backgroundColor: active
+                      ? colors.primary
+                      : colors.surface,
+                    borderColor: active ? colors.primary : colors.border,
+                  },
+                ]}
               >
                 <Ionicons
                   name={sport.icon as any}
                   size={14}
-                  color={active ? '#FFFFFF' : '#334A77'}
+                  color={active ? '#FFFFFF' : colors.textPrimary}
                   style={{ marginRight: 6 }}
                 />
                 <Text
                   style={[
                     styles.sportChipText,
-                    active && styles.sportChipTextActive,
+                    { color: active ? '#FFFFFF' : colors.textPrimary },
+                    active && { fontWeight: '700' },
                   ]}
                 >
                   {t(getSportKey(sport.id))}
@@ -315,23 +416,31 @@ export default function EditProfileScreen() {
             );
           })}
         </View>
-        <Text style={styles.hintText}>{t('profile.edit.sportsHint')}</Text>
+        <Text style={[styles.hintText, { color: colors.textTertiary }]}>
+          {t('profile.edit.sportsHint')}
+        </Text>
       </ScrollView>
 
       {/* SAVE */}
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
+      <View
+        style={[
+          styles.bottomBar,
+          {
+            paddingBottom: insets.bottom + 12,
+            backgroundColor: colors.background,
+            borderColor: colors.borderSubtle,
+          },
+        ]}
+      >
         <Pressable
-          style={[
-            styles.saveButton,
-            canSave ? styles.saveButtonActive : styles.saveButtonDisabled,
-          ]}
+          style={[styles.saveButton, { backgroundColor: colors.primaryDark }]}
           onPress={handleSave}
           disabled={!canSave}
         >
           {isSaving ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={styles.saveButtonText}>
+            <Text style={[styles.saveButtonText, { color: '#FFFFFF' }]}>
               {hasChanges
                 ? t('common.saveChanges')
                 : t('common.noChangesYet')}
@@ -344,7 +453,7 @@ export default function EditProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -352,18 +461,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderColor: '#F0F6FC',
-    backgroundColor: '#FFFFFF',
   },
   backButton: { padding: 4 },
   headerTitleContainer: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
-  headerSubtitle: {
-    fontSize: 12,
-    color: '#BACAD6',
-    fontWeight: '500',
-    marginTop: 1,
-  },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
+  headerSubtitle: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   scrollView: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 16,
@@ -376,13 +478,11 @@ const styles = StyleSheet.create({
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
-    backgroundColor: '#F0F4F8',
   },
   avatarPlaceholder: {
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
-    backgroundColor: '#006EE6',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -394,21 +494,14 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#208AEF',
     borderWidth: 3,
-    borderColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  changePhotoText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#208AEF',
-  },
+  changePhotoText: { fontSize: 13, fontWeight: '700' },
   inputLabel: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#000000',
     marginBottom: 8,
     marginTop: 16,
   },
@@ -416,28 +509,21 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 48,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 14,
-    color: '#334A77',
-    backgroundColor: '#FFFFFF',
   },
   textareaField: {
     width: '100%',
     height: 100,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     padding: 14,
     fontSize: 14,
-    color: '#334A77',
-    backgroundColor: '#FFFFFF',
     lineHeight: 20,
   },
   counterText: {
     fontSize: 11,
-    color: '#BACAD6',
     fontWeight: '500',
     textAlign: 'right',
     marginTop: 4,
@@ -447,7 +533,6 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 48,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -455,11 +540,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
-    backgroundColor: '#F8FAFC',
   },
   emailText: {
     fontSize: 14,
-    color: '#334A77',
     fontWeight: '500',
     flex: 1,
   },
@@ -467,7 +550,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: '#EAF9F5',
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 6,
@@ -475,7 +557,6 @@ const styles = StyleSheet.create({
   verifiedText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#27AE60',
     letterSpacing: 0.2,
   },
   changeEmailButton: {
@@ -483,19 +564,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#208AEF',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
   },
-  changeEmailText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#208AEF',
-  },
+  changeEmailText: { fontSize: 13, fontWeight: '700' },
   hintText: {
     fontSize: 11,
-    color: '#BACAD6',
     fontWeight: '500',
     marginTop: 6,
     lineHeight: 15,
@@ -507,29 +581,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
   },
-  sportChipActive: {
-    backgroundColor: '#208AEF',
-    borderColor: '#208AEF',
-  },
-  sportChipText: {
-    fontSize: 13,
-    color: '#334A77',
-    fontWeight: '500',
-  },
-  sportChipTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
+  sportChipText: { fontSize: 13, fontWeight: '500' },
   bottomBar: {
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderColor: '#F0F6FC',
   },
   saveButton: {
     width: '100%',
@@ -538,7 +596,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  saveButtonActive: { backgroundColor: '#006EE6' },
-  saveButtonDisabled: { backgroundColor: '#BACAD6' },
   saveButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 });

@@ -21,6 +21,7 @@ import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportKey } from '@/constants/sports';
 import { $myReviewsCount, fetchMyReviewsFx } from '@/effector/store';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface UserProfileProps {
   user: SessionUser;
@@ -32,16 +33,15 @@ const AVATAR_SIZE = 140;
 
 export default function UserProfile({ user, onLogout }: UserProfileProps) {
   const { t } = useTranslation();
+  const { theme, colors } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
   const fetchProfile = useUnit(fetchMyProfileFx);
   const isRefreshing = useUnit(fetchMyProfileFx.pending);
-
   const reviewsCount = useUnit($myReviewsCount);
   const fetchMyReviews = useUnit(fetchMyReviewsFx);
 
-  // ✅ Обновляем профиль при каждом фокусе на вкладке
   useFocusEffect(
     useCallback(() => {
       fetchProfile();
@@ -68,8 +68,11 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
 
   const goToEdit = () => router.push('/user/edit');
 
+  const coverColors: [string, string] =
+    theme === 'dark' ? ['#16283D', '#208AEF'] : ['#006EE6', '#208AEF'];
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.listBackground }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -77,22 +80,33 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
         {/* COVER + AVATAR */}
         <View style={styles.coverWrapper}>
           <LinearGradient
-            colors={['#006EE6', '#208AEF']}
+            colors={coverColors}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.cover}
           />
 
           <View style={styles.avatarWrapper}>
-            <Pressable onPress={goToEdit} style={styles.avatarShadow}>
+            <Pressable
+              onPress={goToEdit}
+              style={[styles.avatarShadow, { shadowColor: colors.shadow }]}
+            >
               {hasAvatar ? (
                 <Image
                   key={user.avatar!}
                   source={{ uri: user.avatar! }}
-                  style={styles.avatarImage}
+                  style={[styles.avatarImage, { borderColor: colors.surface }]}
                 />
               ) : (
-                <View style={styles.avatarPlaceholder}>
+                <View
+                  style={[
+                    styles.avatarPlaceholder,
+                    {
+                      borderColor: colors.surface,
+                      backgroundColor: colors.primaryDark,
+                    },
+                  ]}
+                >
                   <Text style={styles.avatarText}>{avatarLetter}</Text>
                 </View>
               )}
@@ -108,39 +122,68 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
 
         {/* IDENTITY */}
         <View style={styles.identityBlock}>
-          <Text style={styles.userName} numberOfLines={1}>
+          <Text
+            style={[styles.userName, { color: colors.textPrimary }]}
+            numberOfLines={1}
+          >
             {user.name || 'PlayG User'}
           </Text>
-          <Text style={styles.userEmail} numberOfLines={1}>
+          <Text
+            style={[styles.userEmail, { color: colors.textSecondary }]}
+            numberOfLines={1}
+          >
             {user.email || '—'}
           </Text>
 
           <Pressable style={styles.cityRow} onPress={goToEdit}>
-            <Ionicons name="location-outline" size={13} color="#6080A8" />
-            <Text style={[styles.cityText, !hasCity && styles.cityEmpty]}>
+            <Ionicons
+              name="location-outline"
+              size={13}
+              color={colors.textSecondary}
+            />
+            <Text
+              style={[
+                styles.cityText,
+                { color: hasCity ? colors.textSecondary : colors.primary },
+              ]}
+            >
               {hasCity ? user.city : t('profile.addCity')}
             </Text>
           </Pressable>
         </View>
 
-        {/* BIO */}
-        <View style={styles.bioBlock}>
+        {/* BIO — теперь карточка (surface), а не surfaceSecondary */}
+        <View
+          style={[
+            styles.bioBlock,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+        >
           {hasBio ? (
-            <Text style={styles.bioText}>{user.bio}</Text>
+            <Text style={[styles.bioText, { color: colors.textPrimary }]}>
+              {user.bio}
+            </Text>
           ) : (
             <Pressable onPress={goToEdit}>
-              <Text style={styles.bioEmptyText}>{t('profile.addBio')}</Text>
+              <Text style={[styles.bioEmptyText, { color: colors.primary }]}>
+                {t('profile.addBio')}
+              </Text>
             </Pressable>
           )}
         </View>
 
         {/* SPORTS */}
         <View style={styles.sportsBlock}>
-          <Text style={styles.sectionLabel}>{t('profile.preferredSports')}</Text>
+          <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
+            {t('profile.preferredSports')}
+          </Text>
           {sports.length > 0 ? (
             <View style={styles.sportsRow}>
               {sports.map((sportId) => {
-                const badge = getBadgeStyle(sportId);
+                const badge = getBadgeStyle(sportId, theme);
                 const label = t(getSportKey(sportId));
                 return (
                   <View
@@ -159,7 +202,9 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             </View>
           ) : (
             <Pressable onPress={goToEdit}>
-              <Text style={styles.emptyHintText}>{t('profile.addSports')}</Text>
+              <Text style={[styles.emptyHintText, { color: colors.primary }]}>
+                {t('profile.addSports')}
+              </Text>
             </Pressable>
           )}
         </View>
@@ -167,92 +212,153 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
         {/* STATS */}
         <View style={styles.statsGrid}>
           <Pressable
-            style={styles.statsCard}
+            style={[
+              styles.statsCard,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
             onPress={() => router.push('/user/joined')}
           >
-            <Ionicons name="calendar-outline" size={18} color="#208AEF" />
-            <Text style={styles.statsNumber}>{joinedCount}</Text>
-            <Text style={styles.statsLabel}>{t('profile.stats.joined')}</Text>
+            <Ionicons name="calendar-outline" size={18} color={colors.primary} />
+            <Text style={[styles.statsNumber, { color: colors.textPrimary }]}>
+              {joinedCount}
+            </Text>
+            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>
+              {t('profile.stats.joined')}
+            </Text>
           </Pressable>
 
           <Pressable
-            style={styles.statsCard}
+            style={[
+              styles.statsCard,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
             onPress={() => router.push('/user/favorites')}
           >
-            <Ionicons name="heart-outline" size={18} color="#208AEF" />
-            <Text style={styles.statsNumber}>{savedCount}</Text>
-            <Text style={styles.statsLabel}>{t('profile.stats.saved')}</Text>
+            <Ionicons name="heart-outline" size={18} color={colors.primary} />
+            <Text style={[styles.statsNumber, { color: colors.textPrimary }]}>
+              {savedCount}
+            </Text>
+            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>
+              {t('profile.stats.saved')}
+            </Text>
           </Pressable>
 
           <Pressable
-            style={styles.statsCard}
+            style={[
+              styles.statsCard,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
             onPress={() => router.push('/user/created')}
           >
-            <Ionicons name="trophy-outline" size={18} color="#208AEF" />
-            <Text style={styles.statsNumber}>{gamesCount}</Text>
-            <Text style={styles.statsLabel}>{t('profile.stats.created')}</Text>
+            <Ionicons name="trophy-outline" size={18} color={colors.primary} />
+            <Text style={[styles.statsNumber, { color: colors.textPrimary }]}>
+              {gamesCount}
+            </Text>
+            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>
+              {t('profile.stats.created')}
+            </Text>
           </Pressable>
 
           <Pressable
-            style={styles.statsCard}
+            style={[
+              styles.statsCard,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
             onPress={() => router.push('/user/reviews')}
           >
-            <Ionicons name="star-outline" size={18} color="#208AEF" />
-            <Text style={styles.statsNumber}>{reviewsCount}</Text>
-            <Text style={styles.statsLabel}>{t('profile.stats.reviews')}</Text>
+            <Ionicons name="star-outline" size={18} color={colors.primary} />
+            <Text style={[styles.statsNumber, { color: colors.textPrimary }]}>
+              {reviewsCount}
+            </Text>
+            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>
+              {t('profile.stats.reviews')}
+            </Text>
           </Pressable>
         </View>
 
         {/* MENU */}
-        <View style={styles.menuContainer}>
-          <Pressable style={styles.menuItem} onPress={goToEdit}>
+        <View
+          style={[
+            styles.menuContainer,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+          ]}
+        >
+          <Pressable
+            style={[styles.menuItem, { borderColor: colors.borderSubtle }]}
+            onPress={goToEdit}
+          >
             <View style={styles.menuItemLeft}>
               <Ionicons
                 name="create-outline"
                 size={20}
-                color="#6080A8"
+                color={colors.textSecondary}
                 style={styles.menuIcon}
               />
-              <Text style={styles.menuItemText}>
+              <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
                 {t('profile.menu.editProfile')}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color={colors.textTertiary}
+            />
           </Pressable>
 
           {isModerator && (
             <Pressable
-              style={styles.menuItem}
+              style={[
+                styles.menuItem,
+                !isModerator && styles.noBorder,
+                { borderColor: colors.borderSubtle },
+              ]}
               onPress={() => router.push('/ground/moderation')}
             >
               <View style={styles.menuItemLeft}>
                 <Ionicons
                   name="shield-checkmark-outline"
                   size={20}
-                  color="#FF8000"
+                  color={colors.warning}
                   style={styles.menuIcon}
                 />
-                <Text style={[styles.menuItemText, { color: '#FF8000' }]}>
+                <Text style={[styles.menuItemText, { color: colors.warning }]}>
                   {t('profile.menu.moderation')}
                 </Text>
               </View>
               <View style={styles.menuItemRight}>
-                <View style={styles.moderationDot} />
-                <Ionicons name="chevron-forward" size={16} color="#BACAD6" />
+                <View
+                  style={[
+                    styles.moderationDot,
+                    { backgroundColor: colors.warning },
+                  ]}
+                />
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={colors.textTertiary}
+                />
               </View>
             </Pressable>
           )}
         </View>
 
         {/* LOGOUT */}
-        <Pressable style={styles.logoutButton} onPress={onLogout}>
+        <Pressable
+          style={[
+            styles.logoutButton,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+          ]}
+          onPress={onLogout}
+        >
           <Ionicons
             name="log-out-outline"
             size={18}
-            color="#FF3B30"
+            color={colors.danger}
             style={styles.logoutIcon}
           />
-          <Text style={styles.logoutButtonText}>{t('profile.logout')}</Text>
+          <Text style={[styles.logoutButtonText, { color: colors.danger }]}>
+            {t('profile.logout')}
+          </Text>
         </Pressable>
       </ScrollView>
     </View>
@@ -260,7 +366,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1 },
   scrollContent: { paddingBottom: 40 },
 
   coverWrapper: {
@@ -277,7 +383,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatarShadow: {
-    shadowColor: '#334A77',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 10,
@@ -289,16 +394,12 @@ const styles = StyleSheet.create({
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
     borderWidth: 4,
-    borderColor: '#FFFFFF',
-    backgroundColor: '#F0F4F8',
   },
   avatarPlaceholder: {
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
-    backgroundColor: '#006EE6',
     borderWidth: 4,
-    borderColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -315,44 +416,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  identityBlock: {
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    marginTop: 14,
-  },
-  userName: { fontSize: 20, fontWeight: '800', color: '#334A77' },
-  userEmail: { fontSize: 13, color: '#6080A8', marginTop: 3 },
-  cityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 6,
-  },
-  cityText: { fontSize: 13, color: '#6080A8', fontWeight: '500' },
-  cityEmpty: { color: '#208AEF', fontWeight: '600' },
+  identityBlock: { alignItems: 'center', paddingHorizontal: 24, marginTop: 14 },
+  userName: { fontSize: 20, fontWeight: '800' },
+  userEmail: { fontSize: 13, marginTop: 3 },
+  cityRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
+  cityText: { fontSize: 13, fontWeight: '500' },
 
   bioBlock: {
     marginHorizontal: 16,
     marginTop: 18,
     padding: 14,
-    backgroundColor: '#F8FAFC',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
   },
-  bioText: { fontSize: 13, color: '#334A77', lineHeight: 19 },
-  bioEmptyText: {
-    fontSize: 13,
-    color: '#208AEF',
-    fontWeight: '600',
-    lineHeight: 19,
-  },
+  bioText: { fontSize: 13, lineHeight: 19 },
+  bioEmptyText: { fontSize: 13, fontWeight: '600', lineHeight: 19 },
 
   sportsBlock: { marginTop: 18, paddingHorizontal: 16 },
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#BACAD6',
     letterSpacing: 0.5,
     marginBottom: 8,
   },
@@ -366,7 +449,7 @@ const styles = StyleSheet.create({
   },
   sportDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   sportText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
-  emptyHintText: { fontSize: 12, color: '#208AEF', fontWeight: '600' },
+  emptyHintText: { fontSize: 12, fontWeight: '600' },
 
   statsGrid: {
     flexDirection: 'row',
@@ -377,31 +460,18 @@ const styles = StyleSheet.create({
   },
   statsCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statsNumber: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#334A77',
-    marginTop: 4,
-  },
-  statsLabel: {
-    fontSize: 10,
-    color: '#BACAD6',
-    fontWeight: '500',
-    marginTop: 2,
-  },
+  statsNumber: { fontSize: 16, fontWeight: '800', marginTop: 4 },
+  statsLabel: { fontSize: 10, fontWeight: '500', marginTop: 2 },
+
   menuContainer: {
     marginHorizontal: 16,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     paddingHorizontal: 16,
     marginBottom: 24,
@@ -412,20 +482,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderColor: '#F0F6FC',
   },
   noBorder: { borderBottomWidth: 0 },
   menuItemLeft: { flexDirection: 'row', alignItems: 'center' },
   menuIcon: { marginRight: 12 },
-  menuItemText: { fontSize: 14, fontWeight: '600', color: '#334A77' },
+  menuItemText: { fontSize: 14, fontWeight: '600' },
   menuItemRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  moderationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#FF8000',
-    marginRight: 8,
-  },
+  moderationDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
+
   logoutButton: {
     marginHorizontal: 16,
     flexDirection: 'row',
@@ -434,9 +498,7 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
-    backgroundColor: '#FFFFFF',
   },
   logoutIcon: { marginRight: 8 },
-  logoutButtonText: { color: '#FF3B30', fontSize: 15, fontWeight: '700' },
+  logoutButtonText: { fontSize: 15, fontWeight: '700' },
 });

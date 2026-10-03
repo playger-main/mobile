@@ -20,6 +20,7 @@ import { useUnit } from 'effector-react';
 import { $userLocation, $cityCenter } from '@/effector/store';
 import { DEFAULT_CITY_CENTER } from '@/constants/location';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface LocationPickerModalProps {
   visible: boolean;
@@ -41,6 +42,7 @@ export default function LocationPickerModal({
   onClose,
 }: LocationPickerModalProps) {
   const { t } = useTranslation();
+  const { theme, colors } = useTheme();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView | null>(null);
 
@@ -165,7 +167,7 @@ export default function LocationPickerModal({
         address = parts.join(', ') || undefined;
       }
     } catch {
-      // Игнорируем — адрес опционален
+      // ignore
     }
 
     setIsGeocoding(false);
@@ -184,7 +186,7 @@ export default function LocationPickerModal({
       presentationStyle="fullScreen"
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <MapView
           ref={mapRef}
           provider={PROVIDER_DEFAULT}
@@ -194,6 +196,7 @@ export default function LocationPickerModal({
           showsUserLocation={true}
           showsMyLocationButton={false}
           toolbarEnabled={false}
+          userInterfaceStyle={theme === 'dark' ? 'dark' : 'light'}
         >
           {selectedCoords && (
             <Marker
@@ -205,63 +208,140 @@ export default function LocationPickerModal({
               }}
             >
               <View style={styles.pinWrapper}>
-                <View style={styles.pin}>
+                <View
+                  style={[
+                    styles.pin,
+                    {
+                      backgroundColor: colors.primary,
+                      borderColor: colors.background,
+                      shadowColor: colors.shadow,
+                    },
+                  ]}
+                >
                   <Ionicons name="location" size={20} color="#FFFFFF" />
                 </View>
-                <View style={styles.pinTail} />
+                <View
+                  style={[styles.pinTail, { backgroundColor: colors.primary }]}
+                />
               </View>
             </Marker>
           )}
         </MapView>
 
-        {/* Header */}
         <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-          <Pressable onPress={onClose} style={styles.headerButton} hitSlop={10}>
-            <Ionicons name="close" size={22} color="#334A77" />
+          <Pressable
+            onPress={onClose}
+            style={[
+              styles.headerButton,
+              {
+                backgroundColor: colors.surface,
+                shadowColor: colors.shadow,
+              },
+            ]}
+            hitSlop={10}
+          >
+            <Ionicons name="close" size={22} color={colors.textPrimary} />
           </Pressable>
-          <Text style={styles.headerTitle}>
+          <Text
+            style={[
+              styles.headerTitle,
+              {
+                color: colors.textPrimary,
+                backgroundColor: colors.surface,
+              },
+            ]}
+          >
             {t('locationPicker.title')}
           </Text>
           <View style={{ width: 40 }} />
         </View>
 
-        {/* Hint */}
         <View
           style={[styles.hintContainer, { top: insets.top + 70 }]}
           pointerEvents="none"
         >
-          <View style={styles.hintPill}>
-            <Ionicons name="hand-left-outline" size={14} color="#334A77" />
-            <Text style={styles.hintText}>{t('locationPicker.hint')}</Text>
+          <View
+            style={[
+              styles.hintPill,
+              {
+                backgroundColor: colors.surface,
+                shadowColor: colors.shadow,
+              },
+            ]}
+          >
+            <Ionicons
+              name="hand-left-outline"
+              size={14}
+              color={colors.textPrimary}
+            />
+            <Text style={[styles.hintText, { color: colors.textPrimary }]}>
+              {t('locationPicker.hint')}
+            </Text>
           </View>
         </View>
 
-        {/* Locate button */}
         <Pressable
-          style={[styles.locateButton, { bottom: insets.bottom + 130 }]}
+          style={[
+            styles.locateButton,
+            {
+              bottom: insets.bottom + 130,
+              backgroundColor: colors.surface,
+              shadowColor: colors.shadow,
+            },
+          ]}
           onPress={handleLocatePress}
         >
-          <Ionicons name="locate" size={22} color="#208AEF" />
+          <Ionicons name="locate" size={22} color={colors.primary} />
         </Pressable>
 
-        {/* Bottom panel */}
         <View
-          style={[styles.bottomPanel, { paddingBottom: insets.bottom + 16 }]}
+          style={[
+            styles.bottomPanel,
+            {
+              paddingBottom: insets.bottom + 16,
+              backgroundColor: colors.background,
+              shadowColor: colors.shadow,
+            },
+          ]}
         >
           <View style={styles.coordsRow}>
-            <View style={styles.coordBlock}>
-              <Text style={styles.coordLabel}>
+            <View
+              style={[
+                styles.coordBlock,
+                {
+                  backgroundColor: colors.surfaceSecondary,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
+              <Text
+                style={[styles.coordLabel, { color: colors.textTertiary }]}
+              >
                 {t('locationPicker.latitude')}
               </Text>
-              <Text style={styles.coordValue}>
+              <Text
+                style={[styles.coordValue, { color: colors.textPrimary }]}
+              >
                 {selectedCoords?.latitude.toFixed(5) ?? '—'}
               </Text>
             </View>
-            <View style={styles.coordBlock}>
-              <Text style={styles.coordLabel}>
+            <View
+              style={[
+                styles.coordBlock,
+                {
+                  backgroundColor: colors.surfaceSecondary,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
+              <Text
+                style={[styles.coordLabel, { color: colors.textTertiary }]}
+              >
                 {t('locationPicker.longitude')}
               </Text>
-              <Text style={styles.coordValue}>
+              <Text
+                style={[styles.coordValue, { color: colors.textPrimary }]}
+              >
                 {selectedCoords?.longitude.toFixed(5) ?? '—'}
               </Text>
             </View>
@@ -270,7 +350,11 @@ export default function LocationPickerModal({
           <Pressable
             style={[
               styles.confirmButton,
-              !selectedCoords && styles.confirmButtonDisabled,
+              {
+                backgroundColor: selectedCoords
+                  ? colors.primaryDark
+                  : colors.textTertiary,
+              },
             ]}
             onPress={handleConfirm}
             disabled={!selectedCoords || isGeocoding}
@@ -293,7 +377,7 @@ export default function LocationPickerModal({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1 },
   header: {
     position: 'absolute',
     left: 0,
@@ -309,10 +393,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#334A77',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
@@ -321,8 +403,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#334A77',
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
@@ -338,27 +418,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
-    shadowColor: '#334A77',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 4,
     elevation: 3,
   },
-  hintText: { fontSize: 12, color: '#334A77', fontWeight: '500' },
+  hintText: { fontSize: 12, fontWeight: '500' },
   locateButton: {
     position: 'absolute',
     right: 16,
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#334A77',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
@@ -369,12 +445,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
     paddingTop: 16,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    shadowColor: '#334A77',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
@@ -387,22 +461,18 @@ const styles = StyleSheet.create({
   },
   coordBlock: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   coordLabel: {
     fontSize: 11,
-    color: '#BACAD6',
     fontWeight: '500',
     marginBottom: 2,
   },
   coordValue: {
     fontSize: 14,
-    color: '#334A77',
     fontWeight: '700',
   },
   confirmButton: {
@@ -412,21 +482,16 @@ const styles = StyleSheet.create({
     gap: 8,
     height: 50,
     borderRadius: 14,
-    backgroundColor: '#006EE6',
   },
-  confirmButtonDisabled: { backgroundColor: '#BACAD6' },
   confirmButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   pinWrapper: { alignItems: 'center' },
   pin: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#208AEF',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: '#FFFFFF',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -435,7 +500,6 @@ const styles = StyleSheet.create({
   pinTail: {
     width: 3,
     height: 10,
-    backgroundColor: '#208AEF',
     marginTop: -2,
     borderRadius: 2,
   },

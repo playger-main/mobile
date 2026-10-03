@@ -120,9 +120,11 @@ export {
   $eventReminders,
   $useLocation,
   $appLanguage,
+  $themeMode,
   toggleEventReminders,
   toggleUseLocation,
   changeLanguage,
+  changeThemeMode,
   hydrateSettingsFx,
 } from './domains/settings';
 

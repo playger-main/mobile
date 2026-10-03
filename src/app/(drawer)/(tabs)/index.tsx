@@ -42,6 +42,7 @@ import {
   setSearchQuery,
   setSelectedCategory,
 } from '@/effector/events/sync';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function GroundsScreen() {
   const insets = useSafeAreaInsets();
@@ -49,6 +50,7 @@ export default function GroundsScreen() {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const { height: screenHeight } = useWindowDimensions();
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   const isWeb = Platform.OS === 'web';
 
@@ -129,7 +131,9 @@ export default function GroundsScreen() {
 
   const renderCustomHandle = () => (
     <View style={styles.massiveHandleContainer}>
-      <View style={styles.customHandlePill} />
+      <View
+        style={[styles.customHandlePill, { backgroundColor: colors.textTertiary }]}
+      />
     </View>
   );
 
@@ -157,7 +161,7 @@ export default function GroundsScreen() {
 
   if (isWeb) {
     return (
-      <View style={styles.webRoot}>
+      <View style={[styles.webRoot, { backgroundColor: colors.listBackground }]}>
         <ScrollView
           style={styles.webScrollContainer}
           showsVerticalScrollIndicator={false}
@@ -184,8 +188,14 @@ export default function GroundsScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Animated.View style={[styles.mapContainer, animatedMapStyle]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Animated.View
+        style={[
+          styles.mapContainer,
+          { backgroundColor: colors.surfaceSecondary },
+          animatedMapStyle,
+        ]}
+      >
         <MapComponent
           region={mapRegion}
           grounds={grounds}
@@ -193,7 +203,7 @@ export default function GroundsScreen() {
         />
 
         <View style={styles.legendWrapper} pointerEvents="box-none">
-          <MapLegend />
+          {!clusterSheetVisible && <MapLegend />}
         </View>
       </Animated.View>
 
@@ -209,7 +219,16 @@ export default function GroundsScreen() {
         index={1}
         snapPoints={snapPoints}
         animatedPosition={sheetPosition}
-        backgroundStyle={styles.bottomSheetBackground}
+        backgroundStyle={{
+          backgroundColor: colors.listBackground,
+          shadowColor: colors.shadow,
+          borderTopLeftRadius: 18,
+          borderTopRightRadius: 18,
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
+          elevation: 16,
+        }}
         handleComponent={renderCustomHandle}
         enableDynamicSizing={false}
         enableContentPanningGesture={true}
@@ -238,6 +257,8 @@ export default function GroundsScreen() {
                     ? insets.bottom + 88
                     : insets.bottom + 16,
                   opacity: pressed ? 0.85 : 1,
+                  backgroundColor: colors.primary,
+                  shadowColor: colors.shadow,
                 },
               ]}
               onPress={handleAddGroundPress}
@@ -254,13 +275,22 @@ export default function GroundsScreen() {
                 {
                   bottom: insets.bottom + 16,
                   opacity: pressed ? 0.85 : 1,
+                  backgroundColor: colors.warning,
+                  shadowColor: colors.shadow,
                 },
               ]}
               onPress={handleModerationPress}
             >
               <Ionicons name="shield-checkmark" size={24} color="#FFFFFF" />
-
-              <View style={styles.badge}>
+              <View
+                style={[
+                  styles.badge,
+                  {
+                    backgroundColor: colors.danger,
+                    borderColor: colors.background,
+                  },
+                ]}
+              >
                 <Text style={styles.badgeText}>
                   {pendingCount > 99 ? '99+' : pendingCount}
                 </Text>
@@ -274,14 +304,10 @@ export default function GroundsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
+  container: { flex: 1 },
   mapContainer: {
     width: '100%',
     position: 'relative',
-    backgroundColor: '#F0F4F8',
     overflow: 'hidden',
   },
   legendWrapper: {
@@ -297,16 +323,6 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 10,
   },
-  bottomSheetBackground: {
-    backgroundColor: '#F8FAFC',
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
-    shadowColor: '#334A77',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 16,
-  },
   massiveHandleContainer: {
     width: '100%',
     height: 30,
@@ -315,7 +331,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   customHandlePill: {
-    backgroundColor: '#86909C',
     width: 55,
     height: 4,
     borderRadius: 2,
@@ -325,26 +340,20 @@ const styles = StyleSheet.create({
     right: 16,
     width: 56,
     height: 56,
-    backgroundColor: '#208AEF',
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#208AEF',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 8,
     zIndex: 100,
   },
-  fabModeration: {
-    backgroundColor: '#FF8000',
-    shadowColor: '#FF8000',
-  },
+  fabModeration: {},
   badge: {
     position: 'absolute',
     top: -4,
     right: -4,
-    backgroundColor: '#FF3B30',
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -352,14 +361,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 4,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
   },
   badgeText: {
     color: '#FFFFFF',
     fontSize: 10,
     fontWeight: '800',
   },
-  webRoot: { flex: 1, backgroundColor: '#FFFFFF' },
+  webRoot: { flex: 1 },
   webScrollContainer: { flex: 1 },
   webSearchWrapper: { paddingTop: 16, paddingBottom: 8, width: '100%' },
   webMapWrapper: { width: '100%', height: 250, marginBottom: 4 },

@@ -21,6 +21,7 @@ import { ExtendedGroundItem } from './CardGround';
 import { DEFAULT_CITY_CENTER } from '@/constants/location';
 import { getSportIcon } from '@/constants/sports';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface GroundPickerModalProps {
   visible: boolean;
@@ -36,6 +37,7 @@ export default function GroundPickerModal({
   onClose,
 }: GroundPickerModalProps) {
   const { t } = useTranslation();
+  const { theme, colors } = useTheme();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView | null>(null);
 
@@ -157,7 +159,7 @@ export default function GroundPickerModal({
       presentationStyle="fullScreen"
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <MapView
           ref={mapRef}
           provider={PROVIDER_DEFAULT}
@@ -166,6 +168,7 @@ export default function GroundPickerModal({
           showsUserLocation={true}
           showsMyLocationButton={false}
           toolbarEnabled={false}
+          userInterfaceStyle={theme === 'dark' ? 'dark' : 'light'}
         >
           {markers.map((g) => {
             const isSelected = selectedGround?.id === g.id;
@@ -187,7 +190,16 @@ export default function GroundPickerModal({
                   <View
                     style={[
                       styles.pin,
-                      isSelected ? styles.pinSelected : styles.pinDefault,
+                      {
+                        backgroundColor: isSelected
+                          ? colors.accent
+                          : colors.primary,
+                        borderColor: colors.background,
+                        shadowColor: isSelected
+                          ? colors.accent
+                          : colors.primary,
+                      },
+                      isSelected && { transform: [{ scale: 1.25 }] },
                     ]}
                   >
                     <Ionicons
@@ -197,8 +209,21 @@ export default function GroundPickerModal({
                     />
                   </View>
                   {hasMultiple && (
-                    <View style={styles.multiBadge}>
-                      <Text style={styles.multiBadgeText}>
+                    <View
+                      style={[
+                        styles.multiBadge,
+                        {
+                          backgroundColor: colors.surface,
+                          borderColor: colors.primary,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.multiBadgeText,
+                          { color: colors.primary },
+                        ]}
+                      >
                         +{sports.length - 1}
                       </Text>
                     </View>
@@ -207,7 +232,11 @@ export default function GroundPickerModal({
                 <View
                   style={[
                     styles.pinTail,
-                    isSelected ? styles.pinTailSelected : styles.pinTailDefault,
+                    {
+                      backgroundColor: isSelected
+                        ? colors.accent
+                        : colors.primary,
+                    },
                   ]}
                 />
               </Marker>
@@ -216,10 +245,30 @@ export default function GroundPickerModal({
         </MapView>
 
         <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-          <Pressable onPress={onClose} style={styles.headerButton} hitSlop={10}>
-            <Ionicons name="close" size={22} color="#334A77" />
+          <Pressable
+            onPress={onClose}
+            style={[
+              styles.headerButton,
+              {
+                backgroundColor: colors.surface,
+                shadowColor: colors.shadow,
+              },
+            ]}
+            hitSlop={10}
+          >
+            <Ionicons name="close" size={22} color={colors.textPrimary} />
           </Pressable>
-          <Text style={styles.headerTitle}>{t('groundPicker.title')}</Text>
+          <Text
+            style={[
+              styles.headerTitle,
+              {
+                color: colors.textPrimary,
+                backgroundColor: colors.surface,
+              },
+            ]}
+          >
+            {t('groundPicker.title')}
+          </Text>
           <View style={{ width: 40 }} />
         </View>
 
@@ -227,25 +276,63 @@ export default function GroundPickerModal({
           style={[styles.hintContainer, { top: insets.top + 70 }]}
           pointerEvents="none"
         >
-          <View style={styles.hintPill}>
-            <Ionicons name="hand-left-outline" size={14} color="#334A77" />
-            <Text style={styles.hintText}>{t('groundPicker.hint')}</Text>
+          <View
+            style={[
+              styles.hintPill,
+              {
+                backgroundColor: colors.surface,
+                shadowColor: colors.shadow,
+              },
+            ]}
+          >
+            <Ionicons
+              name="hand-left-outline"
+              size={14}
+              color={colors.textPrimary}
+            />
+            <Text style={[styles.hintText, { color: colors.textPrimary }]}>
+              {t('groundPicker.hint')}
+            </Text>
           </View>
         </View>
 
         <Pressable
-          style={[styles.locateButton, { bottom: insets.bottom + 180 }]}
+          style={[
+            styles.locateButton,
+            {
+              bottom: insets.bottom + 180,
+              backgroundColor: colors.surface,
+              shadowColor: colors.shadow,
+            },
+          ]}
           onPress={handleLocatePress}
         >
-          <Ionicons name="locate" size={22} color="#208AEF" />
+          <Ionicons name="locate" size={22} color={colors.primary} />
         </Pressable>
 
         <View
-          style={[styles.bottomPanel, { paddingBottom: insets.bottom + 16 }]}
+          style={[
+            styles.bottomPanel,
+            {
+              paddingBottom: insets.bottom + 16,
+              backgroundColor: colors.background,
+              shadowColor: colors.shadow,
+            },
+          ]}
         >
           {selectedGround ? (
-            <View style={styles.selectedBlock}>
-              <View style={styles.selectedIcon}>
+            <View
+              style={[
+                styles.selectedBlock,
+                { backgroundColor: colors.surfaceSecondary },
+              ]}
+            >
+              <View
+                style={[
+                  styles.selectedIcon,
+                  { backgroundColor: colors.primary },
+                ]}
+              >
                 <Ionicons
                   name={
                     getSportIcon(
@@ -260,24 +347,38 @@ export default function GroundPickerModal({
                 />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.selectedName} numberOfLines={1}>
+                <Text
+                  style={[styles.selectedName, { color: colors.textPrimary }]}
+                  numberOfLines={1}
+                >
                   {selectedGround.name}
                 </Text>
                 {selectedGround.address ? (
-                  <Text style={styles.selectedAddress} numberOfLines={1}>
+                  <Text
+                    style={[
+                      styles.selectedAddress,
+                      { color: colors.textSecondary },
+                    ]}
+                    numberOfLines={1}
+                  >
                     {selectedGround.address}
                   </Text>
                 ) : null}
               </View>
             </View>
           ) : (
-            <View style={styles.emptyBlock}>
+            <View
+              style={[
+                styles.emptyBlock,
+                { backgroundColor: colors.surfaceSecondary },
+              ]}
+            >
               <Ionicons
                 name="information-circle-outline"
                 size={20}
-                color="#BACAD6"
+                color={colors.textTertiary}
               />
-              <Text style={styles.emptyText}>
+              <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
                 {t('groundPicker.noSelection')}
               </Text>
             </View>
@@ -286,7 +387,11 @@ export default function GroundPickerModal({
           <Pressable
             style={[
               styles.confirmButton,
-              !selectedGround && styles.confirmButtonDisabled,
+              {
+                backgroundColor: selectedGround
+                  ? colors.primaryDark
+                  : colors.textTertiary,
+              },
             ]}
             onPress={handleConfirm}
             disabled={!selectedGround}
@@ -303,7 +408,7 @@ export default function GroundPickerModal({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1 },
   header: {
     position: 'absolute',
     left: 0,
@@ -319,10 +424,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#334A77',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
@@ -331,8 +434,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#334A77',
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
@@ -348,27 +449,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
-    shadowColor: '#334A77',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 4,
     elevation: 3,
   },
-  hintText: { fontSize: 12, color: '#334A77', fontWeight: '500' },
+  hintText: { fontSize: 12, fontWeight: '500' },
   locateButton: {
     position: 'absolute',
     right: 16,
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#334A77',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
@@ -379,12 +476,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
     paddingTop: 16,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    shadowColor: '#334A77',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
@@ -396,7 +491,6 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 12,
     paddingHorizontal: 12,
-    backgroundColor: '#F0F6FC',
     borderRadius: 12,
     marginBottom: 14,
   },
@@ -404,23 +498,21 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#208AEF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  selectedName: { fontSize: 14, fontWeight: '700', color: '#334A77' },
-  selectedAddress: { fontSize: 12, color: '#6080A8', marginTop: 2 },
+  selectedName: { fontSize: 14, fontWeight: '700' },
+  selectedAddress: { fontSize: 12, marginTop: 2 },
   emptyBlock: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 20,
-    backgroundColor: '#F8FAFC',
     borderRadius: 12,
     marginBottom: 14,
   },
-  emptyText: { fontSize: 13, color: '#BACAD6', fontWeight: '500' },
+  emptyText: { fontSize: 13, fontWeight: '500' },
   confirmButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -428,9 +520,7 @@ const styles = StyleSheet.create({
     gap: 8,
     height: 50,
     borderRadius: 14,
-    backgroundColor: '#006EE6',
   },
-  confirmButtonDisabled: { backgroundColor: '#BACAD6' },
   confirmButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   pinWrapper: { position: 'relative' },
   pin: {
@@ -440,24 +530,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-  pinDefault: {
-    backgroundColor: '#208AEF',
-    shadowColor: '#208AEF',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 4,
-  },
-  pinSelected: {
-    backgroundColor: '#27AE60',
-    transform: [{ scale: 1.25 }],
-    shadowColor: '#27AE60',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 6,
   },
   multiBadge: {
     position: 'absolute',
@@ -467,16 +543,13 @@ const styles = StyleSheet.create({
     height: 18,
     paddingHorizontal: 4,
     borderRadius: 9,
-    backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: '#208AEF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   multiBadgeText: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#208AEF',
     lineHeight: 11,
   },
   pinTail: {
@@ -486,6 +559,4 @@ const styles = StyleSheet.create({
     marginTop: -2,
     alignSelf: 'center',
   },
-  pinTailDefault: { backgroundColor: '#208AEF' },
-  pinTailSelected: { backgroundColor: '#27AE60' },
 });

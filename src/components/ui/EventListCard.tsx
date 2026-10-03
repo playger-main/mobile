@@ -12,6 +12,7 @@ import {
   getEventStatusStyle,
 } from '@/utils/eventStatus';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 import type { Language } from '@/i18n';
 
 const LOCALE_MAP: Record<Language, string> = {
@@ -38,6 +39,7 @@ export default function EventListCard({
 }: EventListCardProps) {
   const router = useRouter();
   const { t, lang } = useTranslation();
+  const { colors } = useTheme();
 
   const sportsList: string[] =
     Array.isArray(item.ground?.kindofsport) && item.ground.kindofsport.length > 0
@@ -61,8 +63,7 @@ export default function EventListCard({
       const month = d.toLocaleString(LOCALE_MAP[lang] ?? 'en-US', {
         month: 'short',
       });
-      const day = d.getDate();
-      return `${month} ${day}`;
+      return `${month} ${d.getDate()}`;
     } catch {
       return item.date;
     }
@@ -70,7 +71,14 @@ export default function EventListCard({
 
   return (
     <Pressable
-      style={styles.card}
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          shadowColor: colors.shadow,
+        },
+      ]}
       onPress={() => router.push(`/event/${item.id}`)}
     >
       <View style={styles.cardHeader}>
@@ -84,9 +92,7 @@ export default function EventListCard({
                   key={`${sportId}-${idx}`}
                   style={[styles.sportBadge, { backgroundColor: style.bg }]}
                 >
-                  <View
-                    style={[styles.sportDot, { backgroundColor: style.text }]}
-                  />
+                  <View style={[styles.sportDot, { backgroundColor: style.text }]} />
                   <Text style={[styles.sportText, { color: style.text }]}>
                     {label.toUpperCase()}
                   </Text>
@@ -94,21 +100,23 @@ export default function EventListCard({
               );
             })
           ) : (
-            <View style={[styles.sportBadge, { backgroundColor: '#F0F4F8' }]}>
-              <Text style={[styles.sportText, { color: '#6080A8' }]}>
+            <View style={[styles.sportBadge, { backgroundColor: colors.surfaceSecondary }]}>
+              <Text style={[styles.sportText, { color: colors.textSecondary }]}>
                 {t('sport.all').toUpperCase()}
               </Text>
             </View>
           )}
 
           {sportsList.length > 2 && (
-            <View style={styles.moreBadge}>
-              <Text style={styles.moreBadgeText}>+{sportsList.length - 2}</Text>
+            <View style={[styles.moreBadge, { backgroundColor: colors.primaryBg }]}>
+              <Text style={[styles.moreBadgeText, { color: colors.textSecondary }]}>
+                +{sportsList.length - 2}
+              </Text>
             </View>
           )}
 
           {isCreator && (
-            <View style={styles.creatorBadge}>
+            <View style={[styles.creatorBadge, { backgroundColor: colors.primaryDark }]}>
               <Ionicons name="star" size={9} color="#FFFFFF" />
               <Text style={styles.creatorBadgeText}>{t('events.host')}</Text>
             </View>
@@ -116,35 +124,47 @@ export default function EventListCard({
         </View>
 
         <View style={styles.rightHeader}>
-          {dateLabel && <Text style={styles.dateText}>{dateLabel}</Text>}
-          <Text style={styles.timeText}>{item.startTime}</Text>
+          {dateLabel && (
+            <Text style={[styles.dateText, { color: colors.textSecondary }]}>
+              {dateLabel}
+            </Text>
+          )}
+          <Text style={[styles.timeText, { color: colors.textPrimary }]}>
+            {item.startTime}
+          </Text>
         </View>
       </View>
 
-      <Text style={styles.eventName}>{item.name}</Text>
+      <Text style={[styles.eventName, { color: colors.textPrimary }]}>{item.name}</Text>
 
       <View style={styles.locationRow}>
-        <Ionicons name="location-outline" size={14} color="#6080A8" />
-        <Text style={styles.locationText} numberOfLines={1}>
+        <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
+        <Text style={[styles.locationText, { color: colors.textSecondary }]} numberOfLines={1}>
           {item.ground?.name || t('events.unknownGround')}
         </Text>
       </View>
 
-      <View style={styles.cardFooter}>
+      <View style={[styles.cardFooter, { borderTopColor: colors.borderSubtle }]}>
         <View style={styles.metaInfoRow}>
           <View style={styles.metaItem}>
-            <Ionicons name="time-outline" size={14} color="#6080A8" />
-            <Text style={styles.metaText}>{item.duration}</Text>
+            <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+            <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+              {item.duration}
+            </Text>
           </View>
 
           <View style={styles.metaItem}>
             <Ionicons
               name={isFull ? 'people' : 'people-outline'}
               size={14}
-              color={isFull ? '#FF3B30' : '#6080A8'}
+              color={isFull ? colors.danger : colors.textSecondary}
             />
             <Text
-              style={[styles.metaText, isFull && styles.metaTextFull]}
+              style={[
+                styles.metaText,
+                { color: isFull ? colors.danger : colors.textSecondary },
+                isFull && styles.metaTextFull,
+              ]}
               numberOfLines={1}
             >
               {t('events.playersCount', { current: players, max: maxPlayers })}
@@ -164,13 +184,10 @@ export default function EventListCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
-    shadowColor: '#334A77',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.03,
     shadowRadius: 6,
@@ -183,12 +200,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     gap: 8,
   },
-  sportsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-    flex: 1,
-  },
+  sportsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, flex: 1 },
   sportBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -199,18 +211,16 @@ const styles = StyleSheet.create({
   sportDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   sportText: { fontSize: 11, fontWeight: '700' },
   moreBadge: {
-    backgroundColor: '#F0F6FC',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
     justifyContent: 'center',
   },
-  moreBadgeText: { fontSize: 11, fontWeight: '700', color: '#6080A8' },
+  moreBadgeText: { fontSize: 11, fontWeight: '700' },
   creatorBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: '#006EE6',
     paddingHorizontal: 6,
     paddingVertical: 4,
     borderRadius: 8,
@@ -221,43 +231,23 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: 0.4,
   },
-  rightHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  dateText: { fontSize: 13, fontWeight: '700', color: '#6080A8' },
-  timeText: { fontSize: 16, fontWeight: '800', color: '#334A77' },
-  eventName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#334A77',
-    marginBottom: 4,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 12,
-  },
-  locationText: { fontSize: 13, color: '#6080A8', flex: 1 },
+  rightHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  dateText: { fontSize: 13, fontWeight: '700' },
+  timeText: { fontSize: 16, fontWeight: '800' },
+  eventName: { fontSize: 16, fontWeight: '700', marginBottom: 4 },
+  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 12 },
+  locationText: { fontSize: 13, flex: 1 },
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#F0F6FC',
     paddingTop: 12,
   },
   metaInfoRow: { flexDirection: 'row', gap: 14, flex: 1, marginRight: 8 },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaText: {
-    fontSize: 12,
-    color: '#6080A8',
-    fontWeight: '500',
-    maxWidth: 120,
-  },
-  metaTextFull: { color: '#FF3B30', fontWeight: '700' },
+  metaText: { fontSize: 12, fontWeight: '500', maxWidth: 120 },
+  metaTextFull: { fontWeight: '700' },
   spotsBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   spotsText: { fontSize: 11, fontWeight: '700' },
 });

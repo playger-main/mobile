@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface AuthSignUpProps {
   onSubmit: (fullName: string, email: string, password: string) => void;
@@ -27,6 +28,7 @@ export default function AuthSignUp({
   errorMessage,
 }: AuthSignUpProps) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -54,31 +56,56 @@ export default function AuthSignUp({
     onSubmit(fullName, email, password);
   };
 
+  const inputStyle = [
+    styles.inputField,
+    {
+      color: colors.textPrimary,
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+    },
+  ];
+
+  const inputWithIconStyle = [
+    styles.inputWithIcon,
+    {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+    },
+  ];
+
   return (
-    <View style={styles.formContainer}>
-      <View style={styles.logoIconBlock}>
+    <View style={[styles.formContainer, { backgroundColor: colors.listBackground }]}>
+      <View style={[styles.logoIconBlock, { backgroundColor: colors.primary }]}>
         <Ionicons name="basketball" size={32} color="#FFFFFF" />
       </View>
 
-      <Text style={styles.formTitle}>{t('auth.signUp.title')}</Text>
-      <Text style={styles.formSubtitle}>{t('auth.signUp.subtitle')}</Text>
+      <Text style={[styles.formTitle, { color: colors.textPrimary }]}>
+        {t('auth.signUp.title')}
+      </Text>
+      <Text style={[styles.formSubtitle, { color: colors.textSecondary }]}>
+        {t('auth.signUp.subtitle')}
+      </Text>
 
-      {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+      {errorMessage && (
+        <Text style={[styles.errorText, { color: colors.danger }]}>
+          {errorMessage}
+        </Text>
+      )}
 
       <View style={styles.inputGroup}>
         <TextInput
-          style={styles.inputField}
+          style={inputStyle}
           placeholder={t('auth.fullName')}
-          placeholderTextColor="#BACAD6"
+          placeholderTextColor={colors.textTertiary}
           value={fullName}
           onChangeText={setFullName}
           autoCapitalize="words"
           autoComplete="name"
         />
         <TextInput
-          style={styles.inputField}
+          style={inputStyle}
           placeholder={t('auth.email')}
-          placeholderTextColor="#BACAD6"
+          placeholderTextColor={colors.textTertiary}
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -87,12 +114,11 @@ export default function AuthSignUp({
           autoComplete="email"
         />
 
-        {/* Password */}
-        <View style={styles.inputWithIcon}>
+        <View style={inputWithIconStyle}>
           <TextInput
-            style={styles.inputFieldInner}
+            style={[styles.inputFieldInner, { color: colors.textPrimary }]}
             placeholder={t('auth.passwordMin6')}
-            placeholderTextColor="#BACAD6"
+            placeholderTextColor={colors.textTertiary}
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
@@ -110,17 +136,16 @@ export default function AuthSignUp({
             <Ionicons
               name={showPassword ? 'eye-off-outline' : 'eye-outline'}
               size={20}
-              color="#6080A8"
+              color={colors.textSecondary}
             />
           </Pressable>
         </View>
 
-        {/* Confirm password */}
-        <View style={styles.inputWithIcon}>
+        <View style={inputWithIconStyle}>
           <TextInput
-            style={styles.inputFieldInner}
+            style={[styles.inputFieldInner, { color: colors.textPrimary }]}
             placeholder={t('auth.confirmPassword')}
-            placeholderTextColor="#BACAD6"
+            placeholderTextColor={colors.textTertiary}
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry={!showConfirm}
@@ -138,51 +163,53 @@ export default function AuthSignUp({
             <Ionicons
               name={showConfirm ? 'eye-off-outline' : 'eye-outline'}
               size={20}
-              color="#6080A8"
+              color={colors.textSecondary}
             />
           </Pressable>
           {passwordsMatch && (
             <Ionicons
               name="checkmark-circle"
               size={20}
-              color="#27AE60"
+              color={colors.accent}
               style={styles.confirmIcon}
             />
           )}
         </View>
 
         {showMismatch && (
-          <Text style={styles.mismatchText}>
+          <Text style={[styles.mismatchText, { color: colors.danger }]}>
             {t('auth.passwordsDoNotMatch')}
           </Text>
         )}
       </View>
 
       <Pressable
-        style={[styles.primaryButton, !canSubmit && styles.buttonDisabled]}
+        style={[styles.primaryButton, { backgroundColor: colors.primaryDark }]}
         onPress={handleSubmit}
         disabled={!canSubmit}
       >
         {isSubmitting ? (
           <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
-          <Text style={styles.primaryButtonText}>
+          <Text style={[styles.primaryButtonText, { color: '#FFFFFF' }]}>
             {t('auth.createAccountButton')}
           </Text>
         )}
       </Pressable>
 
       <View style={styles.toggleRow}>
-        <Text style={styles.toggleText}>
+        <Text style={[styles.toggleText, { color: colors.textSecondary }]}>
           {t('auth.alreadyHaveAccount')}
         </Text>
         <Pressable onPress={onSwitchToSignIn}>
-          <Text style={styles.toggleLink}>{t('auth.signIn.button')}</Text>
+          <Text style={[styles.toggleLink, { color: colors.primary }]}>
+            {t('auth.signIn.button')}
+          </Text>
         </Pressable>
       </View>
 
       <Pressable style={styles.guestButton} onPress={onContinueAsGuest}>
-        <Text style={styles.guestButtonText}>
+        <Text style={[styles.guestButtonText, { color: colors.textTertiary }]}>
           {t('auth.continueAsGuest')}
         </Text>
       </Pressable>
@@ -195,87 +222,49 @@ const styles = StyleSheet.create({
   logoIconBlock: {
     width: 56,
     height: 56,
-    backgroundColor: '#208AEF',
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
   },
-  formTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#334A77',
-    marginBottom: 6,
-  },
-  formSubtitle: {
-    fontSize: 14,
-    color: '#6080A8',
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-  errorText: {
-    color: '#FF3B30',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
+  formTitle: { fontSize: 24, fontWeight: '800', marginBottom: 6 },
+  formSubtitle: { fontSize: 14, lineHeight: 20, marginBottom: 20 },
+  errorText: { fontSize: 13, fontWeight: '600', marginBottom: 12 },
   inputGroup: { gap: 12, marginBottom: 24 },
   inputField: {
     width: '100%',
     height: 48,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 15,
-    color: '#334A77',
-    backgroundColor: '#FFFFFF',
   },
   inputWithIcon: {
     flexDirection: 'row',
     alignItems: 'center',
     height: 48,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
   },
-  inputFieldInner: {
-    flex: 1,
-    fontSize: 15,
-    color: '#334A77',
-    height: '100%',
-  },
+  inputFieldInner: { flex: 1, fontSize: 15, height: '100%' },
   eyeButton: { padding: 4, marginLeft: 4 },
   confirmIcon: { marginLeft: 4 },
-  mismatchText: {
-    color: '#FF3B30',
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: -4,
-  },
+  mismatchText: { fontSize: 12, fontWeight: '600', marginTop: -4 },
   primaryButton: {
     width: '100%',
     height: 50,
-    backgroundColor: '#208AEF',
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   primaryButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-  buttonDisabled: { backgroundColor: '#BACAD6' },
-  toggleRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 16,
-  },
-  toggleText: { fontSize: 14, color: '#6080A8' },
-  toggleLink: { fontSize: 14, fontWeight: '700', color: '#208AEF' },
+  toggleRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 16 },
+  toggleText: { fontSize: 14 },
+  toggleLink: { fontSize: 14, fontWeight: '700' },
   guestButton: { alignItems: 'center', marginTop: 24 },
   guestButtonText: {
     fontSize: 13,
-    color: '#BACAD6',
     fontWeight: '500',
     textDecorationLine: 'underline',
   },

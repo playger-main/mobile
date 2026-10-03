@@ -28,6 +28,7 @@ import {
 } from '@/effector/store';
 import { setSelectedCategory } from '@/effector/events/sync';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface ListGroundsProps {
   onItemPress: (item: ExtendedGroundItem) => void;
@@ -41,6 +42,7 @@ export default function ListGrounds({
   const isWeb = Platform.OS === 'web';
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   const {
     grounds,
@@ -78,10 +80,12 @@ export default function ListGrounds({
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       <View style={styles.headerTopRow}>
-        <Text style={styles.countText}>
+        <Text style={[styles.countText, { color: colors.textPrimary }]}>
           {t('grounds.count', { count: grounds.length })}
         </Text>
-        <Text style={styles.sortText}>{t('grounds.sortByDistance')}</Text>
+        <Text style={[styles.sortText, { color: colors.textSecondary }]}>
+          {t('grounds.sortByDistance')}
+        </Text>
       </View>
 
       {!isWeb && (
@@ -98,7 +102,7 @@ export default function ListGrounds({
   if (isLoading && grounds.length === 0) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#208AEF" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -134,7 +138,7 @@ export default function ListGrounds({
       bounces={true}
       contentContainerStyle={[
         styles.listContent,
-        { paddingBottom: insets.bottom + 100 },
+        { paddingBottom: insets.bottom + 140 },
       ]}
       scrollEnabled={true}
       nestedScrollEnabled={true}
@@ -156,8 +160,8 @@ const styles = StyleSheet.create({
     marginRight: -16,
     paddingBottom: 4,
   },
-  countText: { fontSize: 16, fontWeight: '700', color: '#334A77' },
-  sortText: { fontSize: 13, color: '#6080A8', fontWeight: '500' },
+  countText: { fontSize: 16, fontWeight: '700' },
+  sortText: { fontSize: 13, fontWeight: '500' },
   loaderContainer: {
     flex: 1,
     justifyContent: 'center',

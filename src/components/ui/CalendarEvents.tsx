@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { Calendar, DateData, LocaleConfig } from 'react-native-calendars';
 import { ServerEventItem } from '@/effector/events/async/events';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface CalendarEventsProps {
   selectedDate: string;
@@ -17,6 +18,7 @@ export default function CalendarEvents({
   onDateChange,
 }: CalendarEventsProps) {
   const { lang } = useTranslation();
+  const { theme, colors } = useTheme();
 
   // ✅ Синхронно — до того, как <Calendar> прочитает defaultLocale
   LocaleConfig.defaultLocale = lang;
@@ -24,7 +26,7 @@ export default function CalendarEvents({
   const markedDates = allEvents.reduce((acc: any, event) => {
     acc[event.date] = {
       marked: true,
-      dotColor: '#208AEF',
+      dotColor: colors.primary,
     };
     return acc;
   }, {});
@@ -32,31 +34,43 @@ export default function CalendarEvents({
   markedDates[selectedDate] = {
     ...markedDates[selectedDate],
     selected: true,
-    selectedColor: '#208AEF',
+    selectedColor: colors.primary,
     selectedTextColor: '#FFFFFF',
   };
 
+  // ✅ Фон «сегодня» — мягкий оттенок primary в тёмной теме
+  const todayBackgroundColor =
+    theme === 'dark' ? colors.primaryBg : '#E1E6EAD8';
+
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.background,
+          borderColor: colors.borderSubtle,
+        },
+      ]}
+    >
       <Calendar
-        key={lang}
+        key={`${lang}-${theme}`}
         current={selectedDate}
         onDayPress={(day: DateData) => onDateChange(day.dateString)}
         markedDates={markedDates}
         firstDay={1}
         theme={{
-          backgroundColor: '#FFFFFF',
-          calendarBackground: '#FFFFFF',
-          textSectionTitleColor: '#6080A8',
-          selectedDayBackgroundColor: '#208AEF',
+          backgroundColor: colors.background,
+          calendarBackground: colors.background,
+          textSectionTitleColor: colors.textSecondary,
+          selectedDayBackgroundColor: colors.primary,
           selectedDayTextColor: '#FFFFFF',
-          todayTextColor: '#208AEF',
-          todayBackgroundColor: '#e1e6ead8',
-          dayTextColor: '#334A77',
-          textDisabledColor: '#BACAD6',
-          dotColor: '#208AEF',
-          arrowColor: '#6080A8',
-          monthTextColor: '#334A77',
+          todayTextColor: colors.primary,
+          todayBackgroundColor,
+          dayTextColor: colors.textPrimary,
+          textDisabledColor: colors.textTertiary,
+          dotColor: colors.primary,
+          arrowColor: colors.textSecondary,
+          monthTextColor: colors.textPrimary,
           textDayFontWeight: '600',
           textMonthFontWeight: '800',
           textDayHeaderFontWeight: '700',
@@ -71,9 +85,7 @@ export default function CalendarEvents({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderColor: '#E6F4FE',
     paddingBottom: 4,
   },
 });

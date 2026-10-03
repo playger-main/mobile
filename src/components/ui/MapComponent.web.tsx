@@ -3,6 +3,7 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { ExtendedGroundItem } from './CardGround';
 import MapLegend from './MapLegend';
+import { useTheme } from '@/hooks/useTheme';
 
 interface MapComponentProps {
   region: any;
@@ -10,10 +11,20 @@ interface MapComponentProps {
 }
 
 export default function MapComponentWeb({ grounds }: MapComponentProps) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
-      <View style={styles.placeholder}>
-        <Text style={styles.text}>
+      <View
+        style={[
+          styles.placeholder,
+          {
+            backgroundColor: colors.surfaceSecondary,
+            borderColor: colors.border,
+          },
+        ]}
+      >
+        <Text style={[styles.text, { color: colors.textSecondary }]}>
           [ Карта для Web-версии: подключите Leaflet или Google Maps API.{'\n'}
           Найдено площадок: {grounds.length} ]
         </Text>
@@ -33,16 +44,13 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     flex: 1,
-    backgroundColor: '#EEF2F6',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#D0DBEA',
     borderStyle: 'dashed',
   },
   text: {
-    color: '#6080A8',
     fontSize: 14,
     textAlign: 'center',
     padding: 16,

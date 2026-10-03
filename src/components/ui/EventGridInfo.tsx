@@ -10,6 +10,7 @@ import {
 } from '@/utils/eventStatus';
 import { getSkillLevelKey } from '@/constants/skillLevels';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface EventGridInfoProps {
   date: string;
@@ -33,6 +34,7 @@ export default function EventGridInfo({
   onPlayersPress,
 }: EventGridInfoProps) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   const statusStyle = getEventStatusStyle(status);
   const statusLabel = t(getEventStatusLabelKey(status));
@@ -43,13 +45,24 @@ export default function EventGridInfo({
 
   const PlayersCard = onPlayersPress ? Pressable : View;
 
+  const cardBaseStyle = {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+  };
+
   return (
     <View style={styles.gridContainer}>
       <View style={styles.gridRow}>
-        <View style={styles.infoCard}>
+        <View style={[styles.infoCard, cardBaseStyle]}>
           <View style={styles.cardHeaderRow}>
-            <Ionicons name="calendar-outline" size={14} color="#6080A8" />
-            <Text style={styles.cardLabel}>{t('eventGrid.date')}</Text>
+            <Ionicons
+              name="calendar-outline"
+              size={14}
+              color={colors.textSecondary}
+            />
+            <Text style={[styles.cardLabel, { color: colors.textTertiary }]}>
+              {t('eventGrid.date')}
+            </Text>
 
             {showInDate && (
               <View
@@ -66,15 +79,24 @@ export default function EventGridInfo({
               </View>
             )}
           </View>
-          <Text style={styles.cardValue} numberOfLines={1}>
+          <Text
+            style={[styles.cardValue, { color: colors.textPrimary }]}
+            numberOfLines={1}
+          >
             {date}
           </Text>
         </View>
 
-        <View style={styles.infoCard}>
+        <View style={[styles.infoCard, cardBaseStyle]}>
           <View style={styles.cardHeaderRow}>
-            <Ionicons name="time-outline" size={14} color="#6080A8" />
-            <Text style={styles.cardLabel}>{t('eventGrid.time')}</Text>
+            <Ionicons
+              name="time-outline"
+              size={14}
+              color={colors.textSecondary}
+            />
+            <Text style={[styles.cardLabel, { color: colors.textTertiary }]}>
+              {t('eventGrid.time')}
+            </Text>
 
             {showInTime && (
               <View
@@ -94,40 +116,68 @@ export default function EventGridInfo({
               </View>
             )}
           </View>
-          <Text style={styles.cardValue} numberOfLines={1}>
+          <Text
+            style={[styles.cardValue, { color: colors.textPrimary }]}
+            numberOfLines={1}
+          >
             {startTime} · {duration}
           </Text>
         </View>
       </View>
 
       <View style={styles.gridRow}>
-        <View style={styles.infoCard}>
+        <View style={[styles.infoCard, cardBaseStyle]}>
           <View style={styles.cardHeaderRow}>
-            <Ionicons name="stats-chart-outline" size={14} color="#6080A8" />
-            <Text style={styles.cardLabel}>{t('eventGrid.level')}</Text>
+            <Ionicons
+              name="stats-chart-outline"
+              size={14}
+              color={colors.textSecondary}
+            />
+            <Text style={[styles.cardLabel, { color: colors.textTertiary }]}>
+              {t('eventGrid.level')}
+            </Text>
           </View>
-          <Text style={styles.cardValue} numberOfLines={1}>
+          <Text
+            style={[styles.cardValue, { color: colors.textPrimary }]}
+            numberOfLines={1}
+          >
             {levelLabel}
           </Text>
         </View>
 
         <PlayersCard
-          style={[styles.infoCard, onPlayersPress && styles.infoCardClickable]}
+          style={[
+            styles.infoCard,
+            cardBaseStyle,
+            onPlayersPress && {
+              borderColor: colors.primary,
+              backgroundColor: colors.primaryBg,
+            },
+          ]}
           onPress={onPlayersPress}
         >
           <View style={styles.cardHeaderRow}>
-            <Ionicons name="people-outline" size={14} color="#6080A8" />
-            <Text style={styles.cardLabel}>{t('eventGrid.players')}</Text>
+            <Ionicons
+              name="people-outline"
+              size={14}
+              color={colors.textSecondary}
+            />
+            <Text style={[styles.cardLabel, { color: colors.textTertiary }]}>
+              {t('eventGrid.players')}
+            </Text>
             {onPlayersPress && (
               <Ionicons
                 name="chevron-forward"
                 size={12}
-                color="#BACAD6"
+                color={colors.textTertiary}
                 style={{ marginLeft: 'auto' }}
               />
             )}
           </View>
-          <Text style={styles.cardValue} numberOfLines={1}>
+          <Text
+            style={[styles.cardValue, { color: colors.textPrimary }]}
+            numberOfLines={1}
+          >
             {currentPlayers}/{maxPlayers}
           </Text>
         </PlayersCard>
@@ -141,15 +191,9 @@ const styles = StyleSheet.create({
   gridRow: { flexDirection: 'row', gap: 12 },
   infoCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     padding: 12,
-  },
-  infoCardClickable: {
-    borderColor: '#208AEF',
-    backgroundColor: '#F8FBFF',
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -157,7 +201,7 @@ const styles = StyleSheet.create({
     gap: 6,
     marginBottom: 6,
   },
-  cardLabel: { fontSize: 12, color: '#BACAD6', fontWeight: '500' },
+  cardLabel: { fontSize: 12, fontWeight: '500' },
   inlineBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -174,5 +218,5 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   liveDot: { width: 5, height: 5, borderRadius: 2.5 },
-  cardValue: { fontSize: 14, fontWeight: '700', color: '#334A77' },
+  cardValue: { fontSize: 14, fontWeight: '700' },
 });

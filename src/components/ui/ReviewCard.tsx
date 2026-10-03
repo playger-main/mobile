@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import StarRating from './StarRating';
 import { GroundReview } from '@/effector/events/async/reviews';
 import { useTranslation, useRelativeDate } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface ReviewCardProps {
   review: GroundReview;
@@ -22,6 +23,7 @@ export default function ReviewCard({
 }: ReviewCardProps) {
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const formatRelativeDate = useRelativeDate();
 
   const authorName = review.author?.name || 'Anonymous';
@@ -29,7 +31,18 @@ export default function ReviewCard({
   const hasAvatar = !!review.author?.avatar;
 
   return (
-    <View style={[styles.card, isMine && styles.cardMine]}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: isMine
+            ? colors.surfaceSecondary
+            : colors.surface,
+          borderColor: isMine ? colors.primary : colors.border,
+          borderWidth: isMine ? 1.5 : 1,
+        },
+      ]}
+    >
       <View style={styles.header}>
         <Pressable
           style={styles.authorRow}
@@ -46,28 +59,46 @@ export default function ReviewCard({
             <Image
               key={review.author!.avatar!}
               source={{ uri: review.author!.avatar! }}
-              style={styles.avatar}
+              style={[
+                styles.avatar,
+                { backgroundColor: colors.surfaceSecondary },
+              ]}
             />
           ) : (
-            <View style={styles.avatarPlaceholder}>
+            <View
+              style={[
+                styles.avatarPlaceholder,
+                { backgroundColor: colors.primary },
+              ]}
+            >
               <Text style={styles.avatarText}>{initial}</Text>
             </View>
           )}
 
           <View>
             <View style={styles.nameRow}>
-              <Text style={styles.authorName} numberOfLines={1}>
+              <Text
+                style={[styles.authorName, { color: colors.textPrimary }]}
+                numberOfLines={1}
+              >
                 {authorName}
               </Text>
               {isMine && (
-                <View style={styles.myBadge}>
+                <View
+                  style={[
+                    styles.myBadge,
+                    { backgroundColor: colors.primary },
+                  ]}
+                >
                   <Text style={styles.myBadgeText}>
                     {t('reviewCard.you')}
                   </Text>
                 </View>
               )}
             </View>
-            <Text style={styles.dateText}>
+            <Text
+              style={[styles.dateText, { color: colors.textTertiary }]}
+            >
               {formatRelativeDate(review.createdAt)}
             </Text>
           </View>
@@ -77,12 +108,24 @@ export default function ReviewCard({
           <View style={styles.actions}>
             {onEdit && (
               <Pressable onPress={onEdit} hitSlop={8} style={styles.actionBtn}>
-                <Ionicons name="create-outline" size={18} color="#208AEF" />
+                <Ionicons
+                  name="create-outline"
+                  size={18}
+                  color={colors.primary}
+                />
               </Pressable>
             )}
             {onDelete && (
-              <Pressable onPress={onDelete} hitSlop={8} style={styles.actionBtn}>
-                <Ionicons name="trash-outline" size={18} color="#FF3B30" />
+              <Pressable
+                onPress={onDelete}
+                hitSlop={8}
+                style={styles.actionBtn}
+              >
+                <Ionicons
+                  name="trash-outline"
+                  size={18}
+                  color={colors.danger}
+                />
               </Pressable>
             )}
           </View>
@@ -94,7 +137,9 @@ export default function ReviewCard({
       </View>
 
       {review.comment && (
-        <Text style={styles.comment}>{review.comment}</Text>
+        <Text style={[styles.comment, { color: colors.textPrimary }]}>
+          {review.comment}
+        </Text>
       )}
     </View>
   );
@@ -102,16 +147,9 @@ export default function ReviewCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,
-  },
-  cardMine: {
-    borderColor: '#208AEF',
-    backgroundColor: '#F8FBFF',
   },
   header: {
     flexDirection: 'row',
@@ -129,13 +167,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F0F4F8',
   },
   avatarPlaceholder: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#208AEF',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -144,11 +180,9 @@ const styles = StyleSheet.create({
   authorName: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#334A77',
     maxWidth: 160,
   },
   myBadge: {
-    backgroundColor: '#208AEF',
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: 4,
@@ -159,13 +193,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.3,
   },
-  dateText: { fontSize: 11, color: '#BACAD6', marginTop: 1 },
+  dateText: { fontSize: 11, marginTop: 1 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   actionBtn: { padding: 6 },
   starsRow: { marginBottom: 6 },
   comment: {
     fontSize: 13,
-    color: '#334A77',
     lineHeight: 19,
   },
 });

@@ -28,11 +28,13 @@ import {
   $userSession,
 } from '@/effector/store';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function ModerationScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   const { pendingGrounds, isLoading, user } = useUnit({
     pendingGrounds: $pendingGrounds,
@@ -45,18 +47,27 @@ export default function ModerationScreen() {
 
   useEffect(() => {
     if (isModerator) {
-      fetchGroundsFx({
-        kindofsport: undefined,
-        search: undefined,
-      });
+      fetchGroundsFx({ kindofsport: undefined, search: undefined });
     }
   }, [isModerator]);
 
-  // Guard
   if (!isModerator) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
-        <View style={styles.header}>
+      <View
+        style={[
+          styles.container,
+          { paddingTop: insets.top, backgroundColor: colors.listBackground },
+        ]}
+      >
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: colors.background,
+              borderColor: colors.borderSubtle,
+            },
+          ]}
+        >
           <Pressable
             onPress={() =>
               router.canGoBack()
@@ -66,18 +77,32 @@ export default function ModerationScreen() {
             style={styles.backButton}
             hitSlop={12}
           >
-            <Ionicons name="chevron-back" size={24} color="#006EE6" />
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              color={colors.primaryDark}
+            />
           </Pressable>
-          <Text style={styles.headerTitle}>{t('moderation.title')}</Text>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+            {t('moderation.title')}
+          </Text>
           <View style={styles.headerSpacer} />
         </View>
 
         <View style={styles.forbiddenContainer}>
-          <Ionicons name="lock-closed-outline" size={48} color="#BACAD6" />
-          <Text style={styles.forbiddenTitle}>
+          <Ionicons
+            name="lock-closed-outline"
+            size={48}
+            color={colors.textTertiary}
+          />
+          <Text
+            style={[styles.forbiddenTitle, { color: colors.textPrimary }]}
+          >
             {t('moderation.accessDenied')}
           </Text>
-          <Text style={styles.forbiddenText}>
+          <Text
+            style={[styles.forbiddenText, { color: colors.textSecondary }]}
+          >
             {t('moderation.accessDeniedHint')}
           </Text>
         </View>
@@ -138,8 +163,21 @@ export default function ModerationScreen() {
       : 'moderation.pending_other';
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, backgroundColor: colors.listBackground },
+      ]}
+    >
+      <View
+        style={[
+          styles.header,
+          {
+            // backgroundColor: colors.background,
+            borderColor: colors.borderSubtle,
+          },
+        ]}
+      >
         <Pressable
           onPress={() =>
             router.canGoBack()
@@ -149,11 +187,19 @@ export default function ModerationScreen() {
           style={styles.backButton}
           hitSlop={12}
         >
-          <Ionicons name="chevron-back" size={24} color="#006EE6" />
+          <Ionicons
+            name="chevron-back"
+            size={24}
+            color={colors.primaryDark}
+          />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>{t('moderation.title')}</Text>
-          <Text style={styles.headerSubtitle}>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+            {t('moderation.title')}
+          </Text>
+          <Text
+            style={[styles.headerSubtitle, { color: colors.textTertiary }]}
+          >
             {t(pendingKey, { count: pendingGrounds.length })}
           </Text>
         </View>
@@ -162,7 +208,7 @@ export default function ModerationScreen() {
 
       {isLoading && pendingGrounds.length === 0 ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#208AEF" />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -186,10 +232,16 @@ export default function ModerationScreen() {
               <Ionicons
                 name="shield-checkmark-outline"
                 size={48}
-                color="#27AE60"
+                color={colors.accent}
               />
-              <Text style={styles.emptyTitle}>{t('moderation.allClear')}</Text>
-              <Text style={styles.emptyText}>
+              <Text
+                style={[styles.emptyTitle, { color: colors.textPrimary }]}
+              >
+                {t('moderation.allClear')}
+              </Text>
+              <Text
+                style={[styles.emptyText, { color: colors.textSecondary }]}
+              >
                 {t('moderation.allClearHint')}
               </Text>
             </View>
@@ -201,7 +253,7 @@ export default function ModerationScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -209,18 +261,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderColor: '#F0F6FC',
-    backgroundColor: '#FFFFFF',
   },
   backButton: { padding: 4, width: 32 },
   headerTitleContainer: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
-  headerSubtitle: {
-    fontSize: 12,
-    color: '#BACAD6',
-    fontWeight: '500',
-    marginTop: 1,
-  },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
+  headerSubtitle: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   headerSpacer: { width: 32 },
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   listContent: { paddingHorizontal: 16, paddingTop: 16 },
@@ -231,18 +276,8 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 32,
   },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#334A77',
-    marginTop: 8,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#6080A8',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
+  emptyTitle: { fontSize: 18, fontWeight: '700', marginTop: 8 },
+  emptyText: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
   forbiddenContainer: {
     flex: 1,
     alignItems: 'center',
@@ -250,16 +285,6 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 32,
   },
-  forbiddenTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#334A77',
-    marginTop: 8,
-  },
-  forbiddenText: {
-    fontSize: 14,
-    color: '#6080A8',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
+  forbiddenTitle: { fontSize: 20, fontWeight: '700', marginTop: 8 },
+  forbiddenText: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
 });

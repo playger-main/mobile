@@ -27,11 +27,13 @@ import {
   $userSession,
 } from '@/effector/store';
 import { setSelectedDate } from '@/effector/events/sync';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function EventsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   const { allEvents, dayEvents, selectedDate, isLoading, changeDate, user } =
     useUnit({
@@ -68,10 +70,25 @@ export default function EventsScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, backgroundColor: colors.listBackground },
+      ]}
+    >
+      <View
+        style={[
+          styles.header,
+          {
+            borderColor: colors.borderSubtle,
+            backgroundColor: colors.listBackground,
+          },
+        ]}
+      >
         <View style={styles.headerSpacer} />
-        <Text style={styles.headerTitle}>{t('events.title')}</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+          {t('events.title')}
+        </Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -83,16 +100,28 @@ export default function EventsScreen() {
 
       {isLoading && allEvents.length === 0 ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#208AEF" />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
-        <View style={styles.listWrapper}>
+        <View
+          style={[
+            styles.listWrapper,
+            { backgroundColor: colors.listBackground },
+          ]}
+        >
           <ListEvents events={dayEvents} selectedDate={selectedDate} />
         </View>
       )}
 
       <Pressable
-        style={[styles.fabButton, { bottom: insets.bottom + 16 }]}
+        style={[
+          styles.fabButton,
+          {
+            bottom: insets.bottom + 16,
+            backgroundColor: colors.primary,
+            shadowColor: colors.shadow,
+          },
+        ]}
         onPress={handleCreateEventPress}
       >
         <Ionicons name="add" size={24} color="#FFFFFF" />
@@ -102,7 +131,7 @@ export default function EventsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -110,31 +139,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingBottom: 6,
     borderBottomWidth: 1,
-    borderColor: '#F0F6FC',
-    backgroundColor: '#FFFFFF',
   },
   headerTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#334A77',
     textAlign: 'center',
     lineHeight: 48,
   },
   headerSpacer: { width: 32 },
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  listWrapper: { flex: 1, backgroundColor: '#F8FAFC' },
+  listWrapper: { flex: 1 },
   fabButton: {
     position: 'absolute',
     right: 16,
     width: 56,
     height: 56,
-    backgroundColor: '#208AEF',
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#208AEF',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 6,
     elevation: 6,
     zIndex: 99,

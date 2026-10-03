@@ -6,11 +6,13 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function AboutScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -21,13 +23,23 @@ export default function AboutScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { backgroundColor: colors.listBackground }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: insets.top,
+            // backgroundColor: colors.background,
+            borderColor: colors.borderSubtle,
+          },
+        ]}
+      >
         <Pressable onPress={handleBack} style={styles.backButton} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color="#006EE6" />
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </Pressable>
-        <Text style={styles.headerTitle}>{t('about.title')}</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+          {t('about.title')}
+        </Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -38,77 +50,80 @@ export default function AboutScreen() {
           { paddingBottom: insets.bottom + 24 },
         ]}
       >
-        {/* Logo */}
         <View style={styles.logoContainer}>
-          <View style={styles.logoBox}>
+          <View
+            style={[
+              styles.logoBox,
+              { backgroundColor: colors.primaryDark, shadowColor: colors.shadow },
+            ]}
+          >
             <Ionicons name="basketball-outline" size={36} color="#FFFFFF" />
           </View>
         </View>
 
-        {/* Title + tagline */}
-        <Text style={styles.title}>PlayG</Text>
-        <Text style={styles.tagline}>{t('about.tagline')}</Text>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>PlayG</Text>
+        <Text style={[styles.tagline, { color: colors.textSecondary }]}>
+          {t('about.tagline')}
+        </Text>
 
-        <Text style={styles.description}>{t('about.description')}</Text>
+        <Text style={[styles.description, { color: colors.textSecondary }]}>
+          {t('about.description')}
+        </Text>
 
-        {/* Features */}
         <View style={styles.featuresList}>
-          {/* Discover grounds */}
-          <View style={styles.featureCard}>
-            <View style={[styles.iconBadge, { backgroundColor: '#EBF3FF' }]}>
-              <Ionicons name="location" size={22} color="#006EE6" />
+          {[
+            { icon: 'location', titleKey: 'about.feature.discover.title', subKey: 'about.feature.discover.subtitle' },
+            { icon: 'information-circle', titleKey: 'about.feature.join.title', subKey: 'about.feature.join.subtitle' },
+            { icon: 'shield-checkmark', titleKey: 'about.feature.play.title', subKey: 'about.feature.play.subtitle' },
+          ].map((item, idx) => (
+            <View
+              key={idx}
+              style={[
+                styles.featureCard,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.iconBadge,
+                  { backgroundColor: colors.primaryBg },
+                ]}
+              >
+                <Ionicons
+                  name={item.icon as any}
+                  size={22}
+                  color={colors.primary}
+                />
+              </View>
+              <View style={styles.featureInfo}>
+                <Text
+                  style={[styles.featureTitle, { color: colors.textPrimary }]}
+                >
+                  {t(item.titleKey)}
+                </Text>
+                <Text
+                  style={[styles.featureSubtitle, { color: colors.textSecondary }]}
+                >
+                  {t(item.subKey)}
+                </Text>
+              </View>
             </View>
-            <View style={styles.featureInfo}>
-              <Text style={styles.featureTitle}>
-                {t('about.feature.discover.title')}
-              </Text>
-              <Text style={styles.featureSubtitle}>
-                {t('about.feature.discover.subtitle')}
-              </Text>
-            </View>
-          </View>
-
-          {/* Join events */}
-          <View style={styles.featureCard}>
-            <View style={[styles.iconBadge, { backgroundColor: '#EBF3FF' }]}>
-              <Ionicons name="information-circle" size={22} color="#006EE6" />
-            </View>
-            <View style={styles.featureInfo}>
-              <Text style={styles.featureTitle}>
-                {t('about.feature.join.title')}
-              </Text>
-              <Text style={styles.featureSubtitle}>
-                {t('about.feature.join.subtitle')}
-              </Text>
-            </View>
-          </View>
-
-          {/* Play together */}
-          <View style={styles.featureCard}>
-            <View style={[styles.iconBadge, { backgroundColor: '#EBF3FF' }]}>
-              <Ionicons name="shield-checkmark" size={20} color="#006EE6" />
-            </View>
-            <View style={styles.featureInfo}>
-              <Text style={styles.featureTitle}>
-                {t('about.feature.play.title')}
-              </Text>
-              <Text style={styles.featureSubtitle}>
-                {t('about.feature.play.subtitle')}
-              </Text>
-            </View>
-          </View>
+          ))}
         </View>
 
-        {/* Version */}
-        <Text style={styles.versionText}>{t('about.version')}</Text>
+        <Text style={[styles.versionText, { color: colors.textTertiary }]}>
+          {t('about.version')}
+        </Text>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -116,21 +131,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingBottom: 6,
     borderBottomWidth: 1,
-    borderColor: '#F0F6FC',
-    backgroundColor: '#FFFFFF',
   },
   backButton: { padding: 4 },
   headerTitle: {
     fontSize: 17,
     lineHeight: 48,
     fontWeight: '700',
-    color: '#334A77',
     textAlign: 'center',
   },
   headerSpacer: { width: 32 },
-
   scrollContent: { paddingHorizontal: 24, paddingTop: 32 },
-
   logoContainer: {
     alignItems: 'flex-start',
     marginBottom: 20,
@@ -138,44 +148,35 @@ const styles = StyleSheet.create({
   logoBox: {
     width: 64,
     height: 64,
-    backgroundColor: '#006EE6',
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#006EE6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 3,
   },
-
   title: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#000000',
     letterSpacing: -0.5,
   },
   tagline: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#6080A8',
     marginTop: 4,
     marginBottom: 20,
   },
   description: {
     fontSize: 14,
-    color: '#6080A8',
     lineHeight: 22,
     marginBottom: 28,
   },
-
   featuresList: { gap: 12, marginBottom: 40 },
   featureCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 14,
     padding: 14,
   },
@@ -190,17 +191,13 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#334A77',
   },
   featureSubtitle: {
     fontSize: 12,
-    color: '#6080A8',
     marginTop: 2,
   },
-
   versionText: {
     fontSize: 12,
-    color: '#BACAD6',
     fontWeight: '500',
     textAlign: 'center',
     marginTop: 10,

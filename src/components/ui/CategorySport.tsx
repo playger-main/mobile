@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { SPORT_CATEGORIES, getSportKey } from '@/constants/sports';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 interface CategorySportProps {
   selectedKindofsport: string;
@@ -16,9 +17,10 @@ export default function CategorySport({
   onSelectKindofsport,
 }: CategorySportProps) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { backgroundColor: colors.listBackground }]}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -32,17 +34,31 @@ export default function CategorySport({
             <Pressable
               key={category.id}
               onPress={() => onSelectKindofsport(category.id)}
-              style={[styles.chip, isActive && styles.chipActive]}
+              style={[
+                styles.chip,
+                {
+                  backgroundColor: isActive ? colors.primary : colors.surface,
+                  borderColor: isActive ? colors.primary : colors.border,
+                },
+              ]}
             >
               {!isAll && (
                 <Ionicons
                   name={category.icon as any}
                   size={14}
-                  color={isActive ? '#FFFFFF' : '#334A77'}
+                  color={isActive ? '#FFFFFF' : colors.textPrimary}
                   style={styles.icon}
                 />
               )}
-              <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
+              <Text
+                style={[
+                  styles.chipText,
+                  {
+                    color: isActive ? '#FFFFFF' : colors.textPrimary,
+                    fontWeight: isActive ? '600' : '500',
+                  },
+                ]}
+              >
                 {t(getSportKey(category.id))}
               </Text>
             </Pressable>
@@ -57,7 +73,6 @@ const styles = StyleSheet.create({
   wrapper: {
     height: 44,
     width: '100%',
-    backgroundColor: '#FFFFFF',
   },
   container: {
     paddingHorizontal: 16,
@@ -67,25 +82,11 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 16,
     paddingHorizontal: 12,
     height: 28,
   },
-  chipActive: {
-    backgroundColor: '#208AEF',
-    borderColor: '#208AEF',
-  },
   icon: { marginRight: 4 },
-  chipText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#334A77',
-  },
-  chipTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
+  chipText: { fontSize: 13 },
 });

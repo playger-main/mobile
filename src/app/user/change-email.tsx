@@ -22,11 +22,13 @@ import {
   confirmEmailChangeFx,
 } from '@/effector/store';
 import { useTranslation } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function ChangeEmailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   const user = useUnit($userSession);
   const isRequesting = useUnit(requestEmailChangeFx.pending);
@@ -136,24 +138,36 @@ export default function ChangeEmailScreen() {
 
   const isSubmitting = isRequesting || isConfirming;
 
+  const emailCanSubmit = newEmail.trim().length > 0 && !isSubmitting;
+  const codeCanSubmit = code.length === 6 && !isSubmitting;
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.listBackground }]}
     >
-      <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: insets.top + 6,
+            backgroundColor: colors.background,
+            borderColor: colors.borderSubtle,
+          },
+        ]}
+      >
         <Pressable
           onPress={handleBack}
           style={styles.backButton}
           hitSlop={12}
         >
-          <Ionicons name="chevron-back" size={24} color="#006EE6" />
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
             {t('profile.changeEmail.title')}
           </Text>
-          <Text style={styles.headerSubtitle}>
+          <Text style={[styles.headerSubtitle, { color: colors.textTertiary }]}>
             {step === 'email'
               ? t('profile.changeEmail.step1')
               : t('profile.changeEmail.step2')}
@@ -163,7 +177,9 @@ export default function ChangeEmailScreen() {
       </View>
 
       <View style={styles.content}>
-        <View style={styles.iconBlock}>
+        <View
+          style={[styles.iconBlock, { backgroundColor: colors.primary }]}
+        >
           <Ionicons
             name={step === 'email' ? 'mail-outline' : 'mail-open-outline'}
             size={32}
@@ -173,26 +189,35 @@ export default function ChangeEmailScreen() {
 
         {step === 'email' ? (
           <>
-            <Text style={styles.formTitle}>
+            <Text style={[styles.formTitle, { color: colors.textPrimary }]}>
               {t('profile.changeEmail.enterNew')}
             </Text>
-            <Text style={styles.formSubtitle}>
+            <Text style={[styles.formSubtitle, { color: colors.textSecondary }]}>
               {t('profile.changeEmail.enterNewHint')}
             </Text>
 
             {errorMessage && (
-              <Text style={styles.errorText}>{errorMessage}</Text>
+              <Text style={[styles.errorText, { color: colors.danger }]}>
+                {errorMessage}
+              </Text>
             )}
 
             <TextInput
-              style={styles.inputField}
+              style={[
+                styles.inputField,
+                {
+                  color: colors.textPrimary,
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+              ]}
               value={newEmail}
               onChangeText={(v) => {
                 setNewEmail(v);
                 setErrorMessage(null);
               }}
               placeholder="newemail@gmail.com"
-              placeholderTextColor="#BACAD6"
+              placeholderTextColor={colors.textTertiary}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
@@ -200,17 +225,14 @@ export default function ChangeEmailScreen() {
             />
 
             <Pressable
-              style={[
-                styles.primaryButton,
-                (!newEmail.trim() || isSubmitting) && styles.buttonDisabled,
-              ]}
+              style={[styles.primaryButton, { backgroundColor: colors.primaryDark }]}
               onPress={handleRequest}
-              disabled={!newEmail.trim() || isSubmitting}
+              disabled={!emailCanSubmit}
             >
               {isRequesting ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <Text style={styles.primaryButtonText}>
+                <Text style={[styles.primaryButtonText, { color: '#FFFFFF' }]}>
                   {t('profile.changeEmail.sendButton')}
                 </Text>
               )}
@@ -218,43 +240,49 @@ export default function ChangeEmailScreen() {
           </>
         ) : (
           <>
-            <Text style={styles.formTitle}>
+            <Text style={[styles.formTitle, { color: colors.textPrimary }]}>
               {t('profile.changeEmail.verifyTitle')}
             </Text>
-            <Text style={styles.formSubtitle}>
+            <Text style={[styles.formSubtitle, { color: colors.textSecondary }]}>
               {t('profile.changeEmail.verifyHint', { email: newEmail })}
             </Text>
 
             {errorMessage && (
-              <Text style={styles.errorText}>{errorMessage}</Text>
+              <Text style={[styles.errorText, { color: colors.danger }]}>
+                {errorMessage}
+              </Text>
             )}
 
             <TextInput
-              style={styles.codeInput}
+              style={[
+                styles.codeInput,
+                {
+                  color: colors.textPrimary,
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+              ]}
               value={code}
               onChangeText={(v) => {
                 setCode(v.replace(/\D/g, ''));
                 setErrorMessage(null);
               }}
               placeholder="000000"
-              placeholderTextColor="#BACAD6"
+              placeholderTextColor={colors.textTertiary}
               keyboardType="number-pad"
               maxLength={6}
               autoFocus
             />
 
             <Pressable
-              style={[
-                styles.primaryButton,
-                (code.length < 6 || isSubmitting) && styles.buttonDisabled,
-              ]}
+              style={[styles.primaryButton, { backgroundColor: colors.primaryDark }]}
               onPress={handleConfirm}
-              disabled={code.length < 6 || isSubmitting}
+              disabled={!codeCanSubmit}
             >
               {isConfirming ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <Text style={styles.primaryButtonText}>
+                <Text style={[styles.primaryButtonText, { color: '#FFFFFF' }]}>
                   {t('profile.changeEmail.confirmButton')}
                 </Text>
               )}
@@ -262,12 +290,14 @@ export default function ChangeEmailScreen() {
 
             <View style={styles.resendBlock}>
               {countdown > 0 ? (
-                <Text style={styles.resendTimer}>
+                <Text
+                  style={[styles.resendTimer, { color: colors.textTertiary }]}
+                >
                   {t('auth.verify.resendIn', { count: countdown })}
                 </Text>
               ) : (
                 <Pressable onPress={handleResend}>
-                  <Text style={styles.resendLink}>
+                  <Text style={[styles.resendLink, { color: colors.primary }]}>
                     {t('auth.reset.resend')}
                   </Text>
                 </Pressable>
@@ -281,7 +311,7 @@ export default function ChangeEmailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -289,15 +319,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderColor: '#F0F6FC',
-    backgroundColor: '#FFFFFF',
   },
   backButton: { padding: 4 },
   headerTitleContainer: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
   headerSubtitle: {
     fontSize: 12,
-    color: '#BACAD6',
     fontWeight: '500',
     marginTop: 1,
   },
@@ -306,7 +333,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 16,
-    backgroundColor: '#208AEF',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
@@ -314,18 +340,14 @@ const styles = StyleSheet.create({
   formTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#334A77',
     marginBottom: 6,
   },
   formSubtitle: {
     fontSize: 14,
-    color: '#6080A8',
     lineHeight: 20,
     marginBottom: 20,
   },
-  emailHighlight: { color: '#208AEF', fontWeight: '700' },
   errorText: {
-    color: '#FF3B30',
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 12,
@@ -334,44 +356,35 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 48,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 15,
-    color: '#334A77',
-    backgroundColor: '#FFFFFF',
     marginBottom: 20,
   },
   codeInput: {
     width: '100%',
     height: 56,
     borderWidth: 1,
-    borderColor: '#E6F4FE',
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 26,
     fontWeight: '800',
     letterSpacing: 8,
     textAlign: 'center',
-    color: '#334A77',
-    backgroundColor: '#FFFFFF',
     marginBottom: 20,
   },
   primaryButton: {
     width: '100%',
     height: 50,
-    backgroundColor: '#208AEF',
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   primaryButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-  buttonDisabled: { backgroundColor: '#BACAD6' },
   resendBlock: { alignItems: 'center', marginTop: 20 },
-  resendTimer: { fontSize: 14, color: '#BACAD6', fontWeight: '500' },
+  resendTimer: { fontSize: 14, fontWeight: '500' },
   resendLink: {
     fontSize: 14,
-    color: '#208AEF',
     fontWeight: '700',
     textDecorationLine: 'underline',
   },

@@ -31,8 +31,8 @@ import {
 } from '@/effector/store';
 import { useTranslation } from '@/i18n';
 import type { Language } from '@/i18n';
+import { useTheme } from '@/hooks/useTheme';
 
-// ✅ Относительная дата — с учётом языка
 const useFormatRelativeDate = () => {
   const { t, lang } = useTranslation();
 
@@ -69,6 +69,7 @@ export default function GroundReviewsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const formatRelativeDate = useFormatRelativeDate();
 
   const ground = useUnit($currentGround);
@@ -134,24 +135,39 @@ export default function GroundReviewsScreen() {
   const hasReviews = reviewStats.totalReviews > 0;
   const groundTitle = ground?.name ?? t('reviews.title');
 
-  // Ключ для множественного числа отзывов
   const reviewsCountKey =
     reviewStats.totalReviews === 1
       ? 'reviews.count_one'
       : 'reviews.count_other';
 
   return (
-    <View style={styles.container}>
-      {/* HEADER */}
-      <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
+    <View
+      style={[styles.container, { backgroundColor: colors.listBackground }]}
+    >
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: insets.top + 6,
+            backgroundColor: colors.background,
+            borderColor: colors.borderSubtle,
+          },
+        ]}
+      >
         <Pressable onPress={handleBack} style={styles.backButton} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color="#006EE6" />
+          <Ionicons name="chevron-back" size={24} color={colors.primaryDark} />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle} numberOfLines={1}>
+          <Text
+            style={[styles.headerTitle, { color: colors.textPrimary }]}
+            numberOfLines={1}
+          >
             {t('reviews.title')}
           </Text>
-          <Text style={styles.headerSubtitle} numberOfLines={1}>
+          <Text
+            style={[styles.headerSubtitle, { color: colors.textTertiary }]}
+            numberOfLines={1}
+          >
             {groundTitle}
           </Text>
         </View>
@@ -160,7 +176,7 @@ export default function GroundReviewsScreen() {
 
       {isLoading && reviews.length === 0 ? (
         <View style={styles.loader}>
-          <ActivityIndicator size="large" color="#208AEF" />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -172,14 +188,18 @@ export default function GroundReviewsScreen() {
           ListHeaderComponent={
             hasReviews ? (
               <View style={styles.summaryBlock}>
-                <Text style={styles.summaryNumber}>
+                <Text
+                  style={[styles.summaryNumber, { color: colors.textPrimary }]}
+                >
                   {reviewStats.avgRating.toFixed(1)}
                 </Text>
                 <StarRating
                   value={Math.round(reviewStats.avgRating)}
                   size={22}
                 />
-                <Text style={styles.summaryCount}>
+                <Text
+                  style={[styles.summaryCount, { color: colors.textSecondary }]}
+                >
                   {t(reviewsCountKey, { count: reviewStats.totalReviews })}
                 </Text>
               </View>
@@ -192,53 +212,117 @@ export default function GroundReviewsScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyBlock}>
-              <Ionicons name="star-outline" size={48} color="#BACAD6" />
-              <Text style={styles.emptyTitle}>{t('reviews.empty')}</Text>
-              <Text style={styles.emptyText}>{t('reviews.emptyHint')}</Text>
+              <Ionicons
+                name="star-outline"
+                size={48}
+                color={colors.textTertiary}
+              />
+              <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+                {t('reviews.empty')}
+              </Text>
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                {t('reviews.emptyHint')}
+              </Text>
             </View>
           }
         />
       )}
 
-      {/* STICKY FOOTER */}
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
+      <View
+        style={[
+          styles.footer,
+          {
+            paddingBottom: insets.bottom + 12,
+            backgroundColor: colors.background,
+            borderTopColor: colors.borderSubtle,
+            shadowColor: colors.shadow,
+          },
+        ]}
+      >
         {myReview ? (
-          <View style={styles.myReviewCard}>
+          <View
+            style={[
+              styles.myReviewCard,
+              {
+                backgroundColor: colors.surfaceSecondary,
+                borderColor: colors.primary,
+              },
+            ]}
+          >
             <View style={styles.myReviewLeft}>
               <View style={styles.myReviewTopRow}>
                 <StarRating value={myReview.rating} size={14} />
-                <Text style={styles.myReviewDate}>
+                <Text
+                  style={[styles.myReviewDate, { color: colors.textTertiary }]}
+                >
                   · {formatRelativeDate(myReview.createdAt)}
                 </Text>
               </View>
               {myReview.comment ? (
-                <Text style={styles.myReviewComment} numberOfLines={2}>
+                <Text
+                  style={[
+                    styles.myReviewComment,
+                    { color: colors.textPrimary },
+                  ]}
+                  numberOfLines={2}
+                >
                   {myReview.comment}
                 </Text>
               ) : (
-                <Text style={styles.myReviewNoComment}>
+                <Text
+                  style={[
+                    styles.myReviewNoComment,
+                    { color: colors.textTertiary },
+                  ]}
+                >
                   {t('reviews.noComment')}
                 </Text>
               )}
             </View>
 
             <Pressable
-              style={styles.footerIconBtn}
+              style={[
+                styles.footerIconBtn,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+              ]}
               onPress={() => setReviewFormVisible(true)}
               hitSlop={8}
             >
-              <Ionicons name="create-outline" size={20} color="#208AEF" />
+              <Ionicons
+                name="create-outline"
+                size={20}
+                color={colors.primary}
+              />
             </Pressable>
             <Pressable
-              style={styles.footerIconBtn}
+              style={[
+                styles.footerIconBtn,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+              ]}
               onPress={handleDeleteMyReview}
               hitSlop={8}
             >
-              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+              <Ionicons
+                name="trash-outline"
+                size={20}
+                color={colors.danger}
+              />
             </Pressable>
           </View>
         ) : (
-          <Pressable style={styles.writeButton} onPress={handleOpenReviewForm}>
+          <Pressable
+            style={[
+              styles.writeButton,
+              { backgroundColor: colors.primary },
+            ]}
+            onPress={handleOpenReviewForm}
+          >
             <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" />
             <Text style={styles.writeButtonText}>
               {t('reviews.writeButton')}
@@ -247,7 +331,6 @@ export default function GroundReviewsScreen() {
         )}
       </View>
 
-      {/* Review form */}
       <ReviewFormModal
         visible={reviewFormVisible}
         groundId={id || ''}
@@ -264,8 +347,7 @@ export default function GroundReviewsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -273,22 +355,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderColor: '#F0F6FC',
-    backgroundColor: '#FFFFFF',
   },
   backButton: { padding: 4 },
   headerTitleContainer: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#334A77' },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
   headerSubtitle: {
     fontSize: 12,
-    color: '#BACAD6',
     fontWeight: '500',
     marginTop: 1,
     maxWidth: 220,
   },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   listContent: { padding: 16 },
-
   summaryBlock: {
     alignItems: 'center',
     paddingVertical: 20,
@@ -297,16 +375,13 @@ const styles = StyleSheet.create({
   summaryNumber: {
     fontSize: 42,
     fontWeight: '800',
-    color: '#334A77',
     lineHeight: 48,
   },
   summaryCount: {
     fontSize: 13,
-    color: '#6080A8',
     fontWeight: '500',
     marginTop: 8,
   },
-
   emptyBlock: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -314,30 +389,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     gap: 8,
   },
-  emptyTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#334A77',
-    marginTop: 12,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#6080A8',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-
+  emptyTitle: { fontSize: 17, fontWeight: '700', marginTop: 12 },
+  emptyText: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 12,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F0F6FC',
-    shadowColor: '#334A77',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
@@ -350,17 +411,13 @@ const styles = StyleSheet.create({
     gap: 8,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#006EE6',
   },
   writeButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
-
   myReviewCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#F8FBFF',
-    borderWidth: 1,
-    borderColor: '#208AEF',
+    borderWidth: 1.5,
     borderRadius: 12,
     padding: 12,
   },
@@ -371,25 +428,15 @@ const styles = StyleSheet.create({
     gap: 6,
     marginBottom: 4,
   },
-  myReviewDate: { fontSize: 11, color: '#BACAD6', fontWeight: '500' },
-  myReviewComment: {
-    fontSize: 12,
-    color: '#334A77',
-    lineHeight: 17,
-  },
-  myReviewNoComment: {
-    fontSize: 12,
-    color: '#BACAD6',
-    fontStyle: 'italic',
-  },
+  myReviewDate: { fontSize: 11, fontWeight: '500' },
+  myReviewComment: { fontSize: 12, lineHeight: 17 },
+  myReviewNoComment: { fontSize: 12, fontStyle: 'italic' },
   footerIconBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E6F4FE',
   },
 });

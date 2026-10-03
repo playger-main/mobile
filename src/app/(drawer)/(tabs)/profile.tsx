@@ -14,7 +14,6 @@ import { useRouter } from 'expo-router';
 
 import { useTranslation } from '@/i18n';
 
-// Effector core state bindings
 import {
   signUpFx,
   signInFx,
@@ -30,7 +29,6 @@ import {
 } from '@/effector/store';
 import { setAuthStep, logout } from '@/effector/events/sync';
 
-// Decoupled sub-component modules
 import AuthWelcome from '@/components/ui/AuthWelcome';
 import AuthSignIn from '@/components/ui/AuthSignIn';
 import AuthSignUp from '@/components/ui/AuthSignUp';
@@ -38,11 +36,13 @@ import AuthVerifyCode from '@/components/ui/AuthVerifyCode';
 import AuthForgotPassword from '@/components/ui/AuthForgotPassword';
 import AuthResetPassword from '@/components/ui/AuthResetPassword';
 import UserProfile from '@/components/ui/UserProfile';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function ProfileHubScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pendingEmail, setPendingEmail] = useState<string>('');
@@ -57,12 +57,10 @@ export default function ProfileHubScreen() {
 
   const navigateToHome = () => router.replace('/(drawer)/(tabs)');
 
-  // 1. AUTHORIZED
   if (user) {
     return <UserProfile user={user} onLogout={handleLogout} />;
   }
 
-  // 2. WELCOME
   if (currentStep === 'welcome') {
     return (
       <AuthWelcome
@@ -72,7 +70,6 @@ export default function ProfileHubScreen() {
     );
   }
 
-  // 3. SIGN UP
   const handleSignUp = async (
     fullName: string,
     email: string,
@@ -93,7 +90,6 @@ export default function ProfileHubScreen() {
     }
   };
 
-  // 4. SIGN IN
   const handleSignIn = async (email: string, password: string) => {
     try {
       setErrorMessage(null);
@@ -120,7 +116,6 @@ export default function ProfileHubScreen() {
     }
   };
 
-  // 5. RESEND CODE
   const handleResendCodeCall = async () => {
     if (!pendingEmail) {
       setErrorMessage(t('auth.error.missingEmail'));
@@ -137,7 +132,6 @@ export default function ProfileHubScreen() {
     }
   };
 
-  // 6. VERIFY CODE
   const handleVerifyCodeSubmit = async (code: string) => {
     try {
       setErrorMessage(null);
@@ -154,7 +148,6 @@ export default function ProfileHubScreen() {
     }
   };
 
-  // 7. FORGOT PASSWORD
   const handleForgotPassword = async (email: string) => {
     try {
       setErrorMessage(null);
@@ -167,7 +160,6 @@ export default function ProfileHubScreen() {
     }
   };
 
-  // 8. RESET PASSWORD
   const handleResetPassword = async (code: string, newPassword: string) => {
     try {
       setErrorMessage(null);
@@ -194,7 +186,7 @@ export default function ProfileHubScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
       <Pressable
         style={[styles.closeButton, { top: insets.top + 12 }]}
@@ -204,7 +196,7 @@ export default function ProfileHubScreen() {
         }}
         hitSlop={12}
       >
-        <Ionicons name="close" size={24} color="#334A77" />
+        <Ionicons name="close" size={24} color={colors.textPrimary} />
       </Pressable>
 
       {currentStep === 'signin' && (
@@ -276,7 +268,6 @@ export default function ProfileHubScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   closeButton: {
     position: 'absolute',
