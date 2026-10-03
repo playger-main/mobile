@@ -61,6 +61,8 @@ export {
   signUpFx,
   signInFx,
   resendCodeFx,
+  forgotPasswordFx,     // ✅
+  resetPasswordFx,      // ✅
 } from './events/async/auth';
 
 export type { SessionUser } from './domains/auth';

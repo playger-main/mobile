@@ -3,7 +3,7 @@ import { createDomain, createEffect } from 'effector';
 import * as SecureStore from 'expo-secure-store';
 import { jwtDecode } from 'jwt-decode';
 import { setAuthStep, logout } from '../events/sync';
-import { signUpFx, signInFx, verifyCodeFx } from '../events/async/auth';
+import { signUpFx, signInFx, verifyCodeFx, forgotPasswordFx, resetPasswordFx } from '../events/async/auth';
 import {
   fetchMyProfileFx,
   updateProfileFx,
@@ -119,10 +119,14 @@ export const hydrateSessionFx = createEffect(
 // ==========================================
 
 export const $authStep = authDomain
-  .createStore<'welcome' | 'signin' | 'signup' | 'verify'>('welcome')
+  .createStore<
+    'welcome' | 'signin' | 'signup' | 'verify' | 'forgot' | 'reset'
+  >('welcome')
   .on(setAuthStep, (_, step) => step)
   .on(signUpFx.done, () => 'verify')
   .on(verifyCodeFx.done, () => 'signin')
+  .on(forgotPasswordFx.done, () => 'reset')       // ✅
+  .on(resetPasswordFx.done, () => 'signin')        // ✅
   .on(hydrateSessionFx.doneData, (state, payload) =>
     payload ? 'signin' : state,
   );
@@ -176,7 +180,11 @@ export const $isAuthSubmitting = authDomain
   .on(signInFx, () => true)
   .on(signInFx.finally, () => false)
   .on(verifyCodeFx, () => true)
-  .on(verifyCodeFx.finally, () => false);
+  .on(verifyCodeFx.finally, () => false)
+  .on(forgotPasswordFx, () => true)
+  .on(forgotPasswordFx.finally, () => false)
+  .on(resetPasswordFx, () => true)
+  .on(resetPasswordFx.finally, () => false);
 
 export const $isHydrating = authDomain
   .createStore<boolean>(true)
@@ -189,6 +197,7 @@ export const $isHydrating = authDomain
 signInFx.doneData.watch(() => {
   fetchMyProfileFx();
 });
+
 
 hydrateSessionFx.doneData.watch((result) => {
   if (result) fetchMyProfileFx();

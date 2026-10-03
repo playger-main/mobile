@@ -60,4 +60,28 @@ export const resendCodeFx = createEffect(async (email: string): Promise<void> =>
   await apiInstance.post('/auth/resend-code', { email });
 });
 
-// ❌ УДАЛЕНО: старый request-интерцептор (перенесён в api.ts)
+// ✅ Запрос сброса пароля
+export const forgotPasswordFx = createEffect(
+  async (email: string): Promise<{ message: string }> => {
+    const res = await apiInstance.post<{ message: string }>(
+      '/auth/forgot-password',
+      { email },
+    );
+    return res.data;
+  },
+);
+
+// ✅ Установка нового пароля
+export const resetPasswordFx = createEffect(
+  async (payload: {
+    email: string;
+    code: string;
+    newPassword: string;
+  }): Promise<{ message: string }> => {
+    const res = await apiInstance.post<{ message: string }>(
+      '/auth/reset-password',
+      payload,
+    );
+    return res.data;
+  },
+);
