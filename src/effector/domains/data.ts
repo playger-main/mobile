@@ -58,6 +58,7 @@ export const $grounds = dataDomain
       eventsCount: 0,
       isFavorite: false,
       avgRating: 0,
+      totalReviews: 0,
       distanceMeters: undefined,
     };
     return [extendedGround, ...state];
@@ -75,6 +76,8 @@ export const $grounds = dataDomain
             photos: updated.photos,
             photoPaths: updated.photoPaths,
             photoIds: updated.photoIds,
+            avgRating: updated.avgRating ?? g.avgRating,
+            totalReviews: updated.totalReviews ?? g.totalReviews,
             updatedAt: updated.updatedAt,
           }
         : g,
@@ -92,6 +95,8 @@ export const $grounds = dataDomain
             photos: fresh.photos,
             photoPaths: fresh.photoPaths,
             photoIds: fresh.photoIds,
+            avgRating: fresh.avgRating ?? g.avgRating,         // ✅ полезно
+            totalReviews: fresh.totalReviews ?? g.totalReviews, // ✅
             updatedAt: fresh.updatedAt,
           }
         : g,

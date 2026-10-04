@@ -45,6 +45,7 @@ export interface GroundDetailItem {
   photoIds: string[];
 
   avgRating: number;
+  totalReviews: number;
   eventsCount: number;
   isFavorite: boolean;
   distanceMeters?: number;

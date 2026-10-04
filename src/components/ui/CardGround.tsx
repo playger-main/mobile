@@ -32,6 +32,7 @@ export interface ExtendedGroundItem {
   eventsCount: number;
   isFavorite: boolean;
   avgRating: number;
+  totalReviews: number;
   distanceMeters?: number;
   creator?: { id: string; name: string } | null;
 }
@@ -181,7 +182,7 @@ export default function CardGround({
             <Text style={[styles.ratingText, { color: colors.textPrimary }]}>
               {item.avgRating ? item.avgRating.toFixed(1) : '0.0'}{' '}
               <Text style={[styles.reviewsText, { color: colors.textTertiary }]}>
-                ({item.eventsCount || 0})
+                ({item.totalReviews || 0})
               </Text>
             </Text>
           </View>
