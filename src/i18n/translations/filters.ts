@@ -22,7 +22,7 @@ export const filters: TranslationDict = {
   'surface.rubber': { en: 'Rubber', ru: 'Резина', be: 'Гума', lt: 'Guma', pl: 'Guma', uk: 'Гума' },
   'surface.tartan': { en: 'Tartan', ru: 'Тартан', be: 'Тартан', lt: 'Tartanas', pl: 'Tartan', uk: 'Тартан' },
   'surface.polyurethane': { en: 'Polyurethane', ru: 'Полиуретан', be: 'Поліурэтан', lt: 'Poliuretanas', pl: 'Poliuretan', uk: 'Поліуретан' },
-  'surface.wood': { en: 'Wooden (parquet)', ru: 'Дерево (паркет)', be: 'Дрэва (паркет)', lt: 'Medis (parketas)', pl: 'Drewno (parkiet)', uk: 'Дерево (паркет)' },
+  'surface.wooden': { en: 'Wooden (parquet)', ru: 'Дерево (паркет)', be: 'Дрэва (паркет)', lt: 'Medis (parketas)', pl: 'Drewno (parkiet)', uk: 'Дерево (паркет)' },
   'surface.sand': { en: 'Sand', ru: 'Песок', be: 'Пясок', lt: 'Smėlis', pl: 'Piasek', uk: 'Пісок' },
   'surface.gravel': { en: 'Gravel', ru: 'Гравий', be: 'Жвір', lt: 'Žvyras', pl: 'Żwir', uk: 'Гравій' },
   'surface.indoor_parquet': { en: 'Indoor parquet', ru: 'Паркет в помещении', be: 'Паркет у памяшканні', lt: 'Parketas patalpoje', pl: 'Parkiet w hali', uk: 'Паркет у приміщенні' },
