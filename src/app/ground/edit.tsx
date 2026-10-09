@@ -50,7 +50,7 @@ export default function EditGroundScreen() {
   const isLoading = useUnit($isGroundDetailLoading);
   const isSubmitting = useUnit(updateGroundFx.pending);
   const user = useUnit($userSession);
-  const appLanguage = useUnit($appLanguage); // ✅ №2
+  const appLanguage = useUnit($appLanguage); // ✅ для локализованного description в input
 
   const [name, setName] = useState('');
   const [sports, setSports] = useState<string[]>([]);
@@ -77,7 +77,10 @@ export default function EditGroundScreen() {
     setSurfaces(ground.coverage || []);
     setAmenities(ground.amenities || []);
 
-    // ✅ №2: локализованное описание в input
+    // ✅ Показываем в input то, что видят все:
+    //    descriptionTranslate[appLanguage] ?? descriptionTranslate.en ?? description
+    //    (для confirmed: true)
+    //    или оригинал, если площадка на модерации (confirmed: false)
     const localizedDescription = (() => {
       if (ground.confirmed === true) {
         const tr = ground.descriptionTranslate ?? {};
@@ -214,12 +217,6 @@ export default function EditGroundScreen() {
 
     const currentMainIsNew = mainNewIdx >= 0;
 
-    // ✅ №2 (Вариант C): синхронизируем перевод на текущий язык
-    const updatedTranslate: Record<string, string> = {
-      ...(ground?.descriptionTranslate ?? {}),
-      [appLanguage]: description.trim(),
-    };
-
     try {
       await updateGroundFx({
         id: id!,
@@ -228,7 +225,8 @@ export default function EditGroundScreen() {
         address: address.trim(),
         coverage: surfaces,
         description: description.trim() || null,
-        descriptionTranslate: updatedTranslate, // ✅
+        // ✅ descriptionTranslate НЕ отправляем из edit.tsx —
+        //    заполняется только модератором в moderate/[id]
         amenities,
         geolocation: location,
         newPhotoUris: newUris.length > 0 ? newUris : undefined,
@@ -645,7 +643,6 @@ export default function EditGroundScreen() {
           },
         ]}
       >
-        {/* ✅ №20 */}
         <Pressable
           style={[styles.publishButton, { backgroundColor: saveBg }]}
           onPress={handleSave}

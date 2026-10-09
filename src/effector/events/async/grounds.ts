@@ -33,7 +33,7 @@ export interface GroundDetailItem {
   coverage: string[];
   amenities: string[];
   description: string | null;
-  descriptionTranslate: Record<string, string>; // ✅ №2
+  descriptionTranslate: Record<string, string>;
   confirmed: boolean;
   createdAt: string;
   updatedAt: string;
@@ -53,8 +53,8 @@ export interface GroundDetailItem {
   creator?: {
     id: string;
     name: string;
-    avatar?: string | null;      // ✅ №2
-    email?: string;               // ✅ №2 (только для модератора)
+    avatar?: string | null;
+    email?: string;
   } | null;
   upcomingEvents?: EventItem[];
   geolocation: { lat: string; lng: string } | null;
@@ -78,8 +78,8 @@ export interface UpdateGroundPayload {
   kindofsport?: string[];
   address?: string;
   coverage?: string[];
-  description?: string | null;                              // ✅ №1
-  descriptionTranslate?: Record<string, string>;            // ✅ №2
+  description?: string | null;
+  descriptionTranslate?: Record<string, string>;
   amenities?: string[];
   geolocation?: { lat: number; lng: number };
   newPhotoUris?: string[];
@@ -90,9 +90,6 @@ export interface UpdateGroundPayload {
 
 // ==========================================
 // ✅ UPLOAD ЧЕРЕЗ AXIOS
-// В RN работает корректно, если:
-//   1) использовать transformRequest: [(data) => data]
-//   2) НЕ задавать Content-Type вручную
 // ==========================================
 
 const uploadOnePhoto = async (
@@ -112,9 +109,7 @@ const uploadOnePhoto = async (
   formData.append('setAsMain', setAsMain ? 'true' : 'false');
 
   const response = await apiInstance.post('/photo', formData, {
-    // ✅ Не даём axios сериализовать FormData в JSON
     transformRequest: [(data) => data],
-    // ✅ Content-Type НЕ ставим — axios сам подставит boundary
   });
 
   return response.data;
@@ -136,7 +131,6 @@ const groundApi = {
   },
 
   create: async (payload: CreateGroundPayload): Promise<GroundDetailItem> => {
-    // 1. Создаём площадку
     const groundRes = await apiInstance.post<GroundDetailItem>('/ground', {
       name: payload.name,
       kindofsport: payload.kindofsport,
@@ -146,14 +140,12 @@ const groundApi = {
     });
     const createdGround = groundRes.data;
 
-    // 2. Создаём локацию
     await apiInstance.post(`/location/ground/${createdGround.id}`, {
       lat: String(payload.geolocation.lat),
       lng: String(payload.geolocation.lng),
       address: payload.address,
     });
 
-    // 3. Загружаем фото
     if (payload.photoUris && payload.photoUris.length > 0) {
       const mainIndex = payload.mainPhotoIndex ?? 0;
       for (let i = 0; i < payload.photoUris.length; i++) {
@@ -165,7 +157,6 @@ const groundApi = {
       }
     }
 
-    // 4. Возвращаем актуальные данные
     const final = await apiInstance.get<GroundDetailItem>(
       `/ground/${createdGround.id}`,
     );
@@ -186,17 +177,26 @@ const groundApi = {
       ...rest
     } = payload;
 
-    // 1. Обновляем площадку
-    await apiInstance.patch(`/ground/${id}`, {
+    // ✅ Собираем body аккуратно:
+    //   - descriptionTranslate — только если реально задано
+    //   - description — может быть null (для удаления)
+    const body: any = {
       name: rest.name,
       kindofsport: rest.kindofsport,
-      description: rest.description,               
-      descriptionTranslate, 
       amenities: rest.amenities,
       coverage,
-    });
+    };
 
-    // 2. Обновляем локацию
+    if ('description' in rest) {
+      body.description = rest.description;
+    }
+
+    if (descriptionTranslate !== undefined) {
+      body.descriptionTranslate = descriptionTranslate;
+    }
+
+    await apiInstance.patch(`/ground/${id}`, body);
+
     if (geolocation && address) {
       await apiInstance.put(`/location/ground/${id}`, {
         lat: String(geolocation.lat),
@@ -205,7 +205,6 @@ const groundApi = {
       });
     }
 
-    // 3. Удаляем помеченные фото
     if (removedPhotoIds && removedPhotoIds.length > 0) {
       for (const photoId of removedPhotoIds) {
         try {
@@ -216,7 +215,6 @@ const groundApi = {
       }
     }
 
-    // 4. Загружаем новые фото
     if (newPhotoUris && newPhotoUris.length > 0) {
       for (let i = 0; i < newPhotoUris.length; i++) {
         const isMain = mainNewPhotoIndex === i;
@@ -224,12 +222,10 @@ const groundApi = {
       }
     }
 
-    // 5. Смена главного на существующее (если главное — не из новых)
     if (mainPhotoPath && mainNewPhotoIndex == null) {
       await apiInstance.patch(`/ground/${id}/avatar`, { path: mainPhotoPath });
     }
 
-    // 6. Возвращаем актуальные данные
     const final = await apiInstance.get<GroundDetailItem>(`/ground/${id}`);
     return final.data;
   },

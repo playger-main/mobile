@@ -28,8 +28,10 @@ import {
   $groundReviewStats,
   $appLanguage,
   fetchGroundReviewsFx,
+  addFavoriteFx,
+  removeFavoriteFx,
 } from '@/effector/store';
-import { toggleFavoriteInStore } from '@/effector/events/sync';
+
 import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportKey } from '@/constants/sports';
 import { getAmenityIcon, getAmenityKey } from '@/constants/amenities';
@@ -51,20 +53,22 @@ export default function GroundDetailScreen() {
     ground,
     events,
     isLoading,
-    toggleFavorite,
     user,
     userLocation,
     cityCenter,
     appLanguage,
+    addFavorite,
+    removeFavorite,
   } = useUnit({
     ground: $currentGround,
     events: $currentGroundEvents,
     isLoading: $isGroundDetailLoading,
-    toggleFavorite: toggleFavoriteInStore,
     user: $userSession,
     userLocation: $userLocation,
     cityCenter: $cityCenter,
     appLanguage: $appLanguage,
+    addFavorite: addFavoriteFx,
+    removeFavorite: removeFavoriteFx,
   });
 
   const reviewStats = useUnit($groundReviewStats);
@@ -86,6 +90,16 @@ export default function GroundDetailScreen() {
     if (router.canGoBack()) router.back();
     else router.replace('/(drawer)/(tabs)');
   };
+
+  // ✅ Правильный обработчик
+  const handleToggleFavorite = useCallback(() => {
+    if (!ground) return;
+    if (ground.isFavorite) {
+      removeFavorite(ground.id);
+    } else {
+      addFavorite(ground.id);
+    }
+  }, [ground, addFavorite, removeFavorite]);
 
   const { activeEvents, upcomingEvents, pastEvents } = useMemo(() => {
     const active: typeof events = [];
@@ -112,7 +126,6 @@ export default function GroundDetailScreen() {
   const localizedDescription = useMemo(() => {
     if (!ground) return t('groundDetail.noDescription');
 
-    // Если площадка прошла модерацию → показываем перевод
     if (ground.confirmed === true) {
       const tr = ground.descriptionTranslate ?? {};
       return (
@@ -123,7 +136,6 @@ export default function GroundDetailScreen() {
       );
     }
 
-    // Иначе (на модерации) → оригинал
     return ground.description || t('groundDetail.noDescription');
   }, [ground, appLanguage, t]);
 
@@ -299,8 +311,9 @@ export default function GroundDetailScreen() {
                   />
                 </Pressable>
               )}
+              {/* ✅ Правильный вызов */}
               <Pressable
-                onPress={() => toggleFavorite(ground.id)}
+                onPress={handleToggleFavorite}
                 style={[styles.iconButton, { backgroundColor: colors.surface }]}
                 hitSlop={8}
               >

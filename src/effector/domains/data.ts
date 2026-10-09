@@ -45,7 +45,7 @@ export const $grounds = dataDomain
       item.id === id ? { ...item, isFavorite: !item.isFavorite } : item,
     ),
   )
-  // ✅ Синхронизация с сервером — после ответа обновляем флаг
+  // ✅ Синхронизация с сервером
   .on(addFavoriteFx.done, (state, { params: groundId }) =>
     state.map((g) => (g.id === groundId ? { ...g, isFavorite: true } : g)),
   )
@@ -95,8 +95,9 @@ export const $grounds = dataDomain
             photos: fresh.photos,
             photoPaths: fresh.photoPaths,
             photoIds: fresh.photoIds,
-            avgRating: fresh.avgRating ?? g.avgRating,         // ✅ полезно
-            totalReviews: fresh.totalReviews ?? g.totalReviews, // ✅
+            avgRating: fresh.avgRating ?? g.avgRating,
+            totalReviews: fresh.totalReviews ?? g.totalReviews,
+            isFavorite: fresh.isFavorite ?? g.isFavorite, // ✅ синхронизируем isFavorite
             updatedAt: fresh.updatedAt,
           }
         : g,
@@ -125,7 +126,20 @@ export const $currentGround = dataDomain
   .createStore<GroundDetailItem | null>(null)
   .on(fetchGroundByIdFx.doneData, (_, payload) => payload)
   .on(fetchGroundByIdFx.failData, () => null)
-  .on(updateGroundFx.doneData, (_, updated) => updated);
+  .on(updateGroundFx.doneData, (_, updated) => updated)
+  // ✅ Синхронизация с toggleFavoriteInStore (оптимистично)
+  .on(toggleFavoriteInStore, (state, id) =>
+    state && state.id === id
+      ? { ...state, isFavorite: !state.isFavorite }
+      : state,
+  )
+  // ✅ Синхронизация с сервером
+  .on(addFavoriteFx.done, (state, { params: groundId }) =>
+    state && state.id === groundId ? { ...state, isFavorite: true } : state,
+  )
+  .on(removeFavoriteFx.done, (state, { params: groundId }) =>
+    state && state.id === groundId ? { ...state, isFavorite: false } : state,
+  );
 
 export const $isGroundDetailLoading = dataDomain
   .createStore<boolean>(false)
