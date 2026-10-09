@@ -22,6 +22,9 @@ export const setAuthStep = createEvent<
 >();
 export const logout = createEvent();
 
+// ✅ №21-23: сессия истекла (refresh не удался)
+export const sessionExpired = createEvent();
+
 // ==========================================
 // ГЕОЛОКАЦИЯ
 // ==========================================
@@ -50,3 +53,16 @@ export const clearMapFocusTarget = createEvent();
 // ВИДИМОСТЬ СПИСКА КЛАСТЕРА
 // ==========================================
 export const setClusterSheetVisible = createEvent<boolean>();
+
+// ==========================================
+// ✅ №6: ВИДИМАЯ ОБЛАСТЬ КАРТЫ (bbox)
+// ==========================================
+export interface MapBounds {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+}
+
+export const setMapVisibleBounds = createEvent<MapBounds | null>();
+export const clearMapVisibleBounds = createEvent();

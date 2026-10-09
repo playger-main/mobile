@@ -61,14 +61,14 @@ export {
   signUpFx,
   signInFx,
   resendCodeFx,
-  forgotPasswordFx,     // ✅
-  resetPasswordFx,      // ✅
+  forgotPasswordFx,
+  resetPasswordFx,
 } from './events/async/auth';
 
 export type { SessionUser } from './domains/auth';
 
 // ==========================================
-// 3b. ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ (NEW)
+// 3b. ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
 // ==========================================
 export {
   fetchMyProfileFx,
@@ -86,7 +86,7 @@ export type {
 } from './events/async/users';
 
 // ==========================================
-// 3c. СПИСКИ ПОЛЬЗОВАТЕЛЯ (NEW)
+// 3c. СПИСКИ ПОЛЬЗОВАТЕЛЯ
 // ==========================================
 export {
   fetchMyCreatedEventsFx,
@@ -140,6 +140,7 @@ export {
   $mapCenter,
   $mapFocusTarget,
   $clusterSheetVisible,
+  $mapVisibleBounds,
   requestUserLocationFx,
   checkLocationPermissionFx,
   detectCityFx,
@@ -152,14 +153,19 @@ export {
   setMapFocusTarget,
   clearMapFocusTarget,
   setClusterSheetVisible,
+  setMapVisibleBounds,
+  clearMapVisibleBounds,
   setSearchQuery,
   setSelectedCategory,
   setSelectedDate,
   setAuthStep,
   logout,
+  sessionExpired,
   clearGrounds,
   toggleFavoriteInStore,
 } from './events/sync';
+
+export type { MapBounds } from './events/sync';
 
 // ==========================================
 // 7. ОТЗЫВЫ
@@ -167,7 +173,7 @@ export {
 export {
   fetchGroundReviewsFx,
   fetchMyReviewFx,
-  fetchMyReviewsFx,      // ← без него счётчик не работает
+  fetchMyReviewsFx,
   createReviewFx,
   updateReviewFx,
   deleteReviewFx,
@@ -187,7 +193,7 @@ export {
   $myReview,
   $canCreateReview,
   $hasMyReview,
-  $myReviews,           // ← важно
-  $myReviewsCount,      // ← важно
-  $isMyReviewsLoading,  // ← важно
+  $myReviews,
+  $myReviewsCount,
+  $isMyReviewsLoading,
 } from './domains/reviews';

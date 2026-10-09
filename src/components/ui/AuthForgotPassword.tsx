@@ -30,6 +30,9 @@ export default function AuthForgotPassword({
   const [email, setEmail] = useState('');
 
   const canSubmit = email.trim().length > 0 && !isSubmitting;
+  // ✅ №20
+  const submitBtnBg = canSubmit ? colors.primaryDark : colors.disabledBg;
+  const submitBtnTextColor = canSubmit ? '#FFFFFF' : colors.textTertiary;
 
   return (
     <View style={[styles.formContainer, { backgroundColor: colors.listBackground }]}>
@@ -72,14 +75,14 @@ export default function AuthForgotPassword({
       </View>
 
       <Pressable
-        style={[styles.primaryButton, { backgroundColor: colors.primaryDark }]}
+        style={[styles.primaryButton, { backgroundColor: submitBtnBg }]}
         onPress={() => onSubmit(email.trim())}
         disabled={!canSubmit}
       >
         {isSubmitting ? (
           <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
-          <Text style={[styles.primaryButtonText, { color: '#FFFFFF' }]}>
+          <Text style={[styles.primaryButtonText, { color: submitBtnTextColor }]}>
             {t('auth.forgot.sendCode')}
           </Text>
         )}

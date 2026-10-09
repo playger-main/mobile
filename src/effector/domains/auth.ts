@@ -2,7 +2,7 @@
 import { createDomain, createEffect } from 'effector';
 import * as SecureStore from 'expo-secure-store';
 import { jwtDecode } from 'jwt-decode';
-import { setAuthStep, logout } from '../events/sync';
+import { setAuthStep, logout, sessionExpired } from '../events/sync';
 import { signUpFx, signInFx, verifyCodeFx, forgotPasswordFx, resetPasswordFx } from '../events/async/auth';
 import {
   fetchMyProfileFx,
@@ -24,7 +24,6 @@ export interface SessionUser {
   email: string;
   role: string[];
 
-  // Расширенный профиль
   bio?: string;
   city?: string | null;
   preferredSports?: string[];
@@ -35,7 +34,6 @@ export interface SessionUser {
   photoIds?: string[];
   isEmailConfirmed?: boolean;
 
-  // Статистика
   joinedCount?: number;
   savedCount?: number;
   gamesCount?: number;
@@ -66,8 +64,6 @@ const mapProfileToSession = (p: ServerUserProfile): SessionUser => ({
   photoPaths: p.photoPaths,
   photoIds: p.photoIds,
   isEmailConfirmed: p.isEmailConfirmed,
-
-  // ✅ ПРОБРАСЫВАЕМ СЧЁТЧИКИ
   joinedCount: p.joinedCount ?? 0,
   savedCount: p.savedCount ?? 0,
   gamesCount: p.gamesCount ?? 0,
@@ -93,8 +89,10 @@ export const hydrateSessionFx = createEffect(
       const currentTime = Date.now() / 1000;
 
       if (decoded.exp && decoded.exp < currentTime) {
-        await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
-        await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+        // ✅ Истёк access — но НЕ удаляем refresh. Пусть api.ts попробует refresh.
+        // Не удаляем ничего, чтобы дать шанс refresh-логике восстановить сессию.
+        // Если refresh тоже истёк — api.ts отправит sessionExpired.
+        // Здесь только возвращаем null, чтобы не поднимать «мертвую» сессию.
         return null;
       }
 
@@ -125,8 +123,8 @@ export const $authStep = authDomain
   .on(setAuthStep, (_, step) => step)
   .on(signUpFx.done, () => 'verify')
   .on(verifyCodeFx.done, () => 'signin')
-  .on(forgotPasswordFx.done, () => 'reset')       // ✅
-  .on(resetPasswordFx.done, () => 'signin')        // ✅
+  .on(forgotPasswordFx.done, () => 'reset')
+  .on(resetPasswordFx.done, () => 'signin')
   .on(hydrateSessionFx.doneData, (state, payload) =>
     payload ? 'signin' : state,
   );
@@ -136,13 +134,11 @@ export const $userSession = authDomain
   .on(signInFx.doneData, (_, payload) => payload.user)
   .on(hydrateSessionFx.doneData, (state, payload) => {
     if (!payload) return state;
-    // ✅ Если это тот же пользователь — МЕРЖИМ, чтобы не потерять bio/avatar/photos
     if (state?.id === payload.user.id) {
       return { ...state, ...payload.user };
     }
     return payload.user;
   })
-  // Мержим свежий профиль во всех случаях
   .on(fetchMyProfileFx.doneData, (state, profile) =>
     state ? { ...state, ...mapProfileToSession(profile) } : state,
   )
@@ -155,7 +151,13 @@ export const $userSession = authDomain
   .on(confirmEmailChangeFx.doneData, (state, profile) =>
     state ? { ...state, ...mapProfileToSession(profile) } : state,
   )
+  // ✅ №21-23: единая очистка и на logout, и на sessionExpired
   .on(logout, () => {
+    SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+    SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    return null;
+  })
+  .on(sessionExpired, () => {
     SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
     SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
     return null;
@@ -171,7 +173,8 @@ export const $accessToken = authDomain
   .on(hydrateSessionFx.doneData, (state, payload) =>
     payload ? payload.accessToken : state,
   )
-  .on(logout, () => null);
+  .on(logout, () => null)
+  .on(sessionExpired, () => null);
 
 export const $isAuthSubmitting = authDomain
   .createStore<boolean>(false)
@@ -197,7 +200,6 @@ export const $isHydrating = authDomain
 signInFx.doneData.watch(() => {
   fetchMyProfileFx();
 });
-
 
 hydrateSessionFx.doneData.watch((result) => {
   if (result) fetchMyProfileFx();

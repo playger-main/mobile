@@ -1,5 +1,5 @@
 // src/effector/domains/location.ts
-import { createDomain, createEffect } from 'effector';
+import { createDomain, createEffect, combine } from 'effector';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -10,6 +10,8 @@ import {
   setMapFocusTarget,
   clearMapFocusTarget,
   setClusterSheetVisible,
+  setMapVisibleBounds,
+  clearMapVisibleBounds,
 } from '../events/sync';
 import { DEFAULT_CITY_CENTER, getCityCenter } from '@/constants/location';
 
@@ -142,7 +144,13 @@ export const $isDetectingCity = locationDomain
   .on(detectCityFx, () => true)
   .on(detectCityFx.finally, () => false);
 
-export const $mapCenter = $userLocation.map((loc) => loc ?? DEFAULT_CITY_CENTER);
+// ✅ №5: учитываем $cityCenter как fallback.
+// Приоритет: userLocation → cityCenter → DEFAULT_CITY_CENTER
+export const $mapCenter = combine(
+  $userLocation,
+  $cityCenter,
+  (loc, city) => loc ?? city ?? DEFAULT_CITY_CENTER,
+);
 
 // ✅ Стор: цель фокуса карты (координаты площадки для центрирования)
 export const $mapFocusTarget = locationDomain
@@ -154,3 +162,16 @@ export const $mapFocusTarget = locationDomain
 export const $clusterSheetVisible = locationDomain
   .createStore<boolean>(false)
   .on(setClusterSheetVisible, (_, visible) => visible);
+
+// ==========================================
+// ✅ №6: Видимая область карты для фильтрации списка
+// ==========================================
+export const $mapVisibleBounds = locationDomain
+  .createStore<{
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  } | null>(null)
+  .on(setMapVisibleBounds, (_, bounds) => bounds)
+  .on(clearMapVisibleBounds, () => null);

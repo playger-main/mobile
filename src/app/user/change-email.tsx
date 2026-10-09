@@ -137,9 +137,15 @@ export default function ChangeEmailScreen() {
   };
 
   const isSubmitting = isRequesting || isConfirming;
-
   const emailCanSubmit = newEmail.trim().length > 0 && !isSubmitting;
   const codeCanSubmit = code.length === 6 && !isSubmitting;
+
+  const emailBtnBg = emailCanSubmit ? colors.primaryDark : colors.disabledBg;
+  const emailBtnTextColor = emailCanSubmit ? '#FFFFFF' : colors.textTertiary;
+
+  const codeBtnBg = codeCanSubmit ? colors.primaryDark : colors.disabledBg;
+  const codeBtnTextColor = codeCanSubmit ? '#FFFFFF' : colors.textTertiary;
+
 
   return (
     <KeyboardAvoidingView
@@ -225,14 +231,14 @@ export default function ChangeEmailScreen() {
             />
 
             <Pressable
-              style={[styles.primaryButton, { backgroundColor: colors.primaryDark }]}
+              style={[styles.primaryButton, { backgroundColor: emailBtnBg }]}
               onPress={handleRequest}
               disabled={!emailCanSubmit}
             >
               {isRequesting ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <Text style={[styles.primaryButtonText, { color: '#FFFFFF' }]}>
+                <Text style={[styles.primaryButtonText, { color: emailBtnTextColor }]}>
                   {t('profile.changeEmail.sendButton')}
                 </Text>
               )}
@@ -275,14 +281,14 @@ export default function ChangeEmailScreen() {
             />
 
             <Pressable
-              style={[styles.primaryButton, { backgroundColor: colors.primaryDark }]}
+              style={[styles.primaryButton, { backgroundColor: codeBtnBg }]}
               onPress={handleConfirm}
               disabled={!codeCanSubmit}
             >
               {isConfirming ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <Text style={[styles.primaryButtonText, { color: '#FFFFFF' }]}>
+                <Text style={[styles.primaryButtonText, { color: codeBtnTextColor }]}>
                   {t('profile.changeEmail.confirmButton')}
                 </Text>
               )}

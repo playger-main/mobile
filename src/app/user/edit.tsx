@@ -156,6 +156,11 @@ export default function EditProfileScreen() {
   };
 
   const canSave = hasChanges && username.trim().length > 0 && !isSaving;
+
+  // ✅ №20
+  const saveBtnBg = canSave ? colors.primaryDark : colors.disabledBg;
+  const saveBtnTextColor = canSave ? '#FFFFFF' : colors.textTertiary;
+
   const avatarLetter = user?.name?.charAt(0).toUpperCase() || 'P';
 
   return (
@@ -432,18 +437,17 @@ export default function EditProfileScreen() {
           },
         ]}
       >
+        {/* ✅ №20: визуальный disabled */}
         <Pressable
-          style={[styles.saveButton, { backgroundColor: colors.primaryDark }]}
+          style={[styles.saveButton, { backgroundColor: saveBtnBg }]}
           onPress={handleSave}
           disabled={!canSave}
         >
           {isSaving ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={[styles.saveButtonText, { color: '#FFFFFF' }]}>
-              {hasChanges
-                ? t('common.saveChanges')
-                : t('common.noChangesYet')}
+            <Text style={[styles.saveButtonText, { color: saveBtnTextColor }]}>
+              {hasChanges ? t('common.saveChanges') : t('common.noChangesYet')}
             </Text>
           )}
         </Pressable>

@@ -27,6 +27,7 @@ import {
   $mapFocusTarget,
   $clusterSheetVisible,
   setClusterSheetVisible as setClusterSheetVisibleEv,
+  setMapVisibleBounds,
   requestUserLocationFx,
   checkLocationPermissionFx,
   detectCityFx,
@@ -67,41 +68,6 @@ interface ClusterPoint {
   };
 }
 
-const getFullExpansionZoom = (
-  index: Supercluster,
-  clusterId: number,
-): number => {
-  let zoom = index.getClusterExpansionZoom(clusterId);
-  const children = index.getChildren(clusterId) as any[];
-
-  for (const child of children) {
-    if (child.properties?.cluster) {
-      const deeperZoom = getFullExpansionZoom(
-        index,
-        child.properties.cluster_id,
-      );
-      if (deeperZoom > zoom) zoom = deeperZoom;
-    }
-  }
-
-  return zoom;
-};
-
-const zoomToRegionDeltas = (
-  zoom: number,
-  latitude: number,
-  screenWidth: number,
-  screenHeight: number,
-): { latitudeDelta: number; longitudeDelta: number } => {
-  const longitudeDelta = 360 / Math.pow(2, zoom);
-  const latitudeDelta =
-    longitudeDelta *
-    (screenHeight / screenWidth) *
-    Math.max(Math.cos((latitude * Math.PI) / 180), 0.1);
-
-  return { latitudeDelta, longitudeDelta };
-};
-
 export default function MapComponent({
   region,
   grounds,
@@ -117,6 +83,7 @@ export default function MapComponent({
   const mapFocusTarget = useUnit($mapFocusTarget);
   const clusterSheetVisible = useUnit($clusterSheetVisible);
   const setClusterSheetVisible = useUnit(setClusterSheetVisibleEv);
+  const setMapBounds = useUnit(setMapVisibleBounds);
 
   const mapRef = useRef<MapView | null>(null);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
@@ -377,14 +344,17 @@ export default function MapComponent({
 
       if (items.length === 0) return;
 
+      // Одиночный маркер — открываем его
       if (items.length === 1) {
         const raw = leaves[0].properties.marker.raw;
         handleMarkerPress({ ...items[0], raw } as any);
         return;
       }
 
+      // ✅ bbox всех маркеров кластера
       const lats = items.map((m) => m.latitude);
       const lngs = items.map((m) => m.longitude);
+
       const minLat = Math.min(...lats);
       const maxLat = Math.max(...lats);
       const minLng = Math.min(...lngs);
@@ -393,22 +363,35 @@ export default function MapComponent({
       const centerLat = (minLat + maxLat) / 2;
       const centerLng = (minLng + maxLng) / 2;
 
-      const expansionZoom = getFullExpansionZoom(supercluster, clusterId);
-      const targetZoom = Math.min(expansionZoom + 1, 18);
+      let latDelta = maxLat - minLat;
+      let lngDelta = maxLng - minLng;
 
-      const { latitudeDelta, longitudeDelta } = zoomToRegionDeltas(
-        targetZoom,
-        centerLat,
-        screenWidth,
-        screenHeight,
-      );
+      // Aspect-ratio экрана: карта выше, чем шире
+      const aspect = screenHeight / screenWidth;
+
+      // Синхронизируем дельты
+      if (lngDelta * aspect > latDelta) {
+        latDelta = lngDelta * aspect;
+      } else {
+        lngDelta = latDelta / aspect;
+      }
+
+      // Padding 40% — маркеры не прилипают к краю
+      const PADDING = 1.4;
+      latDelta *= PADDING;
+      lngDelta *= PADDING;
+
+      // Минимум, чтобы при очень близких маркерах не было сверх-зума
+      const MIN_DELTA = 0.003;
+      latDelta = Math.max(latDelta, MIN_DELTA);
+      lngDelta = Math.max(lngDelta, MIN_DELTA);
 
       mapRef.current?.animateToRegion(
         {
           latitude: centerLat,
           longitude: centerLng,
-          latitudeDelta,
-          longitudeDelta,
+          latitudeDelta: latDelta,
+          longitudeDelta: lngDelta,
         },
         600,
       );
@@ -423,6 +406,19 @@ export default function MapComponent({
     setClusterSheetVisible(false);
   }, [setClusterSheetVisible]);
 
+  const handleRegionChangeComplete = useCallback(
+    (r: Region) => {
+      setCurrentRegion(r);
+      setMapBounds({
+        north: r.latitude + r.latitudeDelta / 2,
+        south: r.latitude - r.latitudeDelta / 2,
+        west: r.longitude - r.longitudeDelta / 2,
+        east: r.longitude + r.longitudeDelta / 2,
+      });
+    },
+    [setMapBounds],
+  );
+
   return (
     <View style={styles.container}>
       <MapView
@@ -430,7 +426,7 @@ export default function MapComponent({
         provider={PROVIDER_DEFAULT}
         style={styles.map}
         initialRegion={region}
-        onRegionChangeComplete={(r) => setCurrentRegion(r)}
+        onRegionChangeComplete={handleRegionChangeComplete}
         showsUserLocation={true}
         showsMyLocationButton={false}
         toolbarEnabled={false}

@@ -57,6 +57,9 @@ export default function AuthResetPassword({
     password.length >= 6 &&
     passwordsMatch &&
     !isSubmitting;
+  // ✅ №20
+  const submitBtnBg = canSubmit ? colors.primaryDark : colors.disabledBg;
+  const submitBtnTextColor = canSubmit ? '#FFFFFF' : colors.textTertiary;
 
   const handleResend = () => {
     onResendCode();
@@ -181,14 +184,14 @@ export default function AuthResetPassword({
       </View>
 
       <Pressable
-        style={[styles.primaryButton, { backgroundColor: colors.primaryDark }]}
+        style={[styles.primaryButton, { backgroundColor: submitBtnBg }]}
         onPress={() => onSubmit(code.trim(), password)}
         disabled={!canSubmit}
       >
         {isSubmitting ? (
           <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
-          <Text style={[styles.primaryButtonText, { color: '#FFFFFF' }]}>
+          <Text style={[styles.primaryButtonText, { color: submitBtnTextColor }]}>
             {t('auth.reset.button')}
           </Text>
         )}

@@ -12,6 +12,12 @@ export const filters: TranslationDict = {
   'sport.running': { en: 'Running', ru: 'Бег', be: 'Бег', lt: 'Bėgimas', pl: 'Bieganie', uk: 'Біг' },
   'sport.all': { en: 'All sports', ru: 'Все виды', be: 'Усе віды', lt: 'Visos šakos', pl: 'Wszystkie sporty', uk: 'Усі види' },
 
+  // ✅ №10: новые виды спорта — ключи в lowercase (соответствуют getSportKey)
+  'sport.tabletennis': { en: 'Table tennis', ru: 'Настольный теннис', be: 'Настольны тэніс', lt: 'Stalo tenisas', pl: 'Tenis stołowy', uk: 'Настільний теніс' },
+  'sport.workout': { en: 'Workout', ru: 'Воркаут', be: 'Воркаут', lt: 'Treniruokliai', pl: 'Workout', uk: 'Воркаут' },
+  'sport.hockey': { en: 'Hockey rink', ru: 'Хоккейная коробка', be: 'Хакейная каробка', lt: 'Ledo ritulio aikštelė', pl: 'Boisko hokejowe', uk: 'Хокейна коробка' },
+  'sport.icerink': { en: 'Ice rink', ru: 'Каток', be: 'Каток', lt: 'Čiuožykla', pl: 'Lodowisko', uk: 'Ковзанка' },
+
   // ===== SURFACE =====
   'surface.asphalt': { en: 'Asphalt', ru: 'Асфальт', be: 'Асфальт', lt: 'Asfaltas', pl: 'Asfalt', uk: 'Асфальт' },
   'surface.concrete': { en: 'Concrete', ru: 'Бетон', be: 'Бетон', lt: 'Betonas', pl: 'Beton', uk: 'Бетон' },

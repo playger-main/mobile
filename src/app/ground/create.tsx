@@ -176,6 +176,11 @@ export default function CreateGroundScreen() {
     location !== null &&
     address.trim().length > 0;
 
+  // ✅ №20
+  const publishDisabled = isSubmitting || !isFormValid;
+  const publishBg = publishDisabled ? colors.disabledBg : colors.primaryDark;
+  const publishTextColor = publishDisabled ? colors.textTertiary : '#FFFFFF';
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -216,7 +221,6 @@ export default function CreateGroundScreen() {
           { paddingBottom: insets.bottom + 120 },
         ]}
       >
-        {/* NAME */}
         <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
           {t('groundForm.name')}
         </Text>
@@ -235,7 +239,6 @@ export default function CreateGroundScreen() {
           onChangeText={setName}
         />
 
-        {/* SPORT */}
         <View style={styles.labelWithHintRow}>
           <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
             {t('groundForm.sport')}
@@ -305,7 +308,6 @@ export default function CreateGroundScreen() {
           })}
         </View>
 
-        {/* LOCATION */}
         <View style={styles.labelWithHintRow}>
           <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
             {t('groundForm.location')}
@@ -374,7 +376,6 @@ export default function CreateGroundScreen() {
           {t('groundForm.locationHint')}
         </Text>
 
-        {/* ADDRESS */}
         <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
           {t('groundForm.address')}
         </Text>
@@ -393,7 +394,6 @@ export default function CreateGroundScreen() {
           onChangeText={setAddress}
         />
 
-        {/* SURFACE */}
         <View style={styles.labelWithHintRow}>
           <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
             {t('groundForm.surface')}
@@ -447,7 +447,6 @@ export default function CreateGroundScreen() {
           })}
         </View>
 
-        {/* DESCRIPTION */}
         <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
           {t('groundForm.description')}
         </Text>
@@ -469,7 +468,6 @@ export default function CreateGroundScreen() {
           onChangeText={setDescription}
         />
 
-        {/* AMENITIES */}
         <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
           {t('groundForm.amenities')}
         </Text>
@@ -508,7 +506,6 @@ export default function CreateGroundScreen() {
           })}
         </View>
 
-        {/* PHOTOS */}
         <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
           {t('groundForm.photos')}
         </Text>
@@ -531,15 +528,16 @@ export default function CreateGroundScreen() {
           },
         ]}
       >
+        {/* ✅ №20 */}
         <Pressable
-          style={[styles.publishButton, { backgroundColor: colors.primaryDark }]}
+          style={[styles.publishButton, { backgroundColor: publishBg }]}
           onPress={handlePublish}
-          disabled={isSubmitting || !isFormValid}
+          disabled={publishDisabled}
         >
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={[styles.publishButtonText, { color: '#FFFFFF' }]}>
+            <Text style={[styles.publishButtonText, { color: publishTextColor }]}>
               {t('groundForm.publishButton')}
             </Text>
           )}

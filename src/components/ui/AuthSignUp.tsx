@@ -56,6 +56,10 @@ export default function AuthSignUp({
     onSubmit(fullName, email, password);
   };
 
+  // ✅ №20
+  const submitBtnBg = canSubmit ? colors.primaryDark : colors.disabledBg;
+  const submitBtnTextColor = canSubmit ? '#FFFFFF' : colors.textTertiary;
+
   const inputStyle = [
     styles.inputField,
     {
@@ -184,14 +188,14 @@ export default function AuthSignUp({
       </View>
 
       <Pressable
-        style={[styles.primaryButton, { backgroundColor: colors.primaryDark }]}
+        style={[styles.primaryButton, { backgroundColor: submitBtnBg }]}
         onPress={handleSubmit}
         disabled={!canSubmit}
       >
         {isSubmitting ? (
           <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
-          <Text style={[styles.primaryButtonText, { color: '#FFFFFF' }]}>
+          <Text style={[styles.primaryButtonText, { color: submitBtnTextColor }]}>
             {t('auth.createAccountButton')}
           </Text>
         )}

@@ -52,6 +52,15 @@ export default function AuthSignIn({
     },
   ];
 
+  // ✅ №20: кнопка активна только при заполненных полях
+  const canSubmit =
+    email.trim().length > 0 &&
+    password.length > 0 &&
+    !isSubmitting;
+
+  const submitBtnBg = canSubmit ? colors.primaryDark : colors.disabledBg;
+  const submitBtnTextColor = canSubmit ? '#FFFFFF' : colors.textTertiary;
+
   return (
     <View style={[styles.formContainer, { backgroundColor: colors.listBackground }]}>
       <View style={[styles.logoIconBlock, { backgroundColor: colors.primary }]}>
@@ -123,14 +132,14 @@ export default function AuthSignIn({
       </View>
 
       <Pressable
-        style={[styles.primaryButton, { backgroundColor: colors.primaryDark }]}
+        style={[styles.primaryButton, { backgroundColor: submitBtnBg }]}
         onPress={() => onSubmit(email, password)}
-        disabled={isSubmitting}
+        disabled={!canSubmit}
       >
         {isSubmitting ? (
           <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
-          <Text style={[styles.primaryButtonText, { color: '#FFFFFF' }]}>
+          <Text style={[styles.primaryButtonText, { color: submitBtnTextColor }]}>
             {t('auth.signIn.button')}
           </Text>
         )}

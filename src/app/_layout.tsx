@@ -4,13 +4,14 @@ import {
   View,
   ActivityIndicator,
   AppState,
-  Appearance,               // ✅ NEW
+  Appearance,
 } from 'react-native';
 import {
   Stack,
   ThemeProvider,
   DarkTheme as NavDarkTheme,
   DefaultTheme as NavLightTheme,
+  router,
 } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -30,6 +31,7 @@ import {
   detectCityFx,
   $appLanguage,
 } from '@/effector/store';
+import { sessionExpired } from '@/effector/events/sync';
 
 import { DEFAULT_CITY_CENTER } from '@/constants/location';
 import { registerCalendarLocales, setCalendarLocale } from '@/i18n';
@@ -43,7 +45,6 @@ export default function RootLayout() {
   const { isHydrating } = useUnit({ isHydrating: $isHydrating });
   const appLanguage = useUnit($appLanguage);
 
-  // ✅ Тема приложения
   const { theme, colors } = useTheme();
 
   const [fontsLoaded, fontError] = useFonts({
@@ -55,8 +56,7 @@ export default function RootLayout() {
     setCalendarLocale(appLanguage);
   }, [appLanguage]);
 
-  // ✅ NEW: синхронизируем нативную тему (Alert, клавиатура, системные пикеры)
-  // с нашей темой приложения
+  // ✅ Синхронизация нативной темы
   useEffect(() => {
     Appearance.setColorScheme(theme);
   }, [theme]);
@@ -79,6 +79,18 @@ export default function RootLayout() {
         }
       } catch {}
     })();
+  }, []);
+
+  // ✅ №23: sessionExpired → редирект на профиль (там покажется welcome/auth)
+  useEffect(() => {
+    const unsubscribe = sessionExpired.watch(() => {
+      try {
+        router.replace('/(drawer)/(tabs)/profile');
+      } catch (e) {
+        console.warn('[sessionExpired] router.replace failed:', e);
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
   // ✅ AppState
@@ -134,7 +146,6 @@ export default function RootLayout() {
         <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
 
         <Stack screenOptions={{ headerShown: false }}>
-          {/* ...все Stack.Screen без изменений... */}
           <Stack.Screen name="(drawer)" />
           <Stack.Screen name="ground/[id]" />
           <Stack.Screen name="ground/create" />

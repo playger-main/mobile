@@ -181,6 +181,11 @@ export default function EditEventScreen() {
 
   const isFormValid = title.trim().length > 0 && selectedGroundId.length > 0;
 
+  // ✅ №20
+  const saveDisabled = isSubmitting || !isFormValid;
+  const saveBg = saveDisabled ? colors.disabledBg : colors.primaryDark;
+  const saveTextColor = saveDisabled ? colors.textTertiary : '#FFFFFF';
+
   if (isLoading && !event) {
     return (
       <View
@@ -532,15 +537,16 @@ export default function EditEventScreen() {
           },
         ]}
       >
+        {/* ✅ №20 */}
         <Pressable
-          style={[styles.publishButton, { backgroundColor: colors.primaryDark }]}
+          style={[styles.publishButton, { backgroundColor: saveBg }]}
           onPress={handleSave}
-          disabled={isSubmitting || !isFormValid}
+          disabled={saveDisabled}
         >
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={[styles.publishButtonText, { color: '#FFFFFF' }]}>
+            <Text style={[styles.publishButtonText, { color: saveTextColor }]}>
               {t('common.saveChanges')}
             </Text>
           )}

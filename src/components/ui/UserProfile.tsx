@@ -87,8 +87,8 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           />
 
           <View style={styles.avatarWrapper}>
-            <Pressable
-              onPress={goToEdit}
+            {/* ✅ №18: убран onPress — редактирование только через меню */}
+            <View
               style={[styles.avatarShadow, { shadowColor: colors.shadow }]}
             >
               {hasAvatar ? (
@@ -110,7 +110,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
                   <Text style={styles.avatarText}>{avatarLetter}</Text>
                 </View>
               )}
-            </Pressable>
+            </View>
           </View>
 
           {isRefreshing && (
@@ -152,7 +152,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           </Pressable>
         </View>
 
-        {/* BIO — теперь карточка (surface), а не surfaceSecondary */}
+        {/* BIO */}
         <View
           style={[
             styles.bioBlock,

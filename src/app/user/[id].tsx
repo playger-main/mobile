@@ -41,9 +41,14 @@ export default function UserPublicProfileScreen() {
   const me = useUnit($userSession);
   const fetchUser = useUnit(fetchPublicUserFx);
 
+  // ✅ №9: гость → на /profile
   useEffect(() => {
+    if (!me) {
+      router.replace('/(drawer)/(tabs)/profile');
+      return;
+    }
     if (id) fetchUser(id);
-  }, [id]);
+  }, [id, me]);
 
   const handleBack = () => {
     if (router.canGoBack()) router.back();
@@ -191,7 +196,6 @@ export default function UserPublicProfileScreen() {
           )}
         </View>
 
-        {/* BIO — карточка */}
         {hasBio && (
           <View
             style={[

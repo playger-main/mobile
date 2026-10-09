@@ -46,6 +46,9 @@ export default function AuthVerifyCode({
   };
 
   const canSubmit = code.length === 6 && !isSubmitting;
+  // ✅ №20
+  const submitBtnBg = canSubmit ? colors.primaryDark : colors.disabledBg;
+  const submitBtnTextColor = canSubmit ? '#FFFFFF' : colors.textTertiary;
 
   return (
     <View style={[styles.formContainer, { backgroundColor: colors.listBackground }]}>
@@ -88,14 +91,14 @@ export default function AuthVerifyCode({
       </View>
 
       <Pressable
-        style={[styles.primaryButton, { backgroundColor: colors.primaryDark }]}
+        style={[styles.primaryButton, { backgroundColor: submitBtnBg }]}
         onPress={() => onSubmit(code.trim())}
         disabled={!canSubmit}
       >
         {isSubmitting ? (
           <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
-          <Text style={[styles.primaryButtonText, { color: '#FFFFFF' }]}>
+          <Text style={[styles.primaryButtonText, { color: submitBtnTextColor }]}>
             {t('auth.verify.button')}
           </Text>
         )}

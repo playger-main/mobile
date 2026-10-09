@@ -2,7 +2,9 @@
 import React from 'react';
 import { FlatList, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useUnit } from 'effector-react';
 import { ServerEventItem } from '@/effector/events/async/events';
+import { $userSession } from '@/effector/store';
 import EventListCard from './EventListCard';
 import { useTranslation } from '@/i18n';
 import type { Language } from '@/i18n';
@@ -25,6 +27,7 @@ interface ListEventsProps {
 export default function ListEvents({ events, selectedDate }: ListEventsProps) {
   const { t, lang } = useTranslation();
   const { colors } = useTheme();
+  const user = useUnit($userSession); // ✅ №17: для тега "организатор"
 
   const getHeaderDateTitle = (dateStr: string) => {
     const eventDate = new Date(dateStr);
@@ -47,7 +50,13 @@ export default function ListEvents({ events, selectedDate }: ListEventsProps) {
     <FlatList
       data={events}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <EventListCard item={item} />}
+      renderItem={({ item }) => (
+        <EventListCard
+          item={item}
+          showCreatorBadge // ✅ №17
+          currentUserId={user?.id} // ✅ №17
+        />
+      )}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.listContainer}
       ListHeaderComponent={

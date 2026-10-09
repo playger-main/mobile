@@ -3,6 +3,7 @@
 /**
  * Список видов спорта для площадок.
  * ✅ ID используется в БД (поле `kindofsport`).
+ * ✅ ID — всегда lowercase, чтобы совпадать с ключами i18n (`sport.${id}`).
  * ✅ Label для UI берётся из i18n: t(`sport.${id}`)
  */
 export const SPORT_OPTIONS = [
@@ -13,6 +14,11 @@ export const SPORT_OPTIONS = [
   { id: 'pickleball', icon: 'trophy-outline' },
   { id: 'skateboarding', icon: 'bicycle-outline' },
   { id: 'running', icon: 'walk-outline' },
+  // ✅ №10: новые виды спорта (lowercase id, как и остальные)
+  { id: 'tabletennis', icon: 'tennisball-outline' },
+  { id: 'workout', icon: 'barbell-outline' },
+  { id: 'hockey', icon: 'football-outline' },
+  { id: 'icerink', icon: 'snow-outline' },
 ] as const;
 
 export interface SportOption {

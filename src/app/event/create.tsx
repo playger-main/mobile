@@ -172,6 +172,11 @@ export default function CreateEventScreen() {
     selectedGroundId.length > 0 &&
     !isGroundUnconfirmed;
 
+  // ✅ №20: кнопка визуально отражает доступность
+  const publishDisabled = isSubmitting || !isFormValid;
+  const publishBg = publishDisabled ? colors.disabledBg : colors.primaryDark;
+  const publishTextColor = publishDisabled ? colors.textTertiary : '#FFFFFF';
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -599,15 +604,16 @@ export default function CreateEventScreen() {
           },
         ]}
       >
+        {/* ✅ №20: визуальный disabled */}
         <Pressable
-          style={[styles.publishButton, { backgroundColor: colors.primaryDark }]}
+          style={[styles.publishButton, { backgroundColor: publishBg }]}
           onPress={handlePublish}
-          disabled={isSubmitting || !isFormValid}
+          disabled={publishDisabled}
         >
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={[styles.publishButtonText, { color: '#FFFFFF' }]}>
+            <Text style={[styles.publishButtonText, { color: publishTextColor }]}>
               {t('events.form.publishButton')}
             </Text>
           )}

@@ -1,5 +1,5 @@
 // src/components/ui/ListGrounds.tsx
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -25,10 +25,18 @@ import {
   $selectedCategory,
   $userSession,
   $events,
+  $mapVisibleBounds,
 } from '@/effector/store';
 import { setSelectedCategory } from '@/effector/events/sync';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
+
+// ✅ №6, №7: лимит списка и поиска
+const MAX_GROUNDS_RESULTS = 100;
+
+// ✅ №6: padding от края видимой области (10%),
+// чтобы площадки на границе не мигали при движении карты
+const BOUNDS_PADDING_RATIO = 0.1;
 
 interface ListGroundsProps {
   onItemPress: (item: ExtendedGroundItem) => void;
@@ -52,6 +60,7 @@ export default function ListGrounds({
     changeCategory,
     user,
     events,
+    mapBounds,
   } = useUnit({
     grounds: $grounds,
     isLoading: $isGroundsLoading,
@@ -60,13 +69,16 @@ export default function ListGrounds({
     changeCategory: setSelectedCategory,
     user: $userSession,
     events: $events,
+    mapBounds: $mapVisibleBounds,
   });
 
   useFocusEffect(
     useCallback(() => {
+      // ✅ №6, №7: take = 100
       fetchGroundsFx({
         kindofsport: selectedCategory === 'all' ? undefined : selectedCategory,
         search: searchQuery.trim() || undefined,
+        take: MAX_GROUNDS_RESULTS,
       });
     }, [selectedCategory, searchQuery, user?.id]),
   );
@@ -77,11 +89,49 @@ export default function ListGrounds({
     }
   }, []);
 
+  // ✅ №6: фильтруем площадки по видимой области карты
+  const visibleGrounds = useMemo(() => {
+    // №7: если поиск активен — показываем все найденные (до 100),
+    // независимо от видимой области карты
+    if (searchQuery.trim().length > 0) {
+      return grounds.slice(0, MAX_GROUNDS_RESULTS);
+    }
+
+    // Если bounds ещё не установлены (карта не отрендерилась) — показываем всё
+    if (!mapBounds) {
+      return grounds.slice(0, MAX_GROUNDS_RESULTS);
+    }
+
+    const { north, south, east, west } = mapBounds;
+
+    // padding — чтобы площадки на краю не мигали
+    const latPad = (north - south) * BOUNDS_PADDING_RATIO;
+    const lngPad = (east - west) * BOUNDS_PADDING_RATIO;
+
+    return grounds
+      .filter((g) => {
+        if (!g.geolocation?.lat || !g.geolocation?.lng) return false;
+
+        const lat = Number(g.geolocation.lat);
+        const lng = Number(g.geolocation.lng);
+
+        if (isNaN(lat) || isNaN(lng)) return false;
+
+        return (
+          lat >= south - latPad &&
+          lat <= north + latPad &&
+          lng >= west - lngPad &&
+          lng <= east + lngPad
+        );
+      })
+      .slice(0, MAX_GROUNDS_RESULTS);
+  }, [grounds, mapBounds, searchQuery]);
+
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       <View style={styles.headerTopRow}>
         <Text style={[styles.countText, { color: colors.textPrimary }]}>
-          {t('grounds.count', { count: grounds.length })}
+          {t('grounds.count', { count: visibleGrounds.length })}
         </Text>
         <Text style={[styles.sortText, { color: colors.textSecondary }]}>
           {t('grounds.sortByDistance')}
@@ -110,7 +160,7 @@ export default function ListGrounds({
   if (isWeb) {
     return (
       <View style={styles.webListContent}>
-        {grounds.map((item) => (
+        {visibleGrounds.map((item) => (
           <CardGround
             key={item.id}
             item={item}
@@ -124,7 +174,7 @@ export default function ListGrounds({
 
   return (
     <BottomSheetFlatList
-      data={grounds}
+      data={visibleGrounds}
       keyExtractor={(item: ExtendedGroundItem) => item.id}
       ListHeaderComponent={renderHeader}
       renderItem={({ item }: { item: ExtendedGroundItem }) => (
@@ -142,6 +192,16 @@ export default function ListGrounds({
       ]}
       scrollEnabled={true}
       nestedScrollEnabled={true}
+      ListEmptyComponent={
+        // ✅ №6: пустое состояние, если в видимой области ничего нет
+        !searchQuery.trim() && grounds.length > 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
+              {t('grounds.emptyInArea')}
+            </Text>
+          </View>
+        ) : null
+      }
     />
   );
 }
@@ -168,4 +228,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   webListContent: { width: '100%', paddingBottom: 32 },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: { fontSize: 14, fontWeight: '500' },
 });

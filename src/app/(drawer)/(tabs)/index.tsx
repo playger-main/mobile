@@ -35,6 +35,7 @@ import {
   $clusterSheetVisible,
   $userSession,
   $pendingGrounds,
+  $mapCenter,
   addFavoriteFx,
   removeFavoriteFx,
 } from '@/effector/store';
@@ -43,6 +44,10 @@ import {
   setSelectedCategory,
 } from '@/effector/events/sync';
 import { useTheme } from '@/hooks/useTheme';
+
+// ✅ Fallback дельты карты
+const MAP_LAT_DELTA = 0.02;
+const MAP_LNG_DELTA = 0.02;
 
 export default function GroundsScreen() {
   const insets = useSafeAreaInsets();
@@ -57,6 +62,7 @@ export default function GroundsScreen() {
   const clusterSheetVisible = useUnit($clusterSheetVisible);
   const user = useUnit($userSession);
   const pendingCount = useUnit($pendingGrounds.map((p) => p.length));
+  const mapCenter = useUnit($mapCenter); // ✅ №5: центр карты из стора
 
   const addFavorite = useUnit(addFavoriteFx);
   const removeFavorite = useUnit(removeFavoriteFx);
@@ -122,12 +128,16 @@ export default function GroundsScreen() {
     [addFavorite, removeFavorite],
   );
 
-  const mapRegion = {
-    latitude: 54.7284,
-    longitude: 25.2273,
-    latitudeDelta: 0.02,
-    longitudeDelta: 0.02,
-  };
+  // ✅ №5: регион для карты — теперь из $mapCenter (userLocation → cityCenter → default)
+  const mapRegion = useMemo(
+    () => ({
+      latitude: mapCenter.latitude,
+      longitude: mapCenter.longitude,
+      latitudeDelta: MAP_LAT_DELTA,
+      longitudeDelta: MAP_LNG_DELTA,
+    }),
+    [mapCenter.latitude, mapCenter.longitude],
+  );
 
   const renderCustomHandle = () => (
     <View style={styles.massiveHandleContainer}>

@@ -15,6 +15,16 @@ export const grounds: TranslationDict = {
     uk: 'Майданчиків поруч ({{count}})',
   },
 
+  // ✅ №6: пустое состояние при фильтрации по видимой области карты
+  'grounds.emptyInArea': {
+    en: 'No grounds in this area',
+    ru: 'В этой области нет площадок',
+    be: 'У гэтай вобласці няма пляцовак',
+    lt: 'Šioje srityje aikštelių nėra',
+    pl: 'Brak boisk w tym obszarze',
+    uk: 'У цій області немає майданчиків',
+  },
+
   'grounds.sortByDistance': { en: 'By distance', ru: 'По расстоянию', be: 'Па адлегласці', lt: 'Pagal atstumą', pl: 'Wg odległości', uk: 'За відстанню' },
   'grounds.noAddress': { en: 'No address provided', ru: 'Адрес не указан', be: 'Адрас не пазначаны', lt: 'Adresas nenurodytas', pl: 'Brak adresu', uk: 'Адресу не вказано' },
   'grounds.searchPlaceholder': { en: 'Search grounds or area', ru: 'Поиск площадок или района', be: 'Пошук пляцовак або раёна', lt: 'Ieškoti aikštelių ar vietovių', pl: 'Szukaj boisk lub okolicy', uk: 'Пошук майданчиків або району' },

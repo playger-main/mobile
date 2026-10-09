@@ -1,4 +1,4 @@
-// src/app/event/[id].tsx
+  // src/app/event/[id].tsx
 import React, { useCallback, useState } from 'react';
 import {
   StyleSheet,
@@ -72,6 +72,25 @@ export default function EventDetailScreen() {
     else router.replace('/(drawer)/(tabs)/events');
   };
 
+  // ✅ №9: редирект гостя на профиль при попытке открыть участников
+  const handleOpenParticipants = useCallback(() => {
+    if (!userSession) {
+      Alert.alert(
+        t('event.detail.authRequired'),
+        t('event.detail.authHint'),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('common.signIn'),
+            onPress: () => router.push('/(drawer)/(tabs)/profile'),
+          },
+        ],
+      );
+      return;
+    }
+    setParticipantsVisible(true);
+  }, [userSession, router, t]);
+
   const handleJoinToggleAction = async () => {
     if (!userSession) {
       Alert.alert(
@@ -121,7 +140,7 @@ export default function EventDetailScreen() {
       : [];
 
   const status = getEventStatus(event.date, event.startTime, event.duration);
-  const statusStyle = getEventStatusStyle(status);
+  const statusStyle = getEventStatusStyle(status, theme); // ✅ theme
   const statusLabel = t(getEventStatusLabelKey(status));
   const isFinished = status === 'finished';
 
@@ -261,14 +280,6 @@ export default function EventDetailScreen() {
               </Text>
             </View>
           )}
-
-          {/* <View
-            style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}
-          >
-            <Text style={[styles.statusText, { color: statusStyle.text }]}>
-              {statusLabel}
-            </Text>
-          </View> */}
         </View>
 
         <Text style={[styles.title, { color: colors.textPrimary }]}>
@@ -284,7 +295,12 @@ export default function EventDetailScreen() {
                 borderColor: colors.border,
               },
             ]}
-            onPress={() =>
+            onPress={() => {
+              // ✅ №9: при попытке открыть чужой профиль гостем → на /profile
+              if (!userSession) {
+                router.push('/(drawer)/(tabs)/profile');
+                return;
+              }
               router.push({
                 pathname: '/user/[id]',
                 params: {
@@ -292,8 +308,8 @@ export default function EventDetailScreen() {
                   name: event.creator.name,
                   avatar: event.creator.avatar ?? '',
                 },
-              })
-            }
+              });
+            }}
           >
             {event.creator.avatar ? (
               <Image
@@ -346,7 +362,7 @@ export default function EventDetailScreen() {
           currentPlayers={currentPlayers}
           maxPlayers={maxPlayers}
           status={status}
-          onPlayersPress={() => setParticipantsVisible(true)}
+          onPlayersPress={handleOpenParticipants} // ✅ №9
         />
 
         <EventProgressBar
@@ -409,6 +425,10 @@ export default function EventDetailScreen() {
         onClose={() => setParticipantsVisible(false)}
         onPlayerPress={(player) => {
           setParticipantsVisible(false);
+          if (!userSession) {
+            router.push('/(drawer)/(tabs)/profile');
+            return;
+          }
           router.push({
             pathname: '/user/[id]',
             params: {
@@ -459,12 +479,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   moreBadgeText: { fontSize: 11, fontWeight: '700' },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  statusText: { fontSize: 11, fontWeight: '700' },
   title: {
     fontSize: 24,
     fontWeight: '800',

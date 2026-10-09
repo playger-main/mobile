@@ -238,6 +238,11 @@ export default function EditGroundScreen() {
     location !== null &&
     address.trim().length > 0;
 
+  // ✅ №20
+  const saveDisabled = isSubmitting || !isFormValid;
+  const saveBg = saveDisabled ? colors.disabledBg : colors.primaryDark;
+  const saveTextColor = saveDisabled ? colors.textTertiary : '#FFFFFF';
+
   if (isLoading && !ground) {
     return (
       <View
@@ -288,7 +293,6 @@ export default function EditGroundScreen() {
           { paddingBottom: insets.bottom + 120 },
         ]}
       >
-        {/* NAME */}
         <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
           {t('groundForm.name')}
         </Text>
@@ -307,7 +311,6 @@ export default function EditGroundScreen() {
           onChangeText={setName}
         />
 
-        {/* SPORT */}
         <View style={styles.labelWithHintRow}>
           <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
             {t('groundForm.sport')}
@@ -377,7 +380,6 @@ export default function EditGroundScreen() {
           })}
         </View>
 
-        {/* LOCATION */}
         <View style={styles.labelWithHintRow}>
           <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
             {t('groundForm.location')}
@@ -446,7 +448,6 @@ export default function EditGroundScreen() {
           {t('groundForm.locationHintEdit')}
         </Text>
 
-        {/* ADDRESS */}
         <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
           {t('groundForm.address')}
         </Text>
@@ -465,7 +466,6 @@ export default function EditGroundScreen() {
           onChangeText={setAddress}
         />
 
-        {/* SURFACE */}
         <View style={styles.labelWithHintRow}>
           <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
             {t('groundForm.surface')}
@@ -519,7 +519,6 @@ export default function EditGroundScreen() {
           })}
         </View>
 
-        {/* DESCRIPTION */}
         <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
           {t('groundForm.description')}
         </Text>
@@ -541,7 +540,6 @@ export default function EditGroundScreen() {
           onChangeText={setDescription}
         />
 
-        {/* AMENITIES */}
         <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
           {t('groundForm.amenities')}
         </Text>
@@ -580,7 +578,6 @@ export default function EditGroundScreen() {
           })}
         </View>
 
-        {/* PHOTOS */}
         <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
           {t('groundForm.photos')}
         </Text>
@@ -592,7 +589,6 @@ export default function EditGroundScreen() {
           onSetMain={setMainPhoto}
         />
 
-        {/* MODERATION NOTICE */}
         {!user?.role?.includes('moderator') &&
           !user?.role?.includes('admin') && (
             <View
@@ -631,15 +627,16 @@ export default function EditGroundScreen() {
           },
         ]}
       >
+        {/* ✅ №20 */}
         <Pressable
-          style={[styles.publishButton, { backgroundColor: colors.primaryDark }]}
+          style={[styles.publishButton, { backgroundColor: saveBg }]}
           onPress={handleSave}
-          disabled={isSubmitting || !isFormValid}
+          disabled={saveDisabled}
         >
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={[styles.publishButtonText, { color: '#FFFFFF' }]}>
+            <Text style={[styles.publishButtonText, { color: saveTextColor }]}>
               {t('common.saveChanges')}
             </Text>
           )}
