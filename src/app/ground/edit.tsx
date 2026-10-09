@@ -26,6 +26,7 @@ import {
   $currentGround,
   $isGroundDetailLoading,
   $userSession,
+  $appLanguage,
 } from '@/effector/store';
 import LocationPickerModal from '@/components/ui/LocationPickerModal';
 import PhotoPicker, { PhotoInput } from '@/components/ui/PhotoPicker';
@@ -49,6 +50,7 @@ export default function EditGroundScreen() {
   const isLoading = useUnit($isGroundDetailLoading);
   const isSubmitting = useUnit(updateGroundFx.pending);
   const user = useUnit($userSession);
+  const appLanguage = useUnit($appLanguage); // ✅ №2
 
   const [name, setName] = useState('');
   const [sports, setSports] = useState<string[]>([]);
@@ -73,8 +75,17 @@ export default function EditGroundScreen() {
     setSports(ground.kindofsport || []);
     setAddress(ground.address || '');
     setSurfaces(ground.coverage || []);
-    setDescription(ground.description || '');
     setAmenities(ground.amenities || []);
+
+    // ✅ №2: локализованное описание в input
+    const localizedDescription = (() => {
+      if (ground.confirmed === true) {
+        const tr = ground.descriptionTranslate ?? {};
+        return tr[appLanguage] ?? tr['en'] ?? ground.description ?? '';
+      }
+      return ground.description ?? '';
+    })();
+    setDescription(localizedDescription);
 
     const photos = Array.isArray(ground.photos) ? ground.photos : [];
     const paths = Array.isArray(ground.photoPaths) ? ground.photoPaths : [];
@@ -203,6 +214,12 @@ export default function EditGroundScreen() {
 
     const currentMainIsNew = mainNewIdx >= 0;
 
+    // ✅ №2 (Вариант C): синхронизируем перевод на текущий язык
+    const updatedTranslate: Record<string, string> = {
+      ...(ground?.descriptionTranslate ?? {}),
+      [appLanguage]: description.trim(),
+    };
+
     try {
       await updateGroundFx({
         id: id!,
@@ -210,7 +227,8 @@ export default function EditGroundScreen() {
         kindofsport: sports,
         address: address.trim(),
         coverage: surfaces,
-        description: description.trim() || undefined,
+        description: description.trim() || null,
+        descriptionTranslate: updatedTranslate, // ✅
         amenities,
         geolocation: location,
         newPhotoUris: newUris.length > 0 ? newUris : undefined,

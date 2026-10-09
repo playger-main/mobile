@@ -10,6 +10,7 @@ import { reviews } from './reviews';
 import { events } from './events';
 import { grounds } from './grounds';
 import { moderation } from './moderation';
+import { moderate } from './moderate';
 import { filters } from './filters';
 import { photos } from './photos';
 import { location } from './location';
@@ -29,6 +30,7 @@ export const translations: TranslationDict = {
   ...events,
   ...grounds,
   ...moderation,
+  ...moderate,
   ...filters,
   ...photos,
   ...location,

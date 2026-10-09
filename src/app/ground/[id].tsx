@@ -26,6 +26,7 @@ import {
   $userLocation,
   $cityCenter,
   $groundReviewStats,
+  $appLanguage,
   fetchGroundReviewsFx,
 } from '@/effector/store';
 import { toggleFavoriteInStore } from '@/effector/events/sync';
@@ -54,6 +55,7 @@ export default function GroundDetailScreen() {
     user,
     userLocation,
     cityCenter,
+    appLanguage,
   } = useUnit({
     ground: $currentGround,
     events: $currentGroundEvents,
@@ -62,6 +64,7 @@ export default function GroundDetailScreen() {
     user: $userSession,
     userLocation: $userLocation,
     cityCenter: $cityCenter,
+    appLanguage: $appLanguage,
   });
 
   const reviewStats = useUnit($groundReviewStats);
@@ -104,6 +107,25 @@ export default function GroundDetailScreen() {
 
     return { activeEvents: active, upcomingEvents: upcoming, pastEvents: past };
   }, [events]);
+
+  // ✅ №2: локализованное описание
+  const localizedDescription = useMemo(() => {
+    if (!ground) return t('groundDetail.noDescription');
+
+    // Если площадка прошла модерацию → показываем перевод
+    if (ground.confirmed === true) {
+      const tr = ground.descriptionTranslate ?? {};
+      return (
+        tr[appLanguage] ??
+        tr['en'] ??
+        ground.description ??
+        t('groundDetail.noDescription')
+      );
+    }
+
+    // Иначе (на модерации) → оригинал
+    return ground.description || t('groundDetail.noDescription');
+  }, [ground, appLanguage, t]);
 
   if (isLoading || !ground) {
     return (
@@ -454,7 +476,7 @@ export default function GroundDetailScreen() {
             {t('groundDetail.about')}
           </Text>
           <Text style={[styles.description, { color: colors.textSecondary }]}>
-            {ground.description || t('groundDetail.noDescription')}
+            {localizedDescription}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>

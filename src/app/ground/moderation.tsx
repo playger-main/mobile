@@ -154,7 +154,7 @@ export default function ModerationScreen() {
   };
 
   const handleOpenDetail = (item: ExtendedGroundItem) => {
-    router.push(`/ground/${item.id}`);
+    router.push(`/ground/moderate/${item.id}`);
   };
 
   const pendingKey =

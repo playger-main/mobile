@@ -33,6 +33,7 @@ export interface GroundDetailItem {
   coverage: string[];
   amenities: string[];
   description: string | null;
+  descriptionTranslate: Record<string, string>; // ✅ №2
   confirmed: boolean;
   createdAt: string;
   updatedAt: string;
@@ -49,7 +50,12 @@ export interface GroundDetailItem {
   eventsCount: number;
   isFavorite: boolean;
   distanceMeters?: number;
-  creator?: { id: string; name: string } | null;
+  creator?: {
+    id: string;
+    name: string;
+    avatar?: string | null;      // ✅ №2
+    email?: string;               // ✅ №2 (только для модератора)
+  } | null;
   upcomingEvents?: EventItem[];
   geolocation: { lat: string; lng: string } | null;
 }
@@ -72,7 +78,8 @@ export interface UpdateGroundPayload {
   kindofsport?: string[];
   address?: string;
   coverage?: string[];
-  description?: string;
+  description?: string | null;                              // ✅ №1
+  descriptionTranslate?: Record<string, string>;            // ✅ №2
   amenities?: string[];
   geolocation?: { lat: number; lng: number };
   newPhotoUris?: string[];
@@ -171,6 +178,7 @@ const groundApi = {
       geolocation,
       address,
       coverage,
+      descriptionTranslate,
       newPhotoUris,
       removedPhotoIds,
       mainPhotoPath,
@@ -182,7 +190,8 @@ const groundApi = {
     await apiInstance.patch(`/ground/${id}`, {
       name: rest.name,
       kindofsport: rest.kindofsport,
-      description: rest.description,
+      description: rest.description,               
+      descriptionTranslate, 
       amenities: rest.amenities,
       coverage,
     });

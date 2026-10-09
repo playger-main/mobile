@@ -197,3 +197,26 @@ export {
   $myReviewsCount,
   $isMyReviewsLoading,
 } from './domains/reviews';
+
+// ==========================================
+// 8. МОДЕРАЦИЯ (форма)
+// ==========================================
+export {
+  $moderateForm,
+  $moderateHasChanges,
+  $moderateIsValid,
+  $moderateActiveLang,
+  moderateFormInitialized,
+  moderateFormReset,
+  moderateFieldChanged,
+  moderateSportsChanged,
+  moderateCoverageChanged,
+  moderateAmenitiesChanged,
+  moderateGeolocationChanged,
+  moderatePhotosChanged,
+  moderateActiveLangChanged,
+  moderateTranslateChanged,
+  moderateCopyOriginalToActiveLang,
+} from './domains/moderateGround';
+
+export type { ModerateFormState } from './domains/moderateGround';
