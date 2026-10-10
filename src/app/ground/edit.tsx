@@ -30,6 +30,8 @@ import {
 } from '@/effector/store';
 import LocationPickerModal from '@/components/ui/LocationPickerModal';
 import PhotoPicker, { PhotoInput } from '@/components/ui/PhotoPicker';
+import SportIcon from '@/components/ui/SportIcon';
+import SurfaceIcon from '@/components/ui/SurfaceIcon';
 
 import { SPORT_OPTIONS, getSportKey } from '@/constants/sports';
 import { AMENITIES_OPTIONS, getAmenityKey } from '@/constants/amenities';
@@ -50,7 +52,7 @@ export default function EditGroundScreen() {
   const isLoading = useUnit($isGroundDetailLoading);
   const isSubmitting = useUnit(updateGroundFx.pending);
   const user = useUnit($userSession);
-  const appLanguage = useUnit($appLanguage); // ✅ для локализованного description в input
+  const appLanguage = useUnit($appLanguage);
 
   const [name, setName] = useState('');
   const [sports, setSports] = useState<string[]>([]);
@@ -77,10 +79,6 @@ export default function EditGroundScreen() {
     setSurfaces(ground.coverage || []);
     setAmenities(ground.amenities || []);
 
-    // ✅ Показываем в input то, что видят все:
-    //    descriptionTranslate[appLanguage] ?? descriptionTranslate.en ?? description
-    //    (для confirmed: true)
-    //    или оригинал, если площадка на модерации (confirmed: false)
     const localizedDescription = (() => {
       if (ground.confirmed === true) {
         const tr = ground.descriptionTranslate ?? {};
@@ -225,8 +223,7 @@ export default function EditGroundScreen() {
         address: address.trim(),
         coverage: surfaces,
         description: description.trim() || null,
-        // ✅ descriptionTranslate НЕ отправляем из edit.tsx —
-        //    заполняется только модератором в moderate/[id]
+        // descriptionTranslate НЕ отправляем
         amenities,
         geolocation: location,
         newPhotoUris: newUris.length > 0 ? newUris : undefined,
@@ -254,7 +251,6 @@ export default function EditGroundScreen() {
     location !== null &&
     address.trim().length > 0;
 
-  // ✅ №20
   const saveDisabled = isSubmitting || !isFormValid;
   const saveBg = saveDisabled ? colors.disabledBg : colors.primaryDark;
   const saveTextColor = saveDisabled ? colors.textTertiary : '#FFFFFF';
@@ -358,8 +354,8 @@ export default function EditGroundScreen() {
                   },
                 ]}
               >
-                <Ionicons
-                  name={sport.icon as any}
+                <SportIcon
+                  id={sport.id}
                   size={24}
                   color={isSelected ? '#FFFFFF' : colors.textSecondary}
                 />
@@ -513,11 +509,10 @@ export default function EditGroundScreen() {
                   },
                 ]}
               >
-                <Ionicons
-                  name={s.icon as any}
+                <SurfaceIcon
+                  id={s.id}
                   size={14}
                   color={isSelected ? '#FFFFFF' : colors.textPrimary}
-                  style={{ marginRight: 6 }}
                 />
                 <Text
                   style={[
@@ -526,6 +521,7 @@ export default function EditGroundScreen() {
                       color: isSelected ? '#FFFFFF' : colors.textPrimary,
                     },
                     isSelected && { fontWeight: '600' },
+                    { marginLeft: 6 },
                   ]}
                 >
                   {t(getSurfaceKey(s.id))}

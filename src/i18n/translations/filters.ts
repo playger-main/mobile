@@ -8,15 +8,12 @@ export const filters: TranslationDict = {
   'sport.tennis': { en: 'Tennis', ru: 'Теннис', be: 'Тэніс', lt: 'Tenisas', pl: 'Tenis', uk: 'Теніс' },
   'sport.volleyball': { en: 'Volleyball', ru: 'Волейбол', be: 'Валейбол', lt: 'Tinklinis', pl: 'Siatkówka', uk: 'Волейбол' },
   'sport.pickleball': { en: 'Pickleball', ru: 'Пиклбол', be: 'Піклбол', lt: 'Piklebolas', pl: 'Pickleball', uk: 'Піклбол' },
-  'sport.skateboarding': { en: 'Skatepark', ru: 'Скейтпарк', be: 'Скейтпарк', lt: 'Riedučių parkas', pl: 'Skatepark', uk: 'Скейтпарк' },
+  'sport.skateboarding': { en: 'Skateboarding', ru: 'Скейтбординг', be: 'Скейтбордынг', lt: 'Riedlenimas', pl: 'Skateboarding', uk: 'Скейтбординг' },
   'sport.running': { en: 'Running', ru: 'Бег', be: 'Бег', lt: 'Bėgimas', pl: 'Bieganie', uk: 'Біг' },
-  'sport.all': { en: 'All sports', ru: 'Все виды', be: 'Усе віды', lt: 'Visos šakos', pl: 'Wszystkie sporty', uk: 'Усі види' },
-
-  // ✅ №10: новые виды спорта — ключи в lowercase (соответствуют getSportKey)
   'sport.tabletennis': { en: 'Table tennis', ru: 'Настольный теннис', be: 'Настольны тэніс', lt: 'Stalo tenisas', pl: 'Tenis stołowy', uk: 'Настільний теніс' },
   'sport.workout': { en: 'Workout', ru: 'Воркаут', be: 'Воркаут', lt: 'Treniruokliai', pl: 'Workout', uk: 'Воркаут' },
-  'sport.hockey': { en: 'Hockey rink', ru: 'Хоккейная коробка', be: 'Хакейная каробка', lt: 'Ledo ritulio aikštelė', pl: 'Boisko hokejowe', uk: 'Хокейна коробка' },
-  'sport.icerink': { en: 'Ice rink', ru: 'Каток', be: 'Каток', lt: 'Čiuožykla', pl: 'Lodowisko', uk: 'Ковзанка' },
+  'sport.hockey': { en: 'Hockey', ru: 'Хоккей', be: 'Хакей', lt: 'Ledo ritulys', pl: 'Hokej', uk: 'Хокей' },
+  'sport.all': { en: 'All sports', ru: 'Все виды', be: 'Усе віды', lt: 'Visos šakos', pl: 'Wszystkie sporty', uk: 'Усі види' },
 
   // ===== SURFACE =====
   'surface.asphalt': { en: 'Asphalt', ru: 'Асфальт', be: 'Асфальт', lt: 'Asfaltas', pl: 'Asfalt', uk: 'Асфальт' },
@@ -28,10 +25,10 @@ export const filters: TranslationDict = {
   'surface.rubber': { en: 'Rubber', ru: 'Резина', be: 'Гума', lt: 'Guma', pl: 'Guma', uk: 'Гума' },
   'surface.tartan': { en: 'Tartan', ru: 'Тартан', be: 'Тартан', lt: 'Tartanas', pl: 'Tartan', uk: 'Тартан' },
   'surface.polyurethane': { en: 'Polyurethane', ru: 'Полиуретан', be: 'Поліурэтан', lt: 'Poliuretanas', pl: 'Poliuretan', uk: 'Поліуретан' },
-  'surface.wooden': { en: 'Wooden (parquet)', ru: 'Дерево (паркет)', be: 'Дрэва (паркет)', lt: 'Medis (parketas)', pl: 'Drewno (parkiet)', uk: 'Дерево (паркет)' },
+  'surface.wooden': { en: 'Wooden', ru: 'Дерево', be: 'Дрэва', lt: 'Medis', pl: 'Drewno', uk: 'Дерево' },
   'surface.sand': { en: 'Sand', ru: 'Песок', be: 'Пясок', lt: 'Smėlis', pl: 'Piasek', uk: 'Пісок' },
-  'surface.gravel': { en: 'Gravel', ru: 'Гравий', be: 'Жвір', lt: 'Žvyras', pl: 'Żwir', uk: 'Гравій' },
-  'surface.indoor_parquet': { en: 'Indoor parquet', ru: 'Паркет в помещении', be: 'Паркет у памяшканні', lt: 'Parketas patalpoje', pl: 'Parkiet w hali', uk: 'Паркет у приміщенні' },
+  'surface.ice': { en: 'Ice', ru: 'Лёд', be: 'Лёд', lt: 'Ledas', pl: 'Lód', uk: 'Лід' },
+  'surface.snow': { en: 'Snow', ru: 'Снег', be: 'Снег', lt: 'Sniegas', pl: 'Śnieg', uk: 'Сніг' },
   'surface.unknown': { en: 'Unknown', ru: 'Неизвестно', be: 'Невядома', lt: 'Nežinoma', pl: 'Nieznana', uk: 'Невідомо' },
 
   // ===== AMENITIES =====

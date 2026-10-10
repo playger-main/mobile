@@ -62,6 +62,7 @@ export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
     // Список плагинов
     plugins: [
       'expo-router',
+      '@react-native-vector-icons/material-design-icons',
       [
         'expo-splash-screen',
         {

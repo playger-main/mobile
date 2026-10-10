@@ -29,6 +29,7 @@ import {
 import { SPORT_OPTIONS, getSportKey } from '@/constants/sports';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
+import SportIcon from '@/components/ui/SportIcon';
 
 const AVATAR_SIZE = 100;
 
@@ -402,11 +403,10 @@ export default function EditProfileScreen() {
                   },
                 ]}
               >
-                <Ionicons
-                  name={sport.icon as any}
+                <SportIcon
+                  id={sport.id}
                   size={14}
                   color={active ? '#FFFFFF' : colors.textPrimary}
-                  style={{ marginRight: 6 }}
                 />
                 <Text
                   style={[

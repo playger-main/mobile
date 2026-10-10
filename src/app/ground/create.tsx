@@ -22,6 +22,8 @@ import { createGroundFx } from '@/effector/events/async/grounds';
 import { $userSession } from '@/effector/store';
 import LocationPickerModal from '@/components/ui/LocationPickerModal';
 import PhotoPicker, { PhotoInput } from '@/components/ui/PhotoPicker';
+import SportIcon from '@/components/ui/SportIcon';
+import SurfaceIcon from '@/components/ui/SurfaceIcon';
 
 import { SPORT_OPTIONS, getSportKey } from '@/constants/sports';
 import { AMENITIES_OPTIONS, getAmenityKey } from '@/constants/amenities';
@@ -176,7 +178,6 @@ export default function CreateGroundScreen() {
     location !== null &&
     address.trim().length > 0;
 
-  // ✅ №20
   const publishDisabled = isSubmitting || !isFormValid;
   const publishBg = publishDisabled ? colors.disabledBg : colors.primaryDark;
   const publishTextColor = publishDisabled ? colors.textTertiary : '#FFFFFF';
@@ -270,8 +271,8 @@ export default function CreateGroundScreen() {
                   },
                 ]}
               >
-                <Ionicons
-                  name={sport.icon as any}
+                <SportIcon
+                  id={sport.id}
                   size={24}
                   color={isSelected ? '#FFFFFF' : colors.textSecondary}
                 />
@@ -425,11 +426,10 @@ export default function CreateGroundScreen() {
                   },
                 ]}
               >
-                <Ionicons
-                  name={s.icon as any}
+                <SurfaceIcon
+                  id={s.id}
                   size={14}
                   color={isSelected ? '#FFFFFF' : colors.textPrimary}
-                  style={{ marginRight: 6 }}
                 />
                 <Text
                   style={[
@@ -438,6 +438,7 @@ export default function CreateGroundScreen() {
                       color: isSelected ? '#FFFFFF' : colors.textPrimary,
                     },
                     isSelected && { fontWeight: '600' },
+                    { marginLeft: 6 },
                   ]}
                 >
                   {t(getSurfaceKey(s.id))}
@@ -528,7 +529,6 @@ export default function CreateGroundScreen() {
           },
         ]}
       >
-        {/* ✅ №20 */}
         <Pressable
           style={[styles.publishButton, { backgroundColor: publishBg }]}
           onPress={handlePublish}

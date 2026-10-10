@@ -3,22 +3,22 @@
 /**
  * Типы покрытия.
  * ✅ ID хранится в БД (поле `coverage`).
- * ✅ Label для UI — через t(`surface.${id}`)
+ * ✅ Иконки — MaterialDesignIcons.
  */
 export const SURFACE_OPTIONS = [
-  { id: 'asphalt', icon: 'square-outline' },
-  { id: 'concrete', icon: 'grid-outline' },
-  { id: 'artificial_grass', icon: 'leaf-outline' },
-  { id: 'natural_grass', icon: 'leaf' },
-  { id: 'clay', icon: 'ellipse-outline' },
-  { id: 'hard_court', icon: 'square' },
-  { id: 'rubber', icon: 'layers-outline' },
-  { id: 'tartan', icon: 'apps-outline' },
-  { id: 'polyurethane', icon: 'water-outline' },
-  { id: 'wooden', icon: 'grid' },
-  { id: 'sand', icon: 'sunny-outline' },
-  { id: 'gravel', icon: 'ellipsis-horizontal' },
-  { id: 'indoor_parquet', icon: 'business-outline' },
+  { id: 'asphalt', icon: 'road-variant' },
+  { id: 'concrete', icon: 'wall' },
+  { id: 'artificial_grass', icon: 'grass' },
+  { id: 'natural_grass', icon: 'sprout' },
+  { id: 'clay', icon: 'circle-outline' },
+  { id: 'hard_court', icon: 'tennis-court' },
+  { id: 'rubber', icon: 'texture-box' },
+  { id: 'tartan', icon: 'run-fast' },
+  { id: 'polyurethane', icon: 'layers-triple-outline' },
+  { id: 'wooden', icon: 'home-floor-1' },
+  { id: 'sand', icon: 'beach' },
+  { id: 'ice', icon: 'snowflake' },
+  { id: 'snow', icon: 'weather-snowy' },
 ] as const;
 
 export type SurfaceOption = {
@@ -26,15 +26,9 @@ export type SurfaceOption = {
   icon: string;
 };
 
-/**
- * Ключ перевода: `surface.asphalt` и т.д.
- */
 export const getSurfaceKey = (surfaceId: string): string =>
   `surface.${surfaceId.toLowerCase().trim()}`;
 
-/**
- * Найти опцию покрытия по id.
- */
 export const getSurfaceOption = (
   surfaceId: string | null | undefined,
 ): SurfaceOption => {
@@ -47,8 +41,5 @@ export const getSurfaceOption = (
   return { id: normalized, icon: 'help-circle-outline' };
 };
 
-/**
- * Возвращает иконку.
- */
 export const getSurfaceIcon = (surfaceId: string | null | undefined): string =>
   getSurfaceOption(surfaceId).icon;

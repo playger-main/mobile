@@ -1,7 +1,7 @@
 // src/components/ui/CategorySport.tsx
 import React from 'react';
 import { ScrollView, StyleSheet, Text, Pressable, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 
 import { SPORT_CATEGORIES, getSportKey } from '@/constants/sports';
 import { useTranslation } from '@/i18n';
@@ -43,7 +43,7 @@ export default function CategorySport({
               ]}
             >
               {!isAll && (
-                <Ionicons
+                <MaterialDesignIcons
                   name={category.icon as any}
                   size={14}
                   color={isActive ? '#FFFFFF' : colors.textPrimary}
