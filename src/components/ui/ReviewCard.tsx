@@ -170,11 +170,11 @@ export default function ReviewCard({
             ]}
           >
             <Ionicons
-              name={review.likedByMe ? 'heart' : 'heart-outline'}
+              name={review.likedByMe ? 'thumbs-up' : 'thumbs-up-outline'}
               size={18}
               color={
                 review.likedByMe
-                  ? colors.danger
+                  ? colors.primary
                   : canLike
                     ? colors.textSecondary
                     : colors.textTertiary
@@ -185,7 +185,7 @@ export default function ReviewCard({
                 styles.likeCount,
                 {
                   color: review.likedByMe
-                    ? colors.danger
+                    ? colors.primary
                     : colors.textSecondary,
                 },
               ]}
