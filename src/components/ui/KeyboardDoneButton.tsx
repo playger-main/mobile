@@ -1,5 +1,5 @@
 // src/components/ui/KeyboardDoneButton.tsx
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   Keyboard,
   Platform,
@@ -8,66 +8,62 @@ import {
   Text,
   View,
 } from 'react-native';
+import Animated, {
+  useAnimatedKeyboard,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
 
-/**
- * ✅ Глобальная кнопка «ОК» над клавиатурой.
- * Появляется, когда открыта клавиатура, на любом экране.
- * По нажатию — закрывает клавиатуру.
- */
+const TOOLBAR_HEIGHT = 40;
+
 export default function KeyboardDoneButton() {
   const { t } = useTranslation();
-  const { colors } = useTheme();
-  const [visible, setVisible] = useState(false);
-  const [height, setHeight] = useState(0);
+  const { theme, colors } = useTheme();
 
-  useEffect(() => {
-    const showEvt =
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvt =
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+  // ✅ Reanimated сам следит за клавиатурой — точная синхронизация
+  const keyboard = useAnimatedKeyboard();
 
-    const onShow = (e: any) => {
-      setVisible(true);
-      setHeight(e?.endCoordinates?.height ?? 0);
+  const animatedStyle = useAnimatedStyle(() => {
+    // keyboard.height — высота клавиатуры (анимированная)
+    // На iOS может быть со знаком; берём максимальное
+    const kbHeight = Math.max(keyboard.height.value, 0);
+
+    return {
+      transform: [{ translateY: -kbHeight }],
+      opacity: kbHeight > 0 ? 1 : 0,
     };
-    const onHide = () => {
-      setVisible(false);
-      setHeight(0);
-    };
+  });
 
-    const subShow = Keyboard.addListener(showEvt, onShow);
-    const subHide = Keyboard.addListener(hideEvt, onHide);
-
-    return () => {
-      subShow.remove();
-      subHide.remove();
-    };
-  }, []);
-
-  if (!visible) return null;
+  const keyboardBg = theme === 'dark' ? '#2E2F31' : '#D1D3D9';
+  const borderColor = theme === 'dark' ? '#3A3A3C' : '#C5C7CC';
 
   return (
-    <View
+    <Animated.View
       pointerEvents="box-none"
-      style={[styles.wrapper, { bottom: height + 8 }]}
+      style={[styles.wrapper, animatedStyle]}
     >
-      <Pressable
-        onPress={() => Keyboard.dismiss()}
-        style={({ pressed }) => [
-          styles.btn,
-          {
-            backgroundColor: colors.primaryDark,
-            opacity: pressed ? 0.85 : 1,
-            shadowColor: colors.shadow,
-          },
-        ]}
-        hitSlop={8}
+      <View
+        style={[styles.toolbar, { backgroundColor: keyboardBg }]}
       >
-        <Text style={styles.btnText}>{t('common.ok')}</Text>
-      </Pressable>
-    </View>
+        <Pressable
+          onPress={() => Keyboard.dismiss()}
+          style={({ pressed }) => [
+            styles.btn,
+            { opacity: pressed ? 0.5 : 1 },
+          ]}
+          hitSlop={12}
+        >
+          <Text style={[styles.btnText, { color: colors.primary }]}>
+            {t('common.ok')}
+          </Text>
+        </Pressable>
+
+        <View
+          style={[styles.bottomBorder, { backgroundColor: borderColor }]}
+        />
+      </View>
+    </Animated.View>
   );
 }
 
@@ -76,24 +72,33 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    alignItems: 'flex-end',
-    paddingHorizontal: 12,
+    bottom: 0,
     zIndex: 9999,
   },
-  btn: {
+  toolbar: {
+    width: '100%',
+    height: TOOLBAR_HEIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
     paddingHorizontal: 16,
-    height: 36,
-    borderRadius: 18,
+    position: 'relative',
+  },
+  bottomBorder: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+  },
+  btn: {
+    height: 32,
+    paddingHorizontal: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
   },
   btnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
