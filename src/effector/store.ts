@@ -185,6 +185,7 @@ export {
   createReviewFx,
   updateReviewFx,
   deleteReviewFx,
+  toggleReviewLikeFx, 
 } from './events/async/reviews';
 
 export type {
@@ -204,6 +205,7 @@ export {
   $myReviews,
   $myReviewsCount,
   $isMyReviewsLoading,
+  reviewLikeToggled,
 } from './domains/reviews';
 
 // ==========================================

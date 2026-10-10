@@ -20,6 +20,9 @@ export interface GroundReview {
   updatedAt: number;
   author: ReviewAuthor | null;
   groundId: string | null;
+  // ✅ №3
+  likesCount: number;
+  likedByMe: boolean;
 }
 
 export interface ReviewStats {
@@ -45,7 +48,6 @@ export interface UpdateReviewPayload {
   comment?: string;
 }
 
-// ✅ Расширение для экрана "My reviews" — с данными площадки
 export interface MyReview extends GroundReview {
   ground: {
     id: string;
@@ -53,6 +55,13 @@ export interface MyReview extends GroundReview {
     address: string | null;
     avatar: string | null;
   } | null;
+}
+
+// ✅ №3
+export interface ToggleLikeResult {
+  reviewId: string;
+  liked: boolean;
+  likesCount: number;
 }
 
 // ==========================================
@@ -75,18 +84,18 @@ const reviewApi = {
   },
 
   getMine: async (): Promise<MyReview[]> => {
-    try {        
-        const res = await apiInstance.get<MyReview[]>('/review/mine');        
-        return res.data;
+    try {
+      const res = await apiInstance.get<MyReview[]>('/review/mine');
+      return res.data;
     } catch (e: any) {
-        console.error(
+      console.error(
         '[reviews] /review/mine FAILED:',
         e?.response?.status,
         e?.response?.data ?? e?.message,
-        );
-        throw e;
+      );
+      throw e;
     }
-    },
+  },
 
   create: async (payload: CreateReviewPayload): Promise<GroundReview> => {
     const { groundId, ...body } = payload;
@@ -109,6 +118,14 @@ const reviewApi = {
   remove: async (reviewId: string): Promise<void> => {
     await apiInstance.delete(`/review/${reviewId}`);
   },
+
+  // ✅ №3
+  toggleLike: async (reviewId: string): Promise<ToggleLikeResult> => {
+    const res = await apiInstance.post<ToggleLikeResult>(
+      `/review/${reviewId}/like`,
+    );
+    return res.data;
+  },
 };
 
 // ==========================================
@@ -121,3 +138,4 @@ export const fetchMyReviewsFx = createEffect(reviewApi.getMine);
 export const createReviewFx = createEffect(reviewApi.create);
 export const updateReviewFx = createEffect(reviewApi.update);
 export const deleteReviewFx = createEffect(reviewApi.remove);
+export const toggleReviewLikeFx = createEffect(reviewApi.toggleLike);

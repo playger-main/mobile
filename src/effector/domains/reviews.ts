@@ -1,5 +1,5 @@
 // src/effector/domains/reviews.ts
-import { createDomain } from 'effector';
+import { createDomain, sample } from 'effector';
 import {
   fetchGroundReviewsFx,
   fetchMyReviewFx,
@@ -7,12 +7,18 @@ import {
   createReviewFx,
   updateReviewFx,
   deleteReviewFx,
+  toggleReviewLikeFx,
   GroundReview,
   ReviewStats,
   MyReview,
 } from '../events/async/reviews';
 
 const reviewsDomain = createDomain('reviews');
+
+// ✅ №3: оптимистичный тоггл
+export const reviewLikeToggled = reviewsDomain.createEvent<{
+  reviewId: string;
+}>();
 
 // ==========================================
 // СПИСОК ОТЗЫВОВ ПЛОЩАДКИ
@@ -28,6 +34,38 @@ export const $groundReviews = reviewsDomain
   )
   .on(deleteReviewFx.done, (state, { params: reviewId }) =>
     state.filter((r) => r.id !== reviewId),
+  )
+  // ✅ Оптимистично при клике
+  .on(reviewLikeToggled, (state, { reviewId }) =>
+    state.map((r) =>
+      r.id === reviewId
+        ? {
+            ...r,
+            likedByMe: !r.likedByMe,
+            likesCount: r.likedByMe ? r.likesCount - 1 : r.likesCount + 1,
+          }
+        : r,
+    ),
+  )
+  // ✅ Синхронизация с сервером
+  .on(toggleReviewLikeFx.doneData, (state, result) =>
+    state.map((r) =>
+      r.id === result.reviewId
+        ? { ...r, likedByMe: result.liked, likesCount: result.likesCount }
+        : r,
+    ),
+  )
+  // ✅ Откат при ошибке
+  .on(toggleReviewLikeFx.fail, (state, { params: reviewId }) =>
+    state.map((r) =>
+      r.id === reviewId
+        ? {
+            ...r,
+            likedByMe: !r.likedByMe,
+            likesCount: r.likedByMe ? r.likesCount - 1 : r.likesCount + 1,
+          }
+        : r,
+    ),
   );
 
 export const $groundReviewStats = reviewsDomain
@@ -64,23 +102,20 @@ export const $canCreateReview = $myReview.map((r) => r === null);
 export const $hasMyReview = $myReview.map((r) => r !== null);
 
 // ==========================================
-// МОИ ОТЗЫВЫ (для экрана "My reviews")
+// МОИ ОТЗЫВЫ
 // ==========================================
 
 export const $myReviews = reviewsDomain
   .createStore<MyReview[]>([])
   .on(fetchMyReviewsFx.doneData, (_, payload) => payload)
   .on(fetchMyReviewsFx.failData, () => [])
-  // Создали — добавляем в топ (без ground-объекта, но бэк вернёт при следующем fetch)
   .on(createReviewFx.doneData, (state, review) => [
     { ...review, ground: null } as MyReview,
     ...state,
   ])
-  // Обновили — заменяем
   .on(updateReviewFx.doneData, (state, updated) =>
     state.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)),
   )
-  // Удалили — убираем
   .on(deleteReviewFx.done, (state, { params: reviewId }) =>
     state.filter((r) => r.id !== reviewId),
   );
@@ -91,3 +126,13 @@ export const $isMyReviewsLoading = reviewsDomain
   .createStore(false)
   .on(fetchMyReviewsFx, () => true)
   .on(fetchMyReviewsFx.finally, () => false);
+
+// ==========================================
+// ✅ №3: связка клик → эффект
+// ==========================================
+
+sample({
+  clock: reviewLikeToggled,
+  fn: ({ reviewId }) => reviewId,
+  target: toggleReviewLikeFx,
+});

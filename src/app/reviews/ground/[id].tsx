@@ -28,41 +28,10 @@ import {
   fetchGroundReviewsFx,
   fetchMyReviewFx,
   deleteReviewFx,
+  reviewLikeToggled,
 } from '@/effector/store';
-import { useTranslation } from '@/i18n';
-import type { Language } from '@/i18n';
+import { useTranslation, useRelativeDate } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
-
-const useFormatRelativeDate = () => {
-  const { t, lang } = useTranslation();
-
-  return (ts: number): string => {
-    const diff = Date.now() - ts;
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (minutes < 1) return t('relativeDate.justNow');
-    if (minutes < 60) return t('relativeDate.minutesAgo', { count: minutes });
-    if (hours < 24) return t('relativeDate.hoursAgo', { count: hours });
-    if (days < 30) return t('relativeDate.daysAgo', { count: days });
-
-    const localeMap: Record<Language, string> = {
-      en: 'en-US',
-      ru: 'ru-RU',
-      be: 'be-BY',
-      lt: 'lt-LT',
-      pl: 'pl-PL',
-      uk: 'uk-UA',
-    };
-
-    return new Date(ts).toLocaleDateString(localeMap[lang] ?? 'en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
-};
 
 export default function GroundReviewsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -70,7 +39,7 @@ export default function GroundReviewsScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const formatRelativeDate = useFormatRelativeDate();
+  const formatRelativeDate = useRelativeDate();
 
   const ground = useUnit($currentGround);
   const reviews = useUnit($groundReviews);
@@ -82,6 +51,7 @@ export default function GroundReviewsScreen() {
   const fetchReviews = useUnit(fetchGroundReviewsFx);
   const fetchMyReview = useUnit(fetchMyReviewFx);
   const deleteReview = useUnit(deleteReviewFx);
+  const toggleLike = useUnit(reviewLikeToggled); // ✅ №3
 
   const [reviewFormVisible, setReviewFormVisible] = useState(false);
 
@@ -131,6 +101,24 @@ export default function GroundReviewsScreen() {
     }
     setReviewFormVisible(true);
   };
+
+  // ✅ №3: обработчик лайка
+  const handleToggleLike = useCallback(
+    (reviewId: string) => {
+      if (!user) {
+        Alert.alert(t('reviews.signInRequired'), t('reviews.signInHint'), [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('common.signIn'),
+            onPress: () => router.push('/(drawer)/(tabs)/profile'),
+          },
+        ]);
+        return;
+      }
+      toggleLike({ reviewId });
+    },
+    [user, toggleLike],
+  );
 
   const hasReviews = reviewStats.totalReviews > 0;
   const groundTitle = ground?.name ?? t('reviews.title');
@@ -183,7 +171,13 @@ export default function GroundReviewsScreen() {
           data={reviews}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <ReviewCard review={item} isMine={false} />
+            <ReviewCard
+              review={item}
+              isMine={false}
+              // ✅ №3
+              onToggleLike={handleToggleLike}
+              canLike={!!user && item.author?.id !== user?.id}
+            />
           )}
           ListHeaderComponent={
             hasReviews ? (

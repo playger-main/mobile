@@ -13,6 +13,9 @@ interface ReviewCardProps {
   isMine?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
+  // ✅ №3
+  onToggleLike?: (reviewId: string) => void;
+  canLike?: boolean;
 }
 
 export default function ReviewCard({
@@ -20,6 +23,8 @@ export default function ReviewCard({
   isMine = false,
   onEdit,
   onDelete,
+  onToggleLike,
+  canLike = false,
 }: ReviewCardProps) {
   const router = useRouter();
   const { t } = useTranslation();
@@ -29,6 +34,14 @@ export default function ReviewCard({
   const authorName = review.author?.name || 'Anonymous';
   const initial = authorName.charAt(0).toUpperCase();
   const hasAvatar = !!review.author?.avatar;
+
+  // ✅ №3: ❤️ только если есть текст
+  const hasComment = !!review.comment && review.comment.trim().length > 0;
+
+  const handleLikePress = () => {
+    if (!onToggleLike || !canLike) return;
+    onToggleLike(review.id);
+  };
 
   return (
     <View
@@ -141,6 +154,47 @@ export default function ReviewCard({
           {review.comment}
         </Text>
       )}
+
+      {/* ✅ №3: ❤️ только для отзывов с текстом */}
+      {hasComment && (
+        <View
+          style={[styles.likeRow, { borderTopColor: colors.borderSubtle }]}
+        >
+          <Pressable
+            onPress={handleLikePress}
+            disabled={!canLike}
+            hitSlop={8}
+            style={({ pressed }) => [
+              styles.likeBtn,
+              { opacity: pressed && canLike ? 0.6 : 1 },
+            ]}
+          >
+            <Ionicons
+              name={review.likedByMe ? 'heart' : 'heart-outline'}
+              size={18}
+              color={
+                review.likedByMe
+                  ? colors.danger
+                  : canLike
+                    ? colors.textSecondary
+                    : colors.textTertiary
+              }
+            />
+            <Text
+              style={[
+                styles.likeCount,
+                {
+                  color: review.likedByMe
+                    ? colors.danger
+                    : colors.textSecondary,
+                },
+              ]}
+            >
+              {review.likesCount}
+            </Text>
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 }
@@ -200,5 +254,24 @@ const styles = StyleSheet.create({
   comment: {
     fontSize: 13,
     lineHeight: 19,
+  },
+  // ✅ №3
+  likeRow: {
+    borderTopWidth: 1,
+    paddingTop: 10,
+    marginTop: 10,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+  },
+  likeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+  },
+  likeCount: {
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
