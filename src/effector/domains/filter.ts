@@ -1,6 +1,11 @@
 // src/effector/domains/filter.ts
 import { createDomain } from 'effector';
-import { setSearchQuery, setSelectedCategory, setSelectedDate } from '../events/sync';
+import {
+  setSearchQuery,
+  setSelectedCategory,
+  setSelectedDate,
+  setLocationFilter,
+} from '../events/sync';
 import { getTodayString } from '@/utils/getTodayString';
 
 const filterDomain = createDomain('filter');
@@ -16,3 +21,8 @@ export const $selectedCategory = filterDomain
 export const $selectedDate = filterDomain
   .createStore<string>(getTodayString())
   .on(setSelectedDate, (_, date) => date);
+
+// ✅ Фильтр по локации
+export const $locationFilter = filterDomain
+  .createStore<'all' | 'visible' | 'near' | 'city'>('all')
+  .on(setLocationFilter, (_, value) => value);

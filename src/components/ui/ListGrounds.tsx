@@ -1,20 +1,23 @@
 // src/components/ui/ListGrounds.tsx
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Platform,
   ActivityIndicator,
+  Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
 import { useFocusEffect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 
 import CardGround, { ExtendedGroundItem } from './CardGround';
 import CategorySport from './CategorySport';
+import LocationFilterSheet from './LocationFilterSheet';
 
 import { fetchGroundsFx } from '@/effector/events/async/grounds';
 import { fetchAllEventsFx } from '@/effector/events/async/events';
@@ -25,18 +28,19 @@ import {
   $selectedCategory,
   $userSession,
   $events,
+  $userLocation,
+  $cityCenter,
   $mapVisibleBounds,
+  $locationFilter,
 } from '@/effector/store';
 import { setSelectedCategory } from '@/effector/events/sync';
+import { calculateDistance } from '@/utils/distance';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
 
-// ✅ №6, №7: лимит списка и поиска
 const MAX_GROUNDS_RESULTS = 100;
-
-// ✅ №6: padding от края видимой области (10%),
-// чтобы площадки на границе не мигали при движении карты
-const BOUNDS_PADDING_RATIO = 0.1;
+const NEAR_RADIUS_METERS = 5000;
+const CITY_RADIUS_METERS = 20000;
 
 interface ListGroundsProps {
   onItemPress: (item: ExtendedGroundItem) => void;
@@ -52,6 +56,8 @@ export default function ListGrounds({
   const { t } = useTranslation();
   const { colors } = useTheme();
 
+  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+
   const {
     grounds,
     isLoading,
@@ -60,7 +66,10 @@ export default function ListGrounds({
     changeCategory,
     user,
     events,
+    userLocation,
+    cityCenter,
     mapBounds,
+    locationFilter,
   } = useUnit({
     grounds: $grounds,
     isLoading: $isGroundsLoading,
@@ -69,12 +78,14 @@ export default function ListGrounds({
     changeCategory: setSelectedCategory,
     user: $userSession,
     events: $events,
+    userLocation: $userLocation,
+    cityCenter: $cityCenter,
     mapBounds: $mapVisibleBounds,
+    locationFilter: $locationFilter,
   });
 
   useFocusEffect(
     useCallback(() => {
-      // ✅ №6, №7: take = 100
       fetchGroundsFx({
         kindofsport: selectedCategory === 'all' ? undefined : selectedCategory,
         search: searchQuery.trim() || undefined,
@@ -89,43 +100,76 @@ export default function ListGrounds({
     }
   }, []);
 
-  // ✅ №6: фильтруем площадки по видимой области карты
+  // ✅ Фильтр + сортировка
   const visibleGrounds = useMemo(() => {
-    // №7: если поиск активен — показываем все найденные (до 100),
-    // независимо от видимой области карты
-    if (searchQuery.trim().length > 0) {
-      return grounds.slice(0, MAX_GROUNDS_RESULTS);
+    const origin = userLocation ?? cityCenter;
+    let list = [...grounds];
+
+    switch (locationFilter) {
+      case 'visible': {
+        if (mapBounds) {
+          const { north, south, east, west } = mapBounds;
+          const latPad = (north - south) * 0.1;
+          const lngPad = (east - west) * 0.1;
+          list = list.filter((g) => {
+            if (!g.geolocation?.lat || !g.geolocation?.lng) return false;
+            const lat = Number(g.geolocation.lat);
+            const lng = Number(g.geolocation.lng);
+            if (isNaN(lat) || isNaN(lng)) return false;
+            return (
+              lat >= south - latPad &&
+              lat <= north + latPad &&
+              lng >= west - lngPad &&
+              lng <= east + lngPad
+            );
+          });
+        }
+        break;
+      }
+      case 'near': {
+        if (origin) {
+          list = list.filter((g) => getDistanceToGround(g, origin) <= NEAR_RADIUS_METERS);
+        }
+        break;
+      }
+      case 'city': {
+        if (origin) {
+          list = list.filter((g) => getDistanceToGround(g, origin) <= CITY_RADIUS_METERS);
+        }
+        break;
+      }
+      default:
+        break;
     }
 
-    // Если bounds ещё не установлены (карта не отрендерилась) — показываем всё
-    if (!mapBounds) {
-      return grounds.slice(0, MAX_GROUNDS_RESULTS);
+    if (origin) {
+      list.sort((a, b) => {
+        const da = getDistanceToGround(a, origin);
+        const db = getDistanceToGround(b, origin);
+        return da - db;
+      });
     }
 
-    const { north, south, east, west } = mapBounds;
+    return list.slice(0, MAX_GROUNDS_RESULTS);
+  }, [grounds, userLocation, cityCenter, mapBounds, locationFilter]);
 
-    // padding — чтобы площадки на краю не мигали
-    const latPad = (north - south) * BOUNDS_PADDING_RATIO;
-    const lngPad = (east - west) * BOUNDS_PADDING_RATIO;
+  const filterLabel = useMemo(() => {
+    switch (locationFilter) {
+      case 'visible': return t('locationFilter.visibleShort');
+      case 'near': return t('locationFilter.nearShort');
+      case 'city': return t('locationFilter.cityShort');
+      default: return t('locationFilter.allShort');
+    }
+  }, [locationFilter, t]);
 
-    return grounds
-      .filter((g) => {
-        if (!g.geolocation?.lat || !g.geolocation?.lng) return false;
-
-        const lat = Number(g.geolocation.lat);
-        const lng = Number(g.geolocation.lng);
-
-        if (isNaN(lat) || isNaN(lng)) return false;
-
-        return (
-          lat >= south - latPad &&
-          lat <= north + latPad &&
-          lng >= west - lngPad &&
-          lng <= east + lngPad
-        );
-      })
-      .slice(0, MAX_GROUNDS_RESULTS);
-  }, [grounds, mapBounds, searchQuery]);
+  const filterIcon = useMemo(() => {
+    switch (locationFilter) {
+      case 'visible': return 'map-outline';
+      case 'near': return 'navigate-outline';
+      case 'city': return 'business-outline';
+      default: return 'globe-outline';
+    }
+  }, [locationFilter]);
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
@@ -133,9 +177,23 @@ export default function ListGrounds({
         <Text style={[styles.countText, { color: colors.textPrimary }]}>
           {t('grounds.count', { count: visibleGrounds.length })}
         </Text>
-        <Text style={[styles.sortText, { color: colors.textSecondary }]}>
-          {t('grounds.sortByDistance')}
-        </Text>
+
+        <Pressable
+          style={[
+            styles.filterBtn,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+          onPress={() => setFilterSheetVisible(true)}
+        >
+          <Ionicons name={filterIcon as any} size={13} color={colors.primary} />
+          <Text style={[styles.filterBtnText, { color: colors.primary }]}>
+            {filterLabel}
+          </Text>
+          <Ionicons name="chevron-down" size={13} color={colors.primary} />
+        </Pressable>
       </View>
 
       {!isWeb && (
@@ -168,42 +226,63 @@ export default function ListGrounds({
             onToggleFavorite={onToggleFavorite}
           />
         ))}
+        <LocationFilterSheet
+          visible={filterSheetVisible}
+          onClose={() => setFilterSheetVisible(false)}
+        />
       </View>
     );
   }
 
   return (
-    <BottomSheetFlatList
-      data={visibleGrounds}
-      keyExtractor={(item: ExtendedGroundItem) => item.id}
-      ListHeaderComponent={renderHeader}
-      renderItem={({ item }: { item: ExtendedGroundItem }) => (
-        <CardGround
-          item={item}
-          onPress={() => onItemPress(item)}
-          onToggleFavorite={onToggleFavorite}
-        />
-      )}
-      showsVerticalScrollIndicator={false}
-      bounces={true}
-      contentContainerStyle={[
-        styles.listContent,
-        { paddingBottom: insets.bottom + 140 },
-      ]}
-      scrollEnabled={true}
-      nestedScrollEnabled={true}
-      ListEmptyComponent={
-        // ✅ №6: пустое состояние, если в видимой области ничего нет
-        !searchQuery.trim() && grounds.length > 0 ? (
+    <>
+      <BottomSheetFlatList
+        data={visibleGrounds}
+        keyExtractor={(item: ExtendedGroundItem) => item.id}
+        ListHeaderComponent={renderHeader}
+        renderItem={({ item }: { item: ExtendedGroundItem }) => (
+          <CardGround
+            item={item}
+            onPress={() => onItemPress(item)}
+            onToggleFavorite={onToggleFavorite}
+          />
+        )}
+        showsVerticalScrollIndicator={false}
+        bounces={true}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingBottom: insets.bottom + 140 },
+        ]}
+        scrollEnabled={true}
+        nestedScrollEnabled={true}
+        ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
               {t('grounds.emptyInArea')}
             </Text>
           </View>
-        ) : null
-      }
-    />
+        }
+      />
+
+      <LocationFilterSheet
+        visible={filterSheetVisible}
+        onClose={() => setFilterSheetVisible(false)}
+      />
+    </>
   );
+}
+
+function getDistanceToGround(
+  ground: ExtendedGroundItem,
+  origin: { latitude: number; longitude: number },
+): number {
+  if (!ground.geolocation?.lat || !ground.geolocation?.lng) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+  const lat = Number(ground.geolocation.lat);
+  const lng = Number(ground.geolocation.lng);
+  if (isNaN(lat) || isNaN(lng)) return Number.MAX_SAFE_INTEGER;
+  return calculateDistance(origin.latitude, origin.longitude, lat, lng);
 }
 
 const styles = StyleSheet.create({
@@ -215,13 +294,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 6,
   },
+  filterBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderRadius: 10,
+  },
+  filterBtnText: { fontSize: 12, fontWeight: '600' },
   categoriesWrapper: {
     marginLeft: -16,
     marginRight: -16,
     paddingBottom: 4,
   },
   countText: { fontSize: 16, fontWeight: '700' },
-  sortText: { fontSize: 13, fontWeight: '500' },
   loaderContainer: {
     flex: 1,
     justifyContent: 'center',

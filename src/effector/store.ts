@@ -3,7 +3,12 @@
 // ==========================================
 // 1. ФИЛЬТРЫ И ПОИСК
 // ==========================================
-export { $searchQuery, $selectedCategory, $selectedDate } from './domains/filter';
+export { 
+  $searchQuery,
+  $selectedCategory,
+  $selectedDate,
+  $locationFilter 
+} from './domains/filter';
 
 // ==========================================
 // 2. ДАННЫЕ (ПЛОЩАДКИ, СОБЫТИЯ)
@@ -158,6 +163,7 @@ export {
   setSearchQuery,
   setSelectedCategory,
   setSelectedDate,
+  setLocationFilter,
   setAuthStep,
   logout,
   sessionExpired,
@@ -166,6 +172,8 @@ export {
 } from './events/sync';
 
 export type { MapBounds } from './events/sync';
+
+export type { LocationFilter } from './events/sync';
 
 // ==========================================
 // 7. ОТЗЫВЫ

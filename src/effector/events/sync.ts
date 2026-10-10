@@ -66,3 +66,10 @@ export interface MapBounds {
 
 export const setMapVisibleBounds = createEvent<MapBounds | null>();
 export const clearMapVisibleBounds = createEvent();
+
+// ==========================================
+// ✅ Фильтр по локации
+// ==========================================
+export type LocationFilter = 'all' | 'visible' | 'near' | 'city';
+
+export const setLocationFilter = createEvent<LocationFilter>();
