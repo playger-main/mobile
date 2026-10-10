@@ -16,6 +16,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
+import KeyboardDoneButton from '@/components/ui/KeyboardDoneButton';
 import { useFonts } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import { useUnit } from 'effector-react';
@@ -163,6 +164,9 @@ export default function RootLayout() {
           <Stack.Screen name="user/created" />
           <Stack.Screen name="user/reviews" />
         </Stack>
+        
+        {/* ✅ Глобальная кнопка закрытия клавиатуры */}
+        <KeyboardDoneButton />
       </ThemeProvider>
     </GestureHandlerRootView>
   );
