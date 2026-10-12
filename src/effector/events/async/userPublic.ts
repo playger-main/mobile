@@ -15,13 +15,13 @@ export interface PublicUserProfile {
   photoPaths: string[];
   photoIds: string[];
 
-  // ✅ Приходит только для своего профиля
   email?: string;
   isEmailConfirmed?: boolean;
 
   // ✅ Публичная статистика
   joinedCount: number;
   gamesCount: number;
+  reviewsCount: number; // ✅ NEW
 
   // Только для своего профиля
   savedCount?: number;

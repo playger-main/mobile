@@ -239,6 +239,7 @@ export default function UserPublicProfileScreen() {
           </View>
         )}
 
+        {/* ✅ 3 карточки: Joined / Created / Reviews */}
         <View style={styles.statsGrid}>
           <View
             style={[
@@ -267,6 +268,22 @@ export default function UserPublicProfileScreen() {
             </Text>
             <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>
               {t('profile.stats.created')}
+            </Text>
+          </View>
+
+          {/* ✅ NEW: Reviews */}
+          <View
+            style={[
+              styles.statsCard,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <Ionicons name="star-outline" size={20} color={colors.primary} />
+            <Text style={[styles.statsNumber, { color: colors.textPrimary }]}>
+              {user.reviewsCount ?? 0}
+            </Text>
+            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>
+              {t('profile.stats.reviews')}
             </Text>
           </View>
         </View>
@@ -406,7 +423,7 @@ const styles = StyleSheet.create({
   sportText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
   statsGrid: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
     marginHorizontal: 16,
     marginTop: 20,
     marginBottom: 8,

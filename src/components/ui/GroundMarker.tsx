@@ -1,7 +1,7 @@
 // src/components/ui/GroundMarker.tsx
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import { ACTIVITY_COLORS, GroundActivityLevel } from '@/utils/groundActivity';
 import { getSportIcon } from '@/constants/sports';
 import { useTheme } from '@/hooks/useTheme';
@@ -35,7 +35,11 @@ export default function GroundMarker({
             },
           ]}
         >
-          <Ionicons name={iconName as any} size={16} color={activityColors.text} />
+          <MaterialDesignIcons
+            name={iconName as any}
+            size={16}
+            color={activityColors.text}
+          />
         </View>
 
         {hasMultiple && (
