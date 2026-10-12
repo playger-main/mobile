@@ -87,7 +87,6 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           />
 
           <View style={styles.avatarWrapper}>
-            {/* ✅ №18: убран onPress — редактирование только через меню */}
             <View
               style={[styles.avatarShadow, { shadowColor: colors.shadow }]}
             >
@@ -209,71 +208,84 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           )}
         </View>
 
-        {/* STATS */}
-        <View style={styles.statsGrid}>
-          <Pressable
-            style={[
-              styles.statsCard,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
-            onPress={() => router.push('/user/joined')}
-          >
-            <Ionicons name="calendar-outline" size={18} color={colors.primary} />
-            <Text style={[styles.statsNumber, { color: colors.textPrimary }]}>
-              {joinedCount}
-            </Text>
-            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>
-              {t('profile.stats.joined')}
-            </Text>
-          </Pressable>
+        {/* ✅ №13: EVENTS SECTION */}
+        <View style={styles.sectionBlock}>
+          <Text style={[styles.sectionHeader, { color: colors.textTertiary }]}>
+            {t('profile.section.events')}
+          </Text>
+          <View style={styles.statsGrid}>
+            <Pressable
+              style={[
+                styles.statsCard,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
+              onPress={() => router.push('/user/joined')}
+            >
+              <Ionicons name="calendar-outline" size={18} color={colors.primary} />
+              <Text style={[styles.statsNumber, { color: colors.textPrimary }]}>
+                {joinedCount}
+              </Text>
+              <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>
+                {t('profile.stats.joined')}
+              </Text>
+            </Pressable>
 
-          <Pressable
-            style={[
-              styles.statsCard,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
-            onPress={() => router.push('/user/favorites')}
-          >
-            <Ionicons name="heart-outline" size={18} color={colors.primary} />
-            <Text style={[styles.statsNumber, { color: colors.textPrimary }]}>
-              {savedCount}
-            </Text>
-            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>
-              {t('profile.stats.saved')}
-            </Text>
-          </Pressable>
+            <Pressable
+              style={[
+                styles.statsCard,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
+              onPress={() => router.push('/user/created')}
+            >
+              <Ionicons name="trophy-outline" size={18} color={colors.primary} />
+              <Text style={[styles.statsNumber, { color: colors.textPrimary }]}>
+                {gamesCount}
+              </Text>
+              <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>
+                {t('profile.stats.created')}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
 
-          <Pressable
-            style={[
-              styles.statsCard,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
-            onPress={() => router.push('/user/created')}
-          >
-            <Ionicons name="trophy-outline" size={18} color={colors.primary} />
-            <Text style={[styles.statsNumber, { color: colors.textPrimary }]}>
-              {gamesCount}
-            </Text>
-            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>
-              {t('profile.stats.created')}
-            </Text>
-          </Pressable>
+        {/* ✅ №13: GROUNDS SECTION */}
+        <View style={styles.sectionBlock}>
+          <Text style={[styles.sectionHeader, { color: colors.textTertiary }]}>
+            {t('profile.section.grounds')}
+          </Text>
+          <View style={styles.statsGrid}>
+            <Pressable
+              style={[
+                styles.statsCard,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
+              onPress={() => router.push('/user/favorites')}
+            >
+              <Ionicons name="heart-outline" size={18} color={colors.primary} />
+              <Text style={[styles.statsNumber, { color: colors.textPrimary }]}>
+                {savedCount}
+              </Text>
+              <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>
+                {t('profile.stats.saved')}
+              </Text>
+            </Pressable>
 
-          <Pressable
-            style={[
-              styles.statsCard,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
-            onPress={() => router.push('/user/reviews')}
-          >
-            <Ionicons name="star-outline" size={18} color={colors.primary} />
-            <Text style={[styles.statsNumber, { color: colors.textPrimary }]}>
-              {reviewsCount}
-            </Text>
-            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>
-              {t('profile.stats.reviews')}
-            </Text>
-          </Pressable>
+            <Pressable
+              style={[
+                styles.statsCard,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
+              onPress={() => router.push('/user/reviews')}
+            >
+              <Ionicons name="star-outline" size={18} color={colors.primary} />
+              <Text style={[styles.statsNumber, { color: colors.textPrimary }]}>
+                {reviewsCount}
+              </Text>
+              <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>
+                {t('profile.stats.reviews')}
+              </Text>
+            </Pressable>
+          </View>
         </View>
 
         {/* MENU */}
@@ -307,11 +319,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
 
           {isModerator && (
             <Pressable
-              style={[
-                styles.menuItem,
-                !isModerator && styles.noBorder,
-                { borderColor: colors.borderSubtle },
-              ]}
+              style={[styles.menuItem, { borderColor: colors.borderSubtle }]}
               onPress={() => router.push('/ground/moderation')}
             >
               <View style={styles.menuItemLeft}>
@@ -451,26 +459,36 @@ const styles = StyleSheet.create({
   sportText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
   emptyHintText: { fontSize: 12, fontWeight: '600' },
 
+  // ✅ №13: секции
+  sectionBlock: {
+    marginTop: 20,
+    paddingHorizontal: 16,
+  },
+  sectionHeader: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
   statsGrid: {
     flexDirection: 'row',
-    gap: 8,
-    marginHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 24,
+    gap: 10,
   },
   statsCard: {
     flex: 1,
     borderWidth: 1,
     borderRadius: 12,
-    paddingVertical: 12,
+    paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statsNumber: { fontSize: 16, fontWeight: '800', marginTop: 4 },
-  statsLabel: { fontSize: 10, fontWeight: '500', marginTop: 2 },
+  statsNumber: { fontSize: 18, fontWeight: '800', marginTop: 4 },
+  statsLabel: { fontSize: 12, fontWeight: '500', marginTop: 2 },
 
   menuContainer: {
     marginHorizontal: 16,
+    marginTop: 24,
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 16,
@@ -483,7 +501,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
   },
-  noBorder: { borderBottomWidth: 0 },
   menuItemLeft: { flexDirection: 'row', alignItems: 'center' },
   menuIcon: { marginRight: 12 },
   menuItemText: { fontSize: 14, fontWeight: '600' },

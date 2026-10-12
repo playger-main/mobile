@@ -12,6 +12,23 @@ export const profile: TranslationDict = {
   'profile.stats.saved': { en: 'Saved', ru: 'Избранное', be: 'Абранае', lt: 'Išsaugoti', pl: 'Zapisane', uk: 'Обране' },
   'profile.stats.created': { en: 'Created', ru: 'Создано', be: 'Створана', lt: 'Sukurta', pl: 'Utworzone', uk: 'Створено' },
   'profile.stats.reviews': { en: 'Reviews', ru: 'Отзывы', be: 'Водгукі', lt: 'Atsiliepimai', pl: 'Opinie', uk: 'Відгуки' },
+  // ✅ №13: секции в своём профиле
+  'profile.section.events': {
+    en: 'Events',
+    ru: 'События',
+    be: 'Падзеі',
+    lt: 'Renginiai',
+    pl: 'Wydarzenia',
+    uk: 'Події',
+  },
+  'profile.section.grounds': {
+    en: 'Grounds',
+    ru: 'Площадки',
+    be: 'Пляцоўкі',
+    lt: 'Aikštelės',
+    pl: 'Boiska',
+    uk: 'Майданчики',
+  },
   'profile.menu.editProfile': { en: 'Edit profile', ru: 'Редактировать профиль', be: 'Рэдагаваць профіль', lt: 'Redaguoti profilį', pl: 'Edytuj profil', uk: 'Редагувати профіль' },
   'profile.menu.moderation': { en: 'Moderation', ru: 'Модерация', be: 'Мадэрацыя', lt: 'Moderavimas', pl: 'Moderacja', uk: 'Модерація' },
   'profile.logout': { en: 'Log out', ru: 'Выйти', be: 'Выйсці', lt: 'Atsijungti', pl: 'Wyloguj się', uk: 'Вийти' },
