@@ -15,6 +15,7 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
 import { Ionicons } from '@expo/vector-icons';
+import SportIcon from '@/components/ui/SportIcon';
 
 import {
   fetchEventByIdFx,
@@ -247,7 +248,13 @@ export default function EventDetailScreen() {
                   key={`${sportId}-${idx}`}
                   style={[styles.sportBadge, { backgroundColor: style.bg }]}
                 >
-                  <Text style={[styles.sportText, { color: style.text }]}>
+                  <SportIcon id={sportId} size={13} color={style.text} />
+                  <Text
+                    style={[
+                      styles.sportText,
+                      { color: style.text, marginLeft: 5 },
+                    ]}
+                  >
                     {label.toUpperCase()}
                   </Text>
                 </View>

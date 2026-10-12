@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { fetchGroundByIdFx } from '@/effector/events/async/grounds';
 import { fetchEventsByGroundIdFx } from '@/effector/events/async/events';
 import PhotoSlider from '@/components/ui/PhotoSlider';
+import SportIcon from '@/components/ui/SportIcon'; // ✅
 
 import {
   $currentGround,
@@ -91,7 +92,6 @@ export default function GroundDetailScreen() {
     else router.replace('/(drawer)/(tabs)');
   };
 
-  // ✅ Правильный обработчик
   const handleToggleFavorite = useCallback(() => {
     if (!ground) return;
     if (ground.isFavorite) {
@@ -122,7 +122,6 @@ export default function GroundDetailScreen() {
     return { activeEvents: active, upcomingEvents: upcoming, pastEvents: past };
   }, [events]);
 
-  // ✅ №2: локализованное описание
   const localizedDescription = useMemo(() => {
     if (!ground) return t('groundDetail.noDescription');
 
@@ -311,7 +310,6 @@ export default function GroundDetailScreen() {
                   />
                 </Pressable>
               )}
-              {/* ✅ Правильный вызов */}
               <Pressable
                 onPress={handleToggleFavorite}
                 style={[styles.iconButton, { backgroundColor: colors.surface }]}
@@ -337,6 +335,7 @@ export default function GroundDetailScreen() {
         </View>
 
         <View style={styles.contentContainer}>
+          {/* ✅ №12: иконки вместо точек */}
           <View style={styles.sportsRow}>
             {sportsList.length > 0 ? (
               sportsList.map((sportId) => {
@@ -347,10 +346,13 @@ export default function GroundDetailScreen() {
                     key={sportId}
                     style={[styles.sportBadge, { backgroundColor: style.bg }]}
                   >
-                    <View
-                      style={[styles.sportDot, { backgroundColor: style.text }]}
-                    />
-                    <Text style={[styles.sportText, { color: style.text }]}>
+                    <SportIcon id={sportId} size={13} color={style.text} />
+                    <Text
+                      style={[
+                        styles.sportText,
+                        { color: style.text, marginLeft: 5 },
+                      ]}
+                    >
                       {label.toUpperCase()}
                     </Text>
                   </View>

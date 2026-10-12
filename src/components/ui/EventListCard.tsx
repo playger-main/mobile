@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import SportIcon from './SportIcon';
 import { ServerEventItem } from '@/effector/events/async/events';
 import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportKey } from '@/constants/sports';
@@ -92,8 +93,14 @@ export default function EventListCard({
                   key={`${sportId}-${idx}`}
                   style={[styles.sportBadge, { backgroundColor: style.bg }]}
                 >
-                  <View style={[styles.sportDot, { backgroundColor: style.text }]} />
-                  <Text style={[styles.sportText, { color: style.text }]}>
+                  {/* ✅ иконка вместо точки */}
+                  <SportIcon id={sportId} size={12} color={style.text} />
+                  <Text
+                    style={[
+                      styles.sportText,
+                      { color: style.text, marginLeft: 4 },
+                    ]}
+                  >
                     {label.toUpperCase()}
                   </Text>
                 </View>

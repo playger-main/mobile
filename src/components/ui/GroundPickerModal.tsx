@@ -13,6 +13,7 @@ import {
 import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import * as Location from 'expo-location';
 import { useUnit } from 'effector-react';
 
@@ -202,7 +203,7 @@ export default function GroundPickerModal({
                       isSelected && { transform: [{ scale: 1.25 }] },
                     ]}
                   >
-                    <Ionicons
+                    <MaterialDesignIcons
                       name={getSportIcon(sportId) as any}
                       size={16}
                       color="#FFFFFF"
@@ -333,7 +334,7 @@ export default function GroundPickerModal({
                   { backgroundColor: colors.primary },
                 ]}
               >
-                <Ionicons
+                <MaterialDesignIcons
                   name={
                     getSportIcon(
                       Array.isArray(selectedGround.kindofsport) &&

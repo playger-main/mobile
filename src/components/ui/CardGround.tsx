@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useUnit } from 'effector-react';
 
+import SportIcon from './SportIcon';
 import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportKey } from '@/constants/sports';
 import {
@@ -159,8 +160,14 @@ export default function CardGround({
                   key={`${sportId}-${idx}`}
                   style={[styles.categoryBadge, { backgroundColor: style.bg }]}
                 >
-                  <View style={[styles.categoryDot, { backgroundColor: style.text }]} />
-                  <Text style={[styles.categoryText, { color: style.text }]}>
+                  {/* ✅ иконка вместо точки */}
+                  <SportIcon id={sportId} size={11} color={style.text} />
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      { color: style.text, marginLeft: 4 },
+                    ]}
+                  >
                     {label.toUpperCase()}
                   </Text>
                 </View>
@@ -266,6 +273,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
   },
+  // categoryDot больше не нужен, но оставим для совместимости
   categoryDot: { width: 5, height: 5, borderRadius: 2.5, marginRight: 4 },
   categoryText: { fontSize: 9, fontWeight: '700' },
   moreBadge: {
