@@ -102,24 +102,30 @@ export const $canCreateReview = $myReview.map((r) => r === null);
 export const $hasMyReview = $myReview.map((r) => r !== null);
 
 // ==========================================
-// МОИ ОТЗЫВЫ
+// ✅ №13: МОИ ОТЗЫВЫ — автоматически обновляются на create/update/delete
 // ==========================================
 
 export const $myReviews = reviewsDomain
   .createStore<MyReview[]>([])
   .on(fetchMyReviewsFx.doneData, (_, payload) => payload)
   .on(fetchMyReviewsFx.failData, () => [])
+  // ✅ Создали — добавляем в топ (ground временно null, обновится при следующем fetch)
   .on(createReviewFx.doneData, (state, review) => [
     { ...review, ground: null } as MyReview,
     ...state,
   ])
+  // ✅ Обновили — заменяем в списке
   .on(updateReviewFx.doneData, (state, updated) =>
-    state.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)),
+    state.map((r) =>
+      r.id === updated.id ? { ...r, ...updated, ground: r.ground } : r,
+    ),
   )
+  // ✅ Удалили — убираем из списка
   .on(deleteReviewFx.done, (state, { params: reviewId }) =>
     state.filter((r) => r.id !== reviewId),
   );
 
+// ✅ Счётчик обновляется автоматически
 export const $myReviewsCount = $myReviews.map((list) => list.length);
 
 export const $isMyReviewsLoading = reviewsDomain

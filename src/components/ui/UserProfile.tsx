@@ -1,5 +1,5 @@
 // src/components/ui/UserProfile.tsx
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,10 +17,17 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { useUnit } from 'effector-react';
 
 import { SessionUser } from '@/effector/domains/auth';
-import { fetchMyProfileFx } from '@/effector/events/async/users';
+import {
+  fetchMyProfileFx,
+  deleteAccountFx,
+} from '@/effector/events/async/users';
 import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportKey } from '@/constants/sports';
-import { $myReviewsCount, fetchMyReviewsFx } from '@/effector/store';
+import {
+  $myReviewsCount,
+  fetchMyReviewsFx,
+  logout,
+} from '@/effector/store';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -41,6 +49,10 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
   const isRefreshing = useUnit(fetchMyProfileFx.pending);
   const reviewsCount = useUnit($myReviewsCount);
   const fetchMyReviews = useUnit(fetchMyReviewsFx);
+  const deleteAccount = useUnit(deleteAccountFx);
+  const handleLogout = useUnit(logout);
+
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -67,6 +79,55 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
   const hasCity = !!user.city && user.city.trim().length > 0;
 
   const goToEdit = () => router.push('/user/edit');
+
+  // ✅ №5: двойное подтверждение удаления аккаунта
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      t('profile.deleteAccount.title1'),
+      t('profile.deleteAccount.message1'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('profile.deleteAccount.continue'),
+          style: 'destructive',
+          onPress: () => confirmDeleteFinal(),
+        },
+      ],
+    );
+  };
+
+  const confirmDeleteFinal = () => {
+    Alert.alert(
+      t('profile.deleteAccount.title2'),
+      t('profile.deleteAccount.message2'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('profile.deleteAccount.confirm'),
+          style: 'destructive',
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              await deleteAccount();
+              // ✅ После удаления — разлогиниваемся и на профиль
+              handleLogout();
+              router.replace('/(drawer)/(tabs)/profile');
+            } catch (err: any) {
+              const raw = err?.response?.data?.message ?? err?.message;
+              Alert.alert(
+                t('common.error'),
+                Array.isArray(raw)
+                  ? raw.join('\n')
+                  : String(raw || t('common.tryAgain')),
+              );
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const coverColors: [string, string] =
     theme === 'dark' ? ['#16283D', '#208AEF'] : ['#006EE6', '#208AEF'];
@@ -348,6 +409,36 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
               </View>
             </Pressable>
           )}
+
+          {/* ✅ №5: Delete account */}
+          <Pressable
+            style={[styles.menuItem, { borderColor: colors.borderSubtle }]}
+            onPress={handleDeleteAccount}
+            disabled={isDeleting}
+          >
+            <View style={styles.menuItemLeft}>
+              <Ionicons
+                name="trash-outline"
+                size={20}
+                color={colors.danger}
+                style={styles.menuIcon}
+              />
+              <Text style={[styles.menuItemText, { color: colors.danger }]}>
+                {isDeleting
+                  ? t('profile.deleteAccount.deleting')
+                  : t('profile.menu.deleteAccount')}
+              </Text>
+            </View>
+            {isDeleting ? (
+              <ActivityIndicator size="small" color={colors.danger} />
+            ) : (
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={colors.textTertiary}
+              />
+            )}
+          </Pressable>
         </View>
 
         {/* LOGOUT */}
@@ -459,7 +550,6 @@ const styles = StyleSheet.create({
   sportText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
   emptyHintText: { fontSize: 12, fontWeight: '600' },
 
-  // ✅ №13: секции
   sectionBlock: {
     marginTop: 20,
     paddingHorizontal: 16,

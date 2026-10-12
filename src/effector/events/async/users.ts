@@ -3,7 +3,7 @@ import { createEffect } from 'effector';
 import { apiInstance } from '../../api';
 
 // ==========================================
-// ТИПЫ (соответствуют ответу бэкенда)
+// ТИПЫ
 // ==========================================
 
 export interface ServerUserProfile {
@@ -23,10 +23,10 @@ export interface ServerUserProfile {
   createdAt: number;
   updatedAt: number;
 
-  // ✅ Счётчики, которые отдаёт /user/me
   joinedCount?: number;
   savedCount?: number;
   gamesCount?: number;
+  reviewsCount?: number;
 }
 
 export interface UpdateProfilePayload {
@@ -88,7 +88,7 @@ const userApi = {
   ): Promise<{ photo: any; path: string; cdnUrl: string }> => {
     const formData = new FormData();
 
-    // @ts-ignore — RN-специфичный объект
+    // @ts-ignore
     formData.append('file', {
       uri: payload.uri,
       name: 'avatar.jpg',
@@ -105,6 +105,11 @@ const userApi = {
   deletePhoto: async (photoId: string): Promise<void> => {
     await apiInstance.delete(`/photo/${photoId}`);
   },
+
+  // ✅ №5: удаление своего аккаунта
+  deleteAccount: async (): Promise<void> => {
+    await apiInstance.delete('/user/me');
+  },
 };
 
 // ==========================================
@@ -118,3 +123,4 @@ export const confirmEmailChangeFx = createEffect(userApi.confirmEmailChange);
 export const updateAvatarFx = createEffect(userApi.updateAvatar);
 export const uploadUserPhotoFx = createEffect(userApi.uploadPhoto);
 export const deleteUserPhotoFx = createEffect(userApi.deletePhoto);
+export const deleteAccountFx = createEffect(userApi.deleteAccount); // ✅

@@ -83,11 +83,12 @@ export {
   updateAvatarFx,
   uploadUserPhotoFx,
   deleteUserPhotoFx,
+  deleteAccountFx,
 } from './events/async/users';
 
 export type {
   ServerUserProfile,
-  UpdateProfilePayload,
+  UpdateProfilePayload,  
 } from './events/async/users';
 
 // ==========================================
