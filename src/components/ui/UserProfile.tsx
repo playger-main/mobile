@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useUnit } from 'effector-react';
 
+import SportIcon from '@/components/ui/SportIcon';
 import { SessionUser } from '@/effector/domains/auth';
 import {
   fetchMyProfileFx,
@@ -109,7 +110,6 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             setIsDeleting(true);
             try {
               await deleteAccount();
-              // ✅ После удаления — разлогиниваемся и на профиль
               handleLogout();
               router.replace('/(drawer)/(tabs)/profile');
             } catch (err: any) {
@@ -250,10 +250,14 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
                     key={sportId}
                     style={[styles.sportChip, { backgroundColor: badge.bg }]}
                   >
-                    <View
-                      style={[styles.sportDot, { backgroundColor: badge.text }]}
-                    />
-                    <Text style={[styles.sportText, { color: badge.text }]}>
+                    {/* ✅ иконка вместо точки */}
+                    <SportIcon id={sportId} size={11} color={badge.text} />
+                    <Text
+                      style={[
+                        styles.sportText,
+                        { color: badge.text, marginLeft: 5 },
+                      ]}
+                    >
                       {label.toUpperCase()}
                     </Text>
                   </View>
@@ -546,7 +550,6 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 10,
   },
-  sportDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   sportText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
   emptyHintText: { fontSize: 12, fontWeight: '600' },
 
