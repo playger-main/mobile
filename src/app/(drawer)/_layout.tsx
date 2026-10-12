@@ -55,7 +55,7 @@ function CustomDrawerContent(props: any) {
         style={[styles.drawerRoot, { paddingTop: insets.top + 8 }]}
         edges={[]}
       >
-        {/* ===== HEADER: PlayG + X ===== */}
+        {/* ===== HEADER ===== */}
         <View style={styles.appHeader}>
           <View style={styles.headerLeft}>
             <View
@@ -86,7 +86,6 @@ function CustomDrawerContent(props: any) {
           style={({ pressed }) => [
             styles.userCard,
             {
-              // backgroundColor: colors.listBackground,
               borderColor: colors.border,
               opacity: pressed ? 0.85 : 1,
             },
@@ -103,7 +102,14 @@ function CustomDrawerContent(props: any) {
             />
           ) : user ? (
             <View
-              style={[styles.userAvatar, { backgroundColor: colors.primary, borderColor: colors.border, borderWidth: 1 }]}
+              style={[
+                styles.userAvatar,
+                {
+                  backgroundColor: colors.primary,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                },
+              ]}
             >
               <Text style={styles.userAvatarText}>{avatarLetter}</Text>
             </View>
@@ -111,7 +117,11 @@ function CustomDrawerContent(props: any) {
             <View
               style={[
                 styles.userAvatar,
-                { backgroundColor: colors.surfaceSecondary, borderColor: colors.border, borderWidth: 1 },
+                {
+                  backgroundColor: colors.surfaceSecondary,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                },
               ]}
             >
               <Ionicons
@@ -143,15 +153,11 @@ function CustomDrawerContent(props: any) {
           <DrawerItemList {...props} />
         </View>
 
-        {/* ===== SPACER (толкает версию вниз) ===== */}
+        {/* ===== SPACER ===== */}
         <View style={styles.flexSpacer} />
 
-        {/* ===== VERSION (прижат к низу) ===== */}
-        <View
-          style={[
-            styles.versionWrapper
-          ]}
-        >
+        {/* ===== VERSION ===== */}
+        <View style={[styles.versionWrapper]}>
           <Text style={[styles.versionText, { color: colors.textTertiary }]}>
             {t('drawer.version')}
           </Text>
@@ -184,7 +190,7 @@ export default function DrawerLayout() {
         drawerLabelStyle: {
           fontSize: 15,
           fontWeight: '500',
-          marginLeft: -8,
+          marginLeft: -8,          
         },
         headerShown: true,
         headerTransparent: true,
@@ -243,14 +249,39 @@ export default function DrawerLayout() {
           ),
         }}
       />
+      {/* ✅ Legal */}
+      <Drawer.Screen
+        name="privacy"
+        options={{
+          title: t('legal.privacy.title'),
+          drawerIcon: ({ color, size }) => (
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={size}
+              color={color}
+            />
+          ),
+        }}        
+      />
+      <Drawer.Screen
+        name="terms"
+        options={{
+          title: t('legal.terms.title'),
+          drawerIcon: ({ color, size }) => (
+            <Ionicons
+              name="document-text-outline"
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
     </Drawer>
   );
 }
 
 const styles = StyleSheet.create({
   drawerRoot: { flex: 1 },
-
-  // ===== HEADER =====
   appHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -276,8 +307,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   closeButton: { padding: 4 },
-
-  // ===== USER CARD =====
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -302,37 +331,16 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   userInfo: { flex: 1 },
-  userName: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  userSubtitle: {
-    fontSize: 12,
-    fontWeight: '500',
-    marginTop: 2,
-  },
-
-  // ===== MENU =====
-  menuItemsContainer: {
-    paddingTop: 12,
-    paddingHorizontal: 4,
-  },
-
-  // ===== SPACER =====
+  userName: { fontSize: 15, fontWeight: '700' },
+  userSubtitle: { fontSize: 12, fontWeight: '500', marginTop: 2 },
+  menuItemsContainer: { paddingTop: 12, paddingHorizontal: 4 },
   flexSpacer: { flex: 1 },
-
-  // ===== VERSION =====
   versionWrapper: {
     paddingHorizontal: 24,
     width: '100%',
-    alignItems: 'center'
+    alignItems: 'center',
   },
-  versionText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-
-  // ===== GLOBAL MENU BUTTON (на экранах) =====
+  versionText: { fontSize: 12, fontWeight: '500' },
   globalMenuButton: {
     position: 'absolute',
     top: 0,
