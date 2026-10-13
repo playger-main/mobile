@@ -1,4 +1,5 @@
 // src/effector/events/sync.ts
+import { ExtendedGroundItem } from '@/components/ui/CardGround';
 import { createEvent } from 'effector';
 
 // ==========================================
@@ -73,3 +74,13 @@ export const clearMapVisibleBounds = createEvent();
 export type LocationFilter = 'all' | 'visible' | 'near' | 'city';
 
 export const setLocationFilter = createEvent<LocationFilter>();
+
+// src/effector/events/sync.ts
+
+// ... существующие события ...
+
+// ==========================================
+// ✅ №16: превью площадки на карте
+// ==========================================
+export const setSelectedMapGround = createEvent<ExtendedGroundItem | null>();
+export const clearSelectedMapGround = createEvent();

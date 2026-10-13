@@ -12,8 +12,11 @@ import {
   setClusterSheetVisible,
   setMapVisibleBounds,
   clearMapVisibleBounds,
+  setSelectedMapGround,
+  clearSelectedMapGround,
 } from '../events/sync';
 import { DEFAULT_CITY_CENTER, getCityCenter } from '@/constants/location';
+import type { ExtendedGroundItem } from '@/components/ui/CardGround';
 
 const locationDomain = createDomain('location');
 
@@ -175,3 +178,11 @@ export const $mapVisibleBounds = locationDomain
   } | null>(null)
   .on(setMapVisibleBounds, (_, bounds) => bounds)
   .on(clearMapVisibleBounds, () => null);
+
+// ==========================================
+// ✅ №16: превью выбранной площадки на карте
+// ==========================================
+export const $selectedMapGround = locationDomain
+  .createStore<ExtendedGroundItem | null>(null)
+  .on(setSelectedMapGround, (_, ground) => ground)
+  .on(clearSelectedMapGround, () => null);

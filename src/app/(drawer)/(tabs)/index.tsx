@@ -25,6 +25,7 @@ import CategorySport from '@/components/ui/CategorySport';
 import ListGrounds from '@/components/ui/ListGrounds';
 import MapComponent from '@/components/ui/MapComponent';
 import MapLegend from '@/components/ui/MapLegend';
+import GroundPreviewCard from '@/components/ui/GroundPreviewCard';
 
 import { useTranslation } from '@/i18n';
 
@@ -38,6 +39,8 @@ import {
   $mapCenter,
   addFavoriteFx,
   removeFavoriteFx,
+  $selectedMapGround,
+  clearSelectedMapGround,
 } from '@/effector/store';
 import {
   setSearchQuery,
@@ -45,7 +48,6 @@ import {
 } from '@/effector/events/sync';
 import { useTheme } from '@/hooks/useTheme';
 
-// ✅ Fallback дельты карты
 const MAP_LAT_DELTA = 0.02;
 const MAP_LNG_DELTA = 0.02;
 
@@ -62,7 +64,11 @@ export default function GroundsScreen() {
   const clusterSheetVisible = useUnit($clusterSheetVisible);
   const user = useUnit($userSession);
   const pendingCount = useUnit($pendingGrounds.map((p) => p.length));
-  const mapCenter = useUnit($mapCenter); // ✅ №5: центр карты из стора
+  const mapCenter = useUnit($mapCenter);
+
+  // ✅ №16: preview площадки
+  const selectedMapGround = useUnit($selectedMapGround);
+  const clearSelected = useUnit(clearSelectedMapGround);
 
   const addFavorite = useUnit(addFavoriteFx);
   const removeFavorite = useUnit(removeFavoriteFx);
@@ -93,15 +99,17 @@ export default function GroundsScreen() {
     return { height };
   });
 
+  // ✅ №16: координация bottom sheet
+  //     если открыт кластер ИЛИ preview → bottom sheet скрыт
   useEffect(() => {
     if (isWeb) return;
 
-    if (clusterSheetVisible) {
+    if (clusterSheetVisible || selectedMapGround) {
       bottomSheetRef.current?.close();
     } else {
       bottomSheetRef.current?.snapToIndex(1);
     }
-  }, [clusterSheetVisible, isWeb]);
+  }, [clusterSheetVisible, selectedMapGround, isWeb]);
 
   const {
     grounds,
@@ -128,7 +136,6 @@ export default function GroundsScreen() {
     [addFavorite, removeFavorite],
   );
 
-  // ✅ №5: регион для карты — теперь из $mapCenter (userLocation → cityCenter → default)
   const mapRegion = useMemo(
     () => ({
       latitude: mapCenter.latitude,
@@ -168,6 +175,14 @@ export default function GroundsScreen() {
   const handleModerationPress = () => {
     router.push('/ground/moderation');
   };
+
+  // ✅ №16: открыть детали + закрыть preview
+  const handleOpenPreviewDetails = useCallback(() => {
+    if (!selectedMapGround) return;
+    const id = selectedMapGround.id;
+    clearSelected();
+    router.push(`/ground/${id}`);
+  }, [selectedMapGround, clearSelected, router]);
 
   if (isWeb) {
     return (
@@ -213,7 +228,7 @@ export default function GroundsScreen() {
         />
 
         <View style={styles.legendWrapper} pointerEvents="box-none">
-          {!clusterSheetVisible && <MapLegend />}
+          {!clusterSheetVisible && !selectedMapGround && <MapLegend />}
         </View>
       </Animated.View>
 
@@ -256,7 +271,17 @@ export default function GroundsScreen() {
         />
       </BottomSheet>
 
-      {!clusterSheetVisible && (
+      {/* ✅ №16: preview карточка вместо bottom sheet */}
+      {selectedMapGround && !clusterSheetVisible && (
+        <GroundPreviewCard
+          ground={selectedMapGround}
+          onClose={() => clearSelected()}
+          onOpen={handleOpenPreviewDetails}
+        />
+      )}
+
+      {/* FAB-кнопки — скрываем, если открыт preview */}
+      {!clusterSheetVisible && !selectedMapGround && (
         <>
           {showAddFab && (
             <Pressable

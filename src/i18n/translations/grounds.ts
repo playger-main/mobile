@@ -25,6 +25,15 @@ export const grounds: TranslationDict = {
     uk: 'У цій області немає майданчиків',
   },
 
+  'grounds.openDetails': {
+    en: 'Open details',
+    ru: 'Открыть подробнее',
+    be: 'Адкрыць падрабязнасці',
+    lt: 'Atidaryti išsamiau',
+    pl: 'Otwórz szczegóły',
+    uk: 'Відкрити деталі',
+  },
+
   'grounds.sortByDistance': { en: 'By distance', ru: 'По расстоянию', be: 'Па адлегласці', lt: 'Pagal atstumą', pl: 'Wg odległości', uk: 'За відстанню' },
   'grounds.noAddress': { en: 'No address provided', ru: 'Адрес не указан', be: 'Адрас не пазначаны', lt: 'Adresas nenurodytas', pl: 'Brak adresu', uk: 'Адресу не вказано' },
   'grounds.searchPlaceholder': { en: 'Search grounds or area', ru: 'Поиск площадок или района', be: 'Пошук пляцовак або раёна', lt: 'Ieškoti aikštelių ar vietovių', pl: 'Szukaj boisk lub okolicy', uk: 'Пошук майданчиків або району' },

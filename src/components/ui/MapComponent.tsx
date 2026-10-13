@@ -28,6 +28,7 @@ import {
   $clusterSheetVisible,
   setClusterSheetVisible as setClusterSheetVisibleEv,
   setMapVisibleBounds,
+  setSelectedMapGround,
   requestUserLocationFx,
   checkLocationPermissionFx,
   detectCityFx,
@@ -84,9 +85,13 @@ export default function MapComponent({
   const clusterSheetVisible = useUnit($clusterSheetVisible);
   const setClusterSheetVisible = useUnit(setClusterSheetVisibleEv);
   const setMapBounds = useUnit(setMapVisibleBounds);
+  const setSelected = useUnit(setSelectedMapGround);
 
   const mapRef = useRef<MapView | null>(null);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+
+  // ✅ Флаг: тап по маркеру → временно игнорируем MapView.onPress
+  const markerPressedRef = useRef(false);
 
   const [clusterGrounds, setClusterGrounds] = useState<GroundMapMarker[]>([]);
   const [currentRegion, setCurrentRegion] = useState<Region>(region);
@@ -312,19 +317,32 @@ export default function MapComponent({
     return supercluster.getClusters(bbox, zoom);
   }, [supercluster, currentRegion]);
 
+  // ✅ №16: тап по маркеру → показать превью
   const handleMarkerPress = useCallback(
     (marker: GroundMapMarker & { raw: ExtendedGroundItem }) => {
+      // ✅ Ставим флаг — MapView.onPress будет проигнорирован в течение 150мс
+      markerPressedRef.current = true;
+      setTimeout(() => {
+        markerPressedRef.current = false;
+      }, 150);
+
       if (onMarkerPress) {
         onMarkerPress(marker.raw);
       } else {
-        router.push(`/ground/${marker.id}`);
+        setSelected(marker.raw);
       }
     },
-    [onMarkerPress, router],
+    [onMarkerPress, setSelected],
   );
 
   const handleClusterPress = useCallback(
     (clusterId: number) => {
+      // ✅ Ставим флаг, чтобы MapView.onPress не сбросил превью
+      markerPressedRef.current = true;
+      setTimeout(() => {
+        markerPressedRef.current = false;
+      }, 150);
+
       const leaves = supercluster.getLeaves(clusterId, Infinity) as ClusterPoint[];
 
       const items: GroundMapMarker[] = leaves
@@ -344,14 +362,12 @@ export default function MapComponent({
 
       if (items.length === 0) return;
 
-      // Одиночный маркер — открываем его
       if (items.length === 1) {
         const raw = leaves[0].properties.marker.raw;
         handleMarkerPress({ ...items[0], raw } as any);
         return;
       }
 
-      // ✅ bbox всех маркеров кластера
       const lats = items.map((m) => m.latitude);
       const lngs = items.map((m) => m.longitude);
 
@@ -366,22 +382,18 @@ export default function MapComponent({
       let latDelta = maxLat - minLat;
       let lngDelta = maxLng - minLng;
 
-      // Aspect-ratio экрана: карта выше, чем шире
       const aspect = screenHeight / screenWidth;
 
-      // Синхронизируем дельты
       if (lngDelta * aspect > latDelta) {
         latDelta = lngDelta * aspect;
       } else {
         lngDelta = latDelta / aspect;
       }
 
-      // Padding 40% — маркеры не прилипают к краю
       const PADDING = 1.4;
       latDelta *= PADDING;
       lngDelta *= PADDING;
 
-      // Минимум, чтобы при очень близких маркерах не было сверх-зума
       const MIN_DELTA = 0.003;
       latDelta = Math.max(latDelta, MIN_DELTA);
       lngDelta = Math.max(lngDelta, MIN_DELTA);
@@ -431,6 +443,11 @@ export default function MapComponent({
         showsMyLocationButton={false}
         toolbarEnabled={false}
         userInterfaceStyle={theme === 'dark' ? 'dark' : 'light'}
+        onPress={() => {
+          // ✅ если только что был тап по маркеру/кластеру — игнорируем
+          if (markerPressedRef.current) return;
+          setSelected(null);
+        }}
       >
         {clusters.map((feature: any) => {
           const [longitude, latitude] = feature.geometry.coordinates;
