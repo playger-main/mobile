@@ -10,17 +10,25 @@ interface GroundMarkerProps {
   level: GroundActivityLevel;
   sportId: string;
   sportsCount?: number;
+  selected?: boolean;   // ✅ NEW
 }
 
 export default function GroundMarker({
   level,
   sportId,
   sportsCount = 1,
+  selected = false,
 }: GroundMarkerProps) {
-  const { theme, colors } = useTheme();
+  const { colors } = useTheme();
   const activityColors = ACTIVITY_COLORS[level];
   const iconName = getSportIcon(sportId);
   const hasMultiple = sportsCount > 1;
+
+  // ✅ если выбран — accent-цвет, увеличенный
+  const pinBg = selected ? colors.accent : activityColors.bg;
+  const pinBorder = selected ? colors.accent : activityColors.border;
+  const pinSize = selected ? 40 : 32;
+  const iconSize = selected ? 20 : 16;
 
   return (
     <View style={styles.outer}>
@@ -29,16 +37,22 @@ export default function GroundMarker({
           style={[
             styles.pin,
             {
-              backgroundColor: activityColors.bg,
-              borderColor: activityColors.border,
-              shadowColor: colors.shadow,
+              width: pinSize,
+              height: pinSize,
+              borderRadius: pinSize / 2,
+              backgroundColor: pinBg,
+              borderColor: pinBorder,
+              borderWidth: selected ? 3 : 2,
+              shadowColor: selected ? colors.accent : colors.shadow,
+              shadowOpacity: selected ? 0.4 : 0.25,
+              elevation: selected ? 8 : 4,
             },
           ]}
         >
           <MaterialDesignIcons
             name={iconName as any}
-            size={16}
-            color={activityColors.text}
+            size={iconSize}
+            color={selected ? '#FFFFFF' : activityColors.text}
           />
         </View>
 
@@ -48,14 +62,17 @@ export default function GroundMarker({
               styles.multiBadge,
               {
                 backgroundColor: colors.surface,
-                borderColor: colors.primary,
+                borderColor: selected ? colors.accent : colors.primary,
                 shadowColor: colors.shadow,
               },
             ]}
             pointerEvents="none"
           >
             <Text
-              style={[styles.multiBadgeText, { color: colors.primary }]}
+              style={[
+                styles.multiBadgeText,
+                { color: selected ? colors.accent : colors.primary },
+              ]}
             >
               +{sportsCount - 1}
             </Text>
@@ -63,7 +80,14 @@ export default function GroundMarker({
         )}
 
         <View
-          style={[styles.tail, { backgroundColor: activityColors.border }]}
+          style={[
+            styles.tail,
+            {
+              backgroundColor: selected ? colors.accent : activityColors.border,
+              height: selected ? 10 : 8,
+              width: selected ? 3 : 2,
+            },
+          ]}
         />
       </View>
     </View>
@@ -82,20 +106,12 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   pin: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
     shadowRadius: 4,
-    elevation: 4,
   },
   tail: {
-    width: 2,
-    height: 8,
     borderRadius: 1,
     marginTop: -1,
   },

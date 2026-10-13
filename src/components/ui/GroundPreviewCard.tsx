@@ -6,9 +6,11 @@ import {
   StyleSheet,
   Pressable,
   Image,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useUnit } from 'effector-react';
+import { useRouter } from 'expo-router';
 
 import SportIcon from './SportIcon';
 import { ExtendedGroundItem } from './CardGround';
@@ -18,6 +20,7 @@ import { formatDistance } from '@/utils/distance';
 import {
   addFavoriteFx,
   removeFavoriteFx,
+  $userSession,
 } from '@/effector/store';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
@@ -35,7 +38,9 @@ export default function GroundPreviewCard({
 }: GroundPreviewCardProps) {
   const { t } = useTranslation();
   const { theme, colors } = useTheme();
+  const router = useRouter();
 
+  const user = useUnit($userSession);
   const addFavorite = useUnit(addFavoriteFx);
   const removeFavorite = useUnit(removeFavoriteFx);
 
@@ -52,12 +57,33 @@ export default function GroundPreviewCard({
   const hasReviews = (ground.totalReviews ?? 0) > 0;
 
   const handleToggleFavorite = () => {
+    if (!user) {
+      Alert.alert(
+        t('common.authRequired'),
+        t('grounds.addAuthHint'),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('common.signIn'),
+            onPress: () => {
+              onClose();
+              router.push('/(drawer)/(tabs)/profile');
+            },
+          },
+        ],
+      );
+      return;
+    }
+
     if (ground.isFavorite) {
       removeFavorite(ground.id);
     } else {
       addFavorite(ground.id);
     }
   };
+
+  const canLike = !!user;
+  const isLiked = canLike && ground.isFavorite;
 
   return (
     <View
@@ -70,7 +96,7 @@ export default function GroundPreviewCard({
         },
       ]}
     >
-      {/* Header: close */}
+      {/* Close */}
       <Pressable
         onPress={onClose}
         style={[styles.closeBtn, { backgroundColor: colors.surfaceSecondary }]}
@@ -79,8 +105,8 @@ export default function GroundPreviewCard({
         <Ionicons name="close" size={18} color={colors.textSecondary} />
       </Pressable>
 
-      {/* Content */}
-      <Pressable onPress={onOpen} style={styles.content}>
+      {/* ✅ Content — без onPress (variant A) */}
+      <View style={styles.content}>
         {/* Image */}
         <View
           style={[
@@ -118,19 +144,14 @@ export default function GroundPreviewCard({
             </Text>
 
             <Pressable
-              onPress={(e) => {
-                e.stopPropagation();
-                handleToggleFavorite();
-              }}
+              onPress={handleToggleFavorite}
               hitSlop={10}
               style={styles.favoriteBtn}
             >
               <Ionicons
-                name={ground.isFavorite ? 'heart' : 'heart-outline'}
+                name={isLiked ? 'heart' : 'heart-outline'}
                 size={22}
-                color={
-                  ground.isFavorite ? colors.danger : colors.textTertiary
-                }
+                color={isLiked ? colors.danger : colors.textTertiary}
               />
             </Pressable>
           </View>
@@ -211,16 +232,14 @@ export default function GroundPreviewCard({
             </View>
           </View>
         </View>
-      </Pressable>
+      </View>
 
-      {/* Button */}
+      {/* ✅ Кнопка «Открыть подробнее» — единственная ведущая на детали */}
       <Pressable
         style={[styles.openBtn, { backgroundColor: colors.primaryDark }]}
         onPress={onOpen}
       >
-        <Text style={styles.openBtnText}>
-          {t('grounds.openDetails')}
-        </Text>
+        <Text style={styles.openBtnText}>{t('grounds.openDetails')}</Text>
         <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
       </Pressable>
     </View>
@@ -256,7 +275,7 @@ const styles = StyleSheet.create({
   content: {
     flexDirection: 'row',
     marginBottom: 12,
-    paddingRight: 32, // чтобы не перекрывать closeBtn
+    paddingRight: 32,
   },
   imageContainer: {
     width: 80,

@@ -59,6 +59,9 @@ export default function GroundsScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
 
+  // ✅ №fix: запоминаем последний индекс шторки
+  const savedSheetIndexRef = useRef<number>(1);
+
   const isWeb = Platform.OS === 'web';
 
   const clusterSheetVisible = useUnit($clusterSheetVisible);
@@ -66,7 +69,6 @@ export default function GroundsScreen() {
   const pendingCount = useUnit($pendingGrounds.map((p) => p.length));
   const mapCenter = useUnit($mapCenter);
 
-  // ✅ №16: preview площадки
   const selectedMapGround = useUnit($selectedMapGround);
   const clearSelected = useUnit(clearSelectedMapGround);
 
@@ -99,15 +101,17 @@ export default function GroundsScreen() {
     return { height };
   });
 
-  // ✅ №16: координация bottom sheet
-  //     если открыт кластер ИЛИ preview → bottom sheet скрыт
+  // ✅ №fix: координация bottom sheet
+  //     при preview/cluster — close
+  //     иначе — восстановить прежний snap index
   useEffect(() => {
     if (isWeb) return;
 
     if (clusterSheetVisible || selectedMapGround) {
       bottomSheetRef.current?.close();
     } else {
-      bottomSheetRef.current?.snapToIndex(1);
+      // ✅ восстанавливаем прежний snap index
+      bottomSheetRef.current?.snapToIndex(savedSheetIndexRef.current);
     }
   }, [clusterSheetVisible, selectedMapGround, isWeb]);
 
@@ -127,13 +131,27 @@ export default function GroundsScreen() {
 
   const handleToggleFavorite = useCallback(
     (groundId: string, isFavorite: boolean) => {
+      if (!user) {
+        Alert.alert(
+          t('common.authRequired'),
+          t('grounds.addAuthHint'),
+          [
+            { text: t('common.cancel'), style: 'cancel' },
+            {
+              text: t('common.signIn'),
+              onPress: () => router.push('/(drawer)/(tabs)/profile'),
+            },
+          ],
+        );
+        return;
+      }
       if (isFavorite) {
         removeFavorite(groundId);
       } else {
         addFavorite(groundId);
       }
     },
-    [addFavorite, removeFavorite],
+    [user, addFavorite, removeFavorite, router, t],
   );
 
   const mapRegion = useMemo(
@@ -176,7 +194,6 @@ export default function GroundsScreen() {
     router.push('/ground/moderation');
   };
 
-  // ✅ №16: открыть детали + закрыть preview
   const handleOpenPreviewDetails = useCallback(() => {
     if (!selectedMapGround) return;
     const id = selectedMapGround.id;
@@ -244,6 +261,12 @@ export default function GroundsScreen() {
         index={1}
         snapPoints={snapPoints}
         animatedPosition={sheetPosition}
+        // ✅ №fix: запоминаем текущий индекс
+        onChange={(index) => {
+          if (index >= 0) {
+            savedSheetIndexRef.current = index;
+          }
+        }}
         backgroundStyle={{
           backgroundColor: colors.listBackground,
           shadowColor: colors.shadow,
@@ -271,7 +294,6 @@ export default function GroundsScreen() {
         />
       </BottomSheet>
 
-      {/* ✅ №16: preview карточка вместо bottom sheet */}
       {selectedMapGround && !clusterSheetVisible && (
         <GroundPreviewCard
           ground={selectedMapGround}
@@ -280,7 +302,6 @@ export default function GroundsScreen() {
         />
       )}
 
-      {/* FAB-кнопки — скрываем, если открыт preview */}
       {!clusterSheetVisible && !selectedMapGround && (
         <>
           {showAddFab && (

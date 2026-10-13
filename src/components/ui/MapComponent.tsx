@@ -26,6 +26,7 @@ import {
   $cityCenter,
   $mapFocusTarget,
   $clusterSheetVisible,
+  $selectedMapGround,   // ✅ NEW
   setClusterSheetVisible as setClusterSheetVisibleEv,
   setMapVisibleBounds,
   setSelectedMapGround,
@@ -86,6 +87,8 @@ export default function MapComponent({
   const setClusterSheetVisible = useUnit(setClusterSheetVisibleEv);
   const setMapBounds = useUnit(setMapVisibleBounds);
   const setSelected = useUnit(setSelectedMapGround);
+  // ✅ №fix: считываем выбранный маркер для выделения
+  const selectedMapGround = useUnit($selectedMapGround);
 
   const mapRef = useRef<MapView | null>(null);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
@@ -320,11 +323,13 @@ export default function MapComponent({
   // ✅ №16: тап по маркеру → показать превью
   const handleMarkerPress = useCallback(
     (marker: GroundMapMarker & { raw: ExtendedGroundItem }) => {
-      // ✅ Ставим флаг — MapView.onPress будет проигнорирован в течение 150мс
       markerPressedRef.current = true;
       setTimeout(() => {
         markerPressedRef.current = false;
       }, 150);
+
+      // ✅ Закрываем список кластера (если открыт)
+      setClusterSheetVisible(false);
 
       if (onMarkerPress) {
         onMarkerPress(marker.raw);
@@ -332,12 +337,12 @@ export default function MapComponent({
         setSelected(marker.raw);
       }
     },
-    [onMarkerPress, setSelected],
+    [onMarkerPress, setSelected, setClusterSheetVisible],
   );
 
   const handleClusterPress = useCallback(
     (clusterId: number) => {
-      // ✅ Ставим флаг, чтобы MapView.onPress не сбросил превью
+      // ✅ Флаг: тап по кластеру → временно игнорируем MapView.onPress
       markerPressedRef.current = true;
       setTimeout(() => {
         markerPressedRef.current = false;
@@ -447,6 +452,7 @@ export default function MapComponent({
           // ✅ если только что был тап по маркеру/кластеру — игнорируем
           if (markerPressedRef.current) return;
           setSelected(null);
+          setClusterSheetVisible(false);
         }}
       >
         {clusters.map((feature: any) => {
@@ -470,17 +476,26 @@ export default function MapComponent({
             raw: ExtendedGroundItem;
           };
 
+          // ✅ выбран ли этот маркер
+          const isSelected = selectedMapGround?.id === marker.id;
+
           return (
             <Marker
               key={marker.id}
               coordinate={{ latitude, longitude }}
               onPress={() => handleMarkerPress(marker)}
-              tracksViewChanges={(marker.sportsCount ?? 1) > 1}
+              // ✅ для выбранного — обновляем вид (чтобы размер/цвет поменялся)
+              tracksViewChanges={
+                (marker.sportsCount ?? 1) > 1 || isSelected
+              }
+              // ✅ выбранный — поверх остальных
+              zIndex={isSelected ? 100 : 1}
             >
               <GroundMarker
                 level={marker.activityLevel}
                 sportId={marker.sportId}
                 sportsCount={marker.sportsCount}
+                selected={isSelected}
               />
             </Marker>
           );

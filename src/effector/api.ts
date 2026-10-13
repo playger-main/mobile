@@ -107,13 +107,25 @@ apiInstance.interceptors.response.use(
       | undefined;
     const url = originalConfig?.url ?? '';
 
-    // Не обрабатываем auth-эндпоинты (там 401 — норма)
+    // Не обрабатываем auth-эндпоинты
     if (isAuthEndpoint(url)) {
       return Promise.reject(error);
     }
 
     // Не 401 — просто пробрасываем
     if (status !== 401) {
+      return Promise.reject(error);
+    }
+
+    // ✅ №fix: если токена нет — гость, sessionExpired не нужен
+    let hasToken = false;
+    try {
+      const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+      hasToken = !!token;
+    } catch {}
+
+    if (!hasToken) {
+      console.log('[api] 401 without token → reject silently (guest)');
       return Promise.reject(error);
     }
 
@@ -131,7 +143,6 @@ apiInstance.interceptors.response.use(
 
     // ─── Single-flight refresh ─────────────────────────────────
     if (isRefreshing) {
-      // Ждём результата уже идущего refresh
       return new Promise((resolve, reject) => {
         refreshQueue.push({
           resolve: (token: string) => {
@@ -152,11 +163,9 @@ apiInstance.interceptors.response.use(
       console.log('[api] 401 → trying refresh…');
       const newToken = await performRefresh();
 
-      // Разбудим очередь
       refreshQueue.forEach(({ resolve }) => resolve(newToken));
       refreshQueue = [];
 
-      // Ретраим текущий запрос
       if (!originalConfig) {
         throw new Error('Missing original config');
       }
