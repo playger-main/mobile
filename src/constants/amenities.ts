@@ -10,6 +10,7 @@ export const AMENITIES_OPTIONS = [
   'benches',
   'freeEntry',
   'parking',
+  'evCharging',
   'changingRooms',
   'waterFountain',
   'showers',
@@ -18,8 +19,9 @@ export const AMENITIES_OPTIONS = [
   'wifi',
   'cafeteria',
   'firstAidKit',
+  'wheelchairAccessible', 
   'equipmentRental',
-  'wheelchairAccessible',
+   
 ] as const;
 
 export type Amenity = (typeof AMENITIES_OPTIONS)[number];
@@ -55,7 +57,8 @@ export const getAmenityIcon = (
     firstAidKit: 'medkit-outline',
     equipmentRental: 'construct-outline',
     wheelchairAccessible: 'accessibility-outline',
-    // legacy (на случай не-мигрированных данных)
+    evCharging: 'battery-charging-outline',   // ✅ NEW
+    // legacy
     Floodlights: 'flashlight-outline',
     Benches: 'bed-outline',
     'Free entry': 'pricetag-outline',
@@ -70,6 +73,7 @@ export const getAmenityIcon = (
     'First aid kit': 'medkit-outline',
     'Equipment rental': 'construct-outline',
     'Wheelchair accessible': 'accessibility-outline',
+    'EV charging': 'battery-charging-outline',   // ✅ legacy
   };
   return map[amenity] ?? 'checkmark-circle-outline';
 };
@@ -77,6 +81,6 @@ export const getAmenityIcon = (
 export const AMENITY_CATEGORIES = {
   essentials: ['freeEntry', 'restrooms', 'waterFountain'],
   comfort: ['benches', 'showers', 'changingRooms', 'lockers'],
-  convenience: ['parking', 'wifi', 'cafeteria', 'equipmentRental'],
+  convenience: ['parking', 'wifi', 'cafeteria', 'equipmentRental', 'evCharging'],
   safety: ['floodlights', 'firstAidKit', 'wheelchairAccessible'],
 } as const;

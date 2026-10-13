@@ -46,4 +46,5 @@ export const filters: TranslationDict = {
   'amenity.firstAidKit': { en: 'First aid kit', ru: 'Аптечка', be: 'Аптэчка', lt: 'Pirmosios pagalbos rinkinys', pl: 'Apteczka', uk: 'Аптечка' },
   'amenity.equipmentRental': { en: 'Equipment rental', ru: 'Прокат инвентаря', be: 'Прокат інвентару', lt: 'Įrangos nuoma', pl: 'Wypożyczalnia sprzętu', uk: 'Прокат інвентарю' },
   'amenity.wheelchairAccessible': { en: 'Wheelchair accessible', ru: 'Доступно для инвалидных колясок', be: 'Даступна для інвалідных калясак', lt: 'Prieinama neįgaliesiems', pl: 'Dostępne dla wózków inwalidzkich', uk: 'Доступно для інвалідних візків' },
+  'amenity.evCharging': { en: 'EV charging', ru: 'Зарядка авто', be: 'Зарадка аўто', lt: 'Elektromobilių įkrovimas', pl: 'Ładowanie EV', uk: 'Зарядка авто' },
 };
