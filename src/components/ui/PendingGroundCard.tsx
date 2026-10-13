@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
+import SportIcon from './SportIcon';
 import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportKey } from '@/constants/sports';
 import { ExtendedGroundItem } from './CardGround';
@@ -31,7 +33,7 @@ export default function PendingGroundCard({
   isProcessing = false,
 }: PendingGroundCardProps) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { theme, colors } = useTheme();
 
   const sportsList: string[] =
     Array.isArray(item.kindofsport) && item.kindofsport.length > 0
@@ -50,38 +52,78 @@ export default function PendingGroundCard({
       ]}
     >
       <Pressable style={styles.topSection} onPress={onPress}>
-        <Image
-          source={{ uri: item.avatar || 'https://unsplash.com' }}
-          style={[styles.image, { backgroundColor: colors.surfaceSecondary }]}
-        />
+        {item.avatar ? (
+          <Image
+            key={item.avatar}
+            source={{ uri: item.avatar }}
+            style={[styles.image, { backgroundColor: colors.surfaceSecondary }]}
+          />
+        ) : (
+          <View
+            style={[
+              styles.image,
+              styles.imagePlaceholder,
+              { backgroundColor: colors.surfaceSecondary },
+            ]}
+          >
+            <Ionicons
+              name="image-outline"
+              size={28}
+              color={colors.textTertiary}
+            />
+          </View>
+        )}
+
         <View style={styles.info}>
-          <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={1}>
+          <Text
+            style={[styles.title, { color: colors.textPrimary }]}
+            numberOfLines={1}
+          >
             {item.name}
           </Text>
-          <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>
+          <Text
+            style={[styles.address, { color: colors.textSecondary }]}
+            numberOfLines={1}
+          >
             {item.address || t('grounds.noAddress')}
           </Text>
 
           {sportsList.length > 0 && (
             <View style={styles.sportsRow}>
               {sportsList.slice(0, 2).map((sportId, idx) => {
-                const style = getBadgeStyle(sportId);
+                const style = getBadgeStyle(sportId, theme); // ✅ theme
                 const label = t(getSportKey(sportId));
                 return (
                   <View
                     key={`${sportId}-${idx}`}
                     style={[styles.categoryBadge, { backgroundColor: style.bg }]}
                   >
-                    <View style={[styles.categoryDot, { backgroundColor: style.text }]} />
-                    <Text style={[styles.categoryText, { color: style.text }]}>
+                    {/* ✅ иконка вместо точки */}
+                    <SportIcon id={sportId} size={10} color={style.text} />
+                    <Text
+                      style={[
+                        styles.categoryText,
+                        { color: style.text, marginLeft: 4 },
+                      ]}
+                    >
                       {label.toUpperCase()}
                     </Text>
                   </View>
                 );
               })}
               {sportsList.length > 2 && (
-                <View style={[styles.moreBadge, { backgroundColor: colors.primaryBg }]}>
-                  <Text style={[styles.moreBadgeText, { color: colors.textSecondary }]}>
+                <View
+                  style={[
+                    styles.moreBadge,
+                    { backgroundColor: colors.primaryBg },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.moreBadgeText,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
                     +{sportsList.length - 2}
                   </Text>
                 </View>
@@ -101,7 +143,10 @@ export default function PendingGroundCard({
         <Pressable
           style={[
             styles.actionButton,
-            { backgroundColor: colors.dangerBg, borderRightColor: colors.borderSubtle },
+            {
+              backgroundColor: colors.dangerBg,
+              borderRightColor: colors.borderSubtle,
+            },
           ]}
           onPress={() => onReject(item.id)}
           disabled={isProcessing}
@@ -110,7 +155,11 @@ export default function PendingGroundCard({
             <ActivityIndicator size="small" color={colors.danger} />
           ) : (
             <>
-              <Ionicons name="close-circle-outline" size={18} color={colors.danger} />
+              <Ionicons
+                name="close-circle-outline"
+                size={18}
+                color={colors.danger}
+              />
               <Text style={[styles.rejectText, { color: colors.danger }]}>
                 {t('moderation.reject')}
               </Text>
@@ -127,7 +176,11 @@ export default function PendingGroundCard({
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
             <>
-              <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={18}
+                color="#FFFFFF"
+              />
               <Text style={styles.approveText}>{t('moderation.approve')}</Text>
             </>
           )}
@@ -150,6 +203,10 @@ const styles = StyleSheet.create({
   },
   topSection: { flexDirection: 'row', padding: 12 },
   image: { width: 90, height: 90, borderRadius: 12 },
+  imagePlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   info: { flex: 1, marginLeft: 12, justifyContent: 'center' },
   title: { fontSize: 15, fontWeight: '700' },
   address: { fontSize: 12, marginTop: 2 },
@@ -161,7 +218,6 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
   },
-  categoryDot: { width: 5, height: 5, borderRadius: 2.5, marginRight: 4 },
   categoryText: { fontSize: 9, fontWeight: '700' },
   moreBadge: {
     paddingHorizontal: 6,

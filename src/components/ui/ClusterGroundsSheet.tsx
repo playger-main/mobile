@@ -5,12 +5,13 @@ import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
 import { useUnit } from 'effector-react';
 
+import SportIcon from './SportIcon';
 import {
   ACTIVITY_COLORS,
   getActivityLabelKey,
 } from '@/utils/groundActivity';
 import { getBadgeStyle } from '@/constants/badgeStyle';
-import { getSportKey, getSportIcon } from '@/constants/sports';
+import { getSportKey } from '@/constants/sports';
 import { GroundMapMarker } from '@/types/map';
 import { $userLocation, $cityCenter } from '@/effector/store';
 import { calculateDistance, formatDistance } from '@/utils/distance';
@@ -31,7 +32,7 @@ export default function ClusterGroundsSheet({
   onSelect,
 }: ClusterGroundsSheetProps) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { theme, colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['50%', '85%'], []);
 
@@ -117,9 +118,8 @@ export default function ClusterGroundsSheet({
           const activityColors = ACTIVITY_COLORS[item.activityLevel];
           const activityLabel = t(getActivityLabelKey(item.activityLevel));
 
-          const sportIcon = getSportIcon(item.sportId);
           const sportLabel = t(getSportKey(item.sportId));
-          const sportBadge = getBadgeStyle(item.sportId);
+          const sportBadge = getBadgeStyle(item.sportId, theme); // ✅ theme
 
           const origin = userLocation ?? cityCenter;
           const distanceMeters = origin
@@ -196,14 +196,17 @@ export default function ClusterGroundsSheet({
                       { backgroundColor: sportBadge.bg },
                     ]}
                   >
-                    <Ionicons
-                      name={sportIcon as any}
+                    {/* ✅ MaterialDesignIcons через обёртку */}
+                    <SportIcon
+                      id={item.sportId}
                       size={10}
                       color={sportBadge.text}
-                      style={{ marginRight: 4 }}
                     />
                     <Text
-                      style={[styles.sportTagText, { color: sportBadge.text }]}
+                      style={[
+                        styles.sportTagText,
+                        { color: sportBadge.text, marginLeft: 4 },
+                      ]}
                     >
                       {sportLabel.toUpperCase()}
                     </Text>

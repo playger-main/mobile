@@ -1,5 +1,5 @@
 // src/app/ground/moderate/[id].tsx
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -40,6 +40,9 @@ import {
   updateGroundFx,
 } from '@/effector/store';
 
+import SportIcon from '@/components/ui/SportIcon';
+import SurfaceIcon from '@/components/ui/SurfaceIcon';
+
 import { SPORT_OPTIONS, getSportKey } from '@/constants/sports';
 import { AMENITIES_OPTIONS, getAmenityKey } from '@/constants/amenities';
 import { SURFACE_OPTIONS, getSurfaceKey } from '@/constants/surface';
@@ -64,7 +67,6 @@ export default function ModerateGroundScreen() {
   const form = useUnit($moderateForm);
   const hasChanges = useUnit($moderateHasChanges);
   const isValid = useUnit($moderateIsValid);
-  const activeLang = useUnit($moderateActiveLang);
 
   const init = useUnit(moderateFormInitialized);
   const reset = useUnit(moderateFormReset);
@@ -80,12 +82,10 @@ export default function ModerateGroundScreen() {
 
   const [locationPickerVisible, setLocationPickerVisible] = useState(false);
 
-  // Загрузка площадки
   useEffect(() => {
     if (id) fetchGroundByIdFx(id);
   }, [id]);
 
-  // Инициализация формы при загрузке
   useEffect(() => {
     if (!ground) return;
 
@@ -115,7 +115,6 @@ export default function ModerateGroundScreen() {
     });
   }, [ground]);
 
-  // Reset при выходе
   useEffect(() => {
     return () => reset();
   }, []);
@@ -137,9 +136,8 @@ export default function ModerateGroundScreen() {
 
   const handleSave = async () => {
     if (!form || !ground) return;
-    if (!hasChanges) return; // Q3: не отправляем, если нет изменений
+    if (!hasChanges) return;
 
-    // Фото-логика как в edit.tsx
     const currentIds = form.photos.filter((p) => !p.isNew && p.id).map((p) => p.id!);
     const removedPhotoIds = form.initialPhotoIds.filter((id) => !currentIds.includes(id));
 
@@ -233,10 +231,7 @@ export default function ModerateGroundScreen() {
               { backgroundColor: colors.surface, borderColor: colors.border },
             ]}
             onPress={() =>
-              router.push({
-                pathname: '/user/[id]',
-                params: { id: creator.id },
-              })
+              router.push({ pathname: '/user/[id]', params: { id: creator.id } })
             }
           >
             {creator.avatar ? (
@@ -286,6 +281,148 @@ export default function ModerateGroundScreen() {
           onChangeText={(v) => changeField({ field: 'name', value: v })}
         />
 
+        {/* ============ SPORTS ============ */}
+        <Text style={[styles.label, { color: colors.textPrimary }]}>
+          {t('groundForm.sport')}
+        </Text>
+        <View style={styles.gridContainer}>
+          {SPORT_OPTIONS.map((sport) => {
+            const isSelected = form.kindofsport.includes(sport.id);
+            return (
+              <Pressable
+                key={sport.id}
+                onPress={() => {
+                  const next = isSelected
+                    ? form.kindofsport.filter((s) => s !== sport.id)
+                    : [...form.kindofsport, sport.id];
+                  changeSports(next);
+                }}
+                style={[
+                  styles.sportCard,
+                  {
+                    backgroundColor: isSelected ? colors.primary : colors.surface,
+                    borderColor: isSelected ? colors.primary : colors.border,
+                  },
+                ]}
+              >
+                <SportIcon
+                  id={sport.id}
+                  size={22}
+                  color={isSelected ? '#FFFFFF' : colors.textSecondary}
+                />
+                <Text
+                  style={[
+                    styles.sportLabel,
+                    {
+                      color: isSelected ? '#FFFFFF' : colors.textSecondary,
+                    },
+                    isSelected && { fontWeight: '700' },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t(getSportKey(sport.id))}
+                </Text>
+                {isSelected && (
+                  <View
+                    style={[
+                      styles.sportCheckmark,
+                      { backgroundColor: '#FFFFFF' },
+                    ]}
+                  >
+                    <Ionicons name="checkmark" size={12} color={colors.primary} />
+                  </View>
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* ============ SURFACES ============ */}
+        <Text style={[styles.label, { color: colors.textPrimary }]}>
+          {t('groundForm.surface')}
+        </Text>
+        <View style={styles.surfaceWrap}>
+          {SURFACE_OPTIONS.map((s) => {
+            const isSelected = form.coverage.includes(s.id);
+            return (
+              <Pressable
+                key={s.id}
+                onPress={() => {
+                  const next = isSelected
+                    ? form.coverage.filter((x) => x !== s.id)
+                    : [...form.coverage, s.id];
+                  changeCoverage(next);
+                }}
+                style={[
+                  styles.surfaceChip,
+                  {
+                    backgroundColor: isSelected ? colors.primary : colors.surface,
+                    borderColor: isSelected ? colors.primary : colors.border,
+                  },
+                ]}
+              >
+                <SurfaceIcon
+                  id={s.id}
+                  size={14}
+                  color={isSelected ? '#FFFFFF' : colors.textPrimary}
+                />
+                <Text
+                  style={[
+                    styles.surfaceChipText,
+                    {
+                      color: isSelected ? '#FFFFFF' : colors.textPrimary,
+                      marginLeft: 6,
+                    },
+                    isSelected && { fontWeight: '600' },
+                  ]}
+                >
+                  {t(getSurfaceKey(s.id))}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* ============ AMENITIES ============ */}
+        <Text style={[styles.label, { color: colors.textPrimary }]}>
+          {t('groundForm.amenities')}
+        </Text>
+        <View style={styles.amenitiesWrap}>
+          {AMENITIES_OPTIONS.map((amenity) => {
+            const isSelected = form.amenities.includes(amenity);
+            return (
+              <Pressable
+                key={amenity}
+                onPress={() => {
+                  const next = isSelected
+                    ? form.amenities.filter((a) => a !== amenity)
+                    : [...form.amenities, amenity];
+                  changeAmenities(next);
+                }}
+                style={[
+                  styles.amenityChip,
+                  {
+                    backgroundColor: isSelected ? colors.primary : colors.surface,
+                    borderColor: isSelected ? colors.primary : colors.border,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.amenityText,
+                    {
+                      color: isSelected ? '#FFFFFF' : colors.textPrimary,
+                    },
+                    isSelected && { fontWeight: '600' },
+                  ]}
+                >
+                  {t(getAmenityKey(amenity))}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
         {/* ORIGINAL DESCRIPTION */}
         <Text style={[styles.label, { color: colors.textPrimary }]}>
           {t('moderate.originalDescription')}
@@ -310,7 +447,6 @@ export default function ModerateGroundScreen() {
           {t('moderate.translations')}
         </Text>
 
-        {/* Табы языков */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsRow}>
           {SUPPORTED_LANGUAGES.map(({ code }) => {
             const isActive = code === form.activeLang;
@@ -343,7 +479,6 @@ export default function ModerateGroundScreen() {
           })}
         </ScrollView>
 
-        {/* Copy original button */}
         <Pressable
           style={[styles.copyBtn, { borderColor: colors.primary }]}
           onPress={copyOriginal}
@@ -354,7 +489,6 @@ export default function ModerateGroundScreen() {
           </Text>
         </Pressable>
 
-        {/* Active language input */}
         <TextInput
           style={[
             styles.textarea,
@@ -371,9 +505,6 @@ export default function ModerateGroundScreen() {
           multiline
           textAlignVertical="top"
         />
-
-        {/* SPORTS / SURFACES / AMENITIES — те же блоки, что в ground/edit.tsx */}
-        {/* ...оставь как в ground/edit.tsx, но с useUnit domain... */}
 
         {/* ADDRESS */}
         <Text style={[styles.label, { color: colors.textPrimary }]}>
@@ -392,7 +523,7 @@ export default function ModerateGroundScreen() {
           onChangeText={(v) => changeField({ field: 'address', value: v })}
         />
 
-        {/* LOCATION — кнопка открыть LocationPickerModal */}
+        {/* LOCATION */}
         <Pressable
           style={[
             styles.locationBtn,
@@ -565,6 +696,55 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
+  // Sports
+  gridContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  sportCard: {
+    width: '30%',
+    height: 92,
+    borderWidth: 1,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    paddingHorizontal: 4,
+  },
+  sportLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  sportCheckmark: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Surfaces
+  surfaceWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  surfaceChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderRadius: 20,
+  },
+  surfaceChipText: { fontSize: 13, fontWeight: '500' },
+  // Amenities
+  amenitiesWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  amenityChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderRadius: 20,
+  },
+  amenityText: { fontSize: 13, fontWeight: '500' },
+  // Tabs
   tabsRow: { marginBottom: 8 },
   tab: {
     paddingHorizontal: 14,
