@@ -14,7 +14,9 @@ import {
   clearMapVisibleBounds,
   setSelectedMapGround,
   clearSelectedMapGround,
+  toggleFavoriteInStore,   // ✅ добавили
 } from '../events/sync';
+import { addFavoriteFx, removeFavoriteFx } from '../events/async/userLists'; // ✅ добавили
 import { DEFAULT_CITY_CENTER, getCityCenter } from '@/constants/location';
 import type { ExtendedGroundItem } from '@/components/ui/CardGround';
 
@@ -185,4 +187,18 @@ export const $mapVisibleBounds = locationDomain
 export const $selectedMapGround = locationDomain
   .createStore<ExtendedGroundItem | null>(null)
   .on(setSelectedMapGround, (_, ground) => ground)
-  .on(clearSelectedMapGround, () => null);
+  .on(clearSelectedMapGround, () => null)
+  // ✅ Оптимистичный тоггл — мгновенная реакция UI
+  .on(toggleFavoriteInStore, (state, id) =>
+    state && state.id === id
+      ? { ...state, isFavorite: !state.isFavorite }
+      : state,
+  )
+  // ✅ Синхронизация с сервером
+  .on(addFavoriteFx.done, (state, { params: groundId }) =>
+    state && state.id === groundId ? { ...state, isFavorite: true } : state,
+  )
+  .on(removeFavoriteFx.done, (state, { params: groundId }) =>
+    state && state.id === groundId ? { ...state, isFavorite: false } : state,
+  );
+  
