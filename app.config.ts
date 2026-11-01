@@ -93,7 +93,7 @@ export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
       APP_ENV: process.env.APP_ENV ?? 'dev',
       GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
       eas: {
-        projectId: '2ef31943-3815-43fd-bf34-534f068c8018', 
+        projectId: 'a339d70e-8003-4682-9a6b-97655045dce0', 
       },
     },
   },
