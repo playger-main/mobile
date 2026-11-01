@@ -1,7 +1,7 @@
 // src/components/ui/ReviewCard.tsx
 import React from 'react';
 import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from "@react-native-vector-icons/ionicons";
 import { useRouter } from 'expo-router';
 import StarRating from './StarRating';
 import { GroundReview } from '@/effector/events/async/reviews';

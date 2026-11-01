@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, TextInput, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from "@react-native-vector-icons/ionicons";
 import { useNavigation } from 'expo-router';
 // @ts-ignore
 import { DrawerActions } from 'expo-router/react-navigation';

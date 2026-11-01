@@ -1,7 +1,7 @@
 // src/components/ui/EventLocationCard.tsx
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, Pressable, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from "@react-native-vector-icons/ionicons";
 import { navigateToGroundOnMap } from '@/utils/navigateToGround';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';

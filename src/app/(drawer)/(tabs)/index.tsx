@@ -18,7 +18,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from "@react-native-vector-icons/ionicons";
 
 import SearchGrounds from '@/components/ui/SearchGrounds';
 import CategorySport from '@/components/ui/CategorySport';

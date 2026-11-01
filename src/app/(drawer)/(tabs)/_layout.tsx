@@ -3,7 +3,7 @@ import React from 'react';
 import { Tabs, useNavigation } from 'expo-router';
 import { Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from "@react-native-vector-icons/ionicons";
 // @ts-ignore
 import { DrawerActions } from 'expo-router/react-navigation';
 

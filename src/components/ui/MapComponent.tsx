@@ -13,7 +13,7 @@ import MapView, { PROVIDER_DEFAULT, Marker, Region } from 'react-native-maps';
 import Supercluster from 'supercluster';
 import { useRouter } from 'expo-router';
 import { useUnit } from 'effector-react';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from "@react-native-vector-icons/ionicons";
 
 import { ExtendedGroundItem } from './CardGround';
 import GroundMarker from './GroundMarker';

@@ -1,7 +1,7 @@
 // src/components/ui/ListEvents.tsx
 import React from 'react';
 import { FlatList, View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from "@react-native-vector-icons/ionicons";
 import { useUnit } from 'effector-react';
 import { ServerEventItem } from '@/effector/events/async/events';
 import { $userSession } from '@/effector/store';

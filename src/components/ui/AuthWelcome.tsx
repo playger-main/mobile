@@ -9,7 +9,7 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from "@react-native-vector-icons/ionicons";
 import { useNavigation } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from '@/i18n';

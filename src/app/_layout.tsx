@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   AppState,
   Appearance,
+  LogBox,
 } from 'react-native';
 import {
   Stack,
@@ -18,7 +19,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import KeyboardDoneButton from '@/components/ui/KeyboardDoneButton';
 import { useFonts } from 'expo-font';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from "@react-native-vector-icons/ionicons";
 import { useUnit } from 'effector-react';
 
 import {
@@ -41,6 +42,9 @@ import { useTheme } from '@/hooks/useTheme';
 registerCalendarLocales();
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+LogBox.ignoreLogs([
+  '[Reanimated] Dependencies should only be used on the web and are always ignored on native. Check DevTools to see the offending code.',
+]);
 
 export default function RootLayout() {
   const { isHydrating } = useUnit({ isHydrating: $isHydrating });
@@ -48,9 +52,7 @@ export default function RootLayout() {
 
   const { theme, colors } = useTheme();
 
-  const [fontsLoaded, fontError] = useFonts({
-    ...Ionicons.font,
-  });
+  const [fontsLoaded, fontError] = useFonts({});
 
   // ✅ Синхронизация локали календаря с языком
   useEffect(() => {

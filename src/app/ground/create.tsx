@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useUnit } from 'effector-react';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from "@react-native-vector-icons/ionicons";
 import * as ImagePicker from 'expo-image-picker';
 
 import { createGroundFx } from '@/effector/events/async/grounds';

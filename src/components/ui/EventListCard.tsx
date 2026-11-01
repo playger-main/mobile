@@ -1,7 +1,7 @@
 // src/components/ui/EventListCard.tsx
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from "@react-native-vector-icons/ionicons";
 import { useRouter } from 'expo-router';
 import SportIcon from './SportIcon';
 import { ServerEventItem } from '@/effector/events/async/events';

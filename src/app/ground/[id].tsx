@@ -12,7 +12,7 @@ import {
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from "@react-native-vector-icons/ionicons";
 
 import { fetchGroundByIdFx } from '@/effector/events/async/grounds';
 import { fetchEventsByGroundIdFx } from '@/effector/events/async/events';

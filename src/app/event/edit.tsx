@@ -17,7 +17,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useUnit } from 'effector-react';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from "@react-native-vector-icons/ionicons";
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { fetchEventByIdFx, updateEventFx } from '@/effector/events/async/events';
