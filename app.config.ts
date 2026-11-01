@@ -6,7 +6,7 @@ export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
   expo: {
     // Базовые настройки
     name: 'playg-mobile',
-    slug: 'playg-mobile',
+    slug: 'playg',
     version: '1.0.0',
     orientation: 'portrait',
     scheme: 'playgmobile',
