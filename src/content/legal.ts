@@ -40,7 +40,7 @@ export interface LegalSection {
 
 export const LEGAL_META = {
   /** Версия документа — увеличивайте при изменениях */
-  version: '2.1',
+  version: '1.0',
   /** Дата вступления в силу (ISO, YYYY-MM-DD) */
   effectiveDate: '2026-11-15',
   /** Оператор данных / владелец сервиса — замените на своё юрлицо */
