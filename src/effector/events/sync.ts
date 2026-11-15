@@ -88,3 +88,14 @@ export const setEventFilter = createEvent<EventFilter>();
 // ==========================================
 export const setSelectedMapGround = createEvent<ExtendedGroundItem | null>();
 export const clearSelectedMapGround = createEvent();
+// ==========================================
+// ✅ Жалобы на контент (Apple 1.2 / Google Play UGC)
+// ==========================================
+export interface ReportTargetInput {
+  targetType: 'review' | 'ground' | 'event' | 'photo' | 'user';
+  targetId: string;
+  subject?: string;
+}
+
+export const openReport = createEvent<ReportTargetInput>();
+export const closeReport = createEvent();

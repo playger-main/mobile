@@ -13,7 +13,7 @@ export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
     version: '1.0.0',
     orientation: 'portrait',
     scheme: 'playgmobile',
-    icon: './assets/images/icon.png',
+    icon: './assets/playg-icon.png',
     userInterfaceStyle: 'automatic',
 
     // Настройки статус-бара и платформы Android

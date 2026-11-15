@@ -16,6 +16,7 @@ import Ionicons from "@react-native-vector-icons/ionicons";
 
 import StarRating from '@/components/ui/StarRating';
 import ReviewCard from '@/components/ui/ReviewCard';
+import ReportSheet from '@/components/ui/ReportSheet';
 import ReviewFormModal from '@/components/ui/ReviewFormModal';
 
 import {
@@ -29,6 +30,7 @@ import {
   fetchMyReviewFx,
   deleteReviewFx,
   reviewLikeToggled,
+  openReport as openReportEvent,
 } from '@/effector/store';
 import { useTranslation, useRelativeDate } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
@@ -52,6 +54,8 @@ export default function GroundReviewsScreen() {
   const fetchMyReview = useUnit(fetchMyReviewFx);
   const deleteReview = useUnit(deleteReviewFx);
   const toggleLike = useUnit(reviewLikeToggled); // ✅ №3
+  // ✅ жалоба на отзыв (Apple 1.2)
+  const openReport = useUnit(openReportEvent);
 
   const [reviewFormVisible, setReviewFormVisible] = useState(false);
 
@@ -183,6 +187,16 @@ export default function GroundReviewsScreen() {
               // ✅ №3
               onToggleLike={handleToggleLike}
               canLike={!!user && item.author?.id !== user?.id}
+              onReport={
+                user && item.author?.id !== user?.id
+                  ? () =>
+                      openReport({
+                        targetType: 'review',
+                        targetId: item.id,
+                        subject: item.author?.name,
+                      })
+                  : undefined
+              }
             />
           )}
           ListHeaderComponent={
@@ -342,6 +356,8 @@ export default function GroundReviewsScreen() {
           }
         }}
       />
+      {/* ✅ жалоба на отзыв */}
+      <ReportSheet />
     </View>
   );
 }

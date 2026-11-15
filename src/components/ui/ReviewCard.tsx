@@ -16,6 +16,8 @@ interface ReviewCardProps {
   // ✅ №3
   onToggleLike?: (reviewId: string) => void;
   canLike?: boolean;
+  /** ✅ Пожаловаться на отзыв (скрыто для своих отзывов) */
+  onReport?: () => void;
 }
 
 export default function ReviewCard({
@@ -25,6 +27,7 @@ export default function ReviewCard({
   onDelete,
   onToggleLike,
   canLike = false,
+  onReport,
 }: ReviewCardProps) {
   const router = useRouter();
   const { t } = useTranslation();
@@ -116,6 +119,24 @@ export default function ReviewCard({
             </Text>
           </View>
         </Pressable>
+
+        {!isMine && onReport && (
+          <View style={styles.actions}>
+            <Pressable
+              onPress={onReport}
+              style={styles.actionBtn}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('report.action')}
+            >
+              <Ionicons
+                name="flag-outline"
+                size={18}
+                color={colors.textTertiary}
+              />
+            </Pressable>
+          </View>
+        )}
 
         {isMine && (
           <View style={styles.actions}>

@@ -174,6 +174,8 @@ export {
   setSelectedDate,
   setLocationFilter,
   setEventFilter,
+  openReport,
+  closeReport,
   setAuthStep,
   logout,
   sessionExpired,
@@ -183,6 +185,10 @@ export {
 export type { MapBounds } from './events/sync';
 
 export type { LocationFilter } from './events/sync';
+
+// ✅ жалобы на контент
+export { $reportTarget } from './domains/report';
+export type { ReportTarget } from './domains/report';
 
 /** ✅ Фильтр площадок по событиям */
 export type { EventFilter } from './events/sync';
