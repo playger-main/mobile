@@ -7,6 +7,7 @@ import {
   TextInput,
   Pressable,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import Ionicons from "@react-native-vector-icons/ionicons";
 import { useTranslation } from '@/i18n';
@@ -79,9 +80,12 @@ export default function AuthSignUp({
 
   return (
     <View style={[styles.formContainer, { backgroundColor: colors.listBackground }]}>
-      <View style={[styles.logoIconBlock, { backgroundColor: colors.primary }]}>
-        <Ionicons name="basketball" size={32} color="#FFFFFF" />
-      </View>
+      {/* ✅ иконка приложения вместо мяча */}
+      <Image
+        source={require('../../assets/images/playg-icon.png')}
+        style={styles.logoIconBlock}
+        resizeMode="cover"
+      />
 
       <Text style={[styles.formTitle, { color: colors.textPrimary }]}>
         {t('auth.signUp.title')}

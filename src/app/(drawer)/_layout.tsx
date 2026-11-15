@@ -58,11 +58,12 @@ function CustomDrawerContent(props: any) {
         {/* ===== HEADER ===== */}
         <View style={styles.appHeader}>
           <View style={styles.headerLeft}>
-            <View
-              style={[styles.logoBox, { backgroundColor: colors.primary }]}
-            >
-              <Ionicons name="basketball" size={20} color="#FFFFFF" />
-            </View>
+            {/* ✅ иконка приложения вместо мяча */}
+            <Image
+              source={require('../../assets/images/playg-icon.png')}
+              style={styles.logoBox}
+              resizeMode="cover"
+            />
             <Text style={[styles.appName, { color: colors.textPrimary }]}>
               PlayG
             </Text>

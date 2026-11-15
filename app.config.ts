@@ -31,10 +31,9 @@ export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
         },
       },
       adaptiveIcon: {
-        backgroundColor: '#E6F4FE',
+        // ✅ новый бренд: белый пин из playg-icon.png на синем фоне иконки
+        backgroundColor: '#2A68EA',
         foregroundImage: './assets/images/android-icon-foreground.png',
-        backgroundImage: './assets/images/android-icon-background.png',
-        monochromeImage: './assets/images/android-icon-monochrome.png',
       },
       permissions: ['ACCESS_FINE_LOCATION', 'ACCESS_COARSE_LOCATION'],
     },
@@ -79,9 +78,10 @@ export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
       [
         'expo-splash-screen',
         {
-          backgroundColor: '#208AEF',
-          image: './assets/images/splash-icon.png',
-          imageWidth: 76,
+          // ✅ пин из иконки приложения (белый на прозрачном)
+          backgroundColor: '#2A68EA',
+          image: './assets/images/playg-pin.png',
+          imageWidth: 96,
         },
       ],
       [
