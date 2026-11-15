@@ -1,5 +1,5 @@
 // src/app/(drawer)/(tabs)/profile.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Pressable,
@@ -26,6 +26,7 @@ import {
   $authStep,
   $userSession,
   $isAuthSubmitting,
+  fetchMyFavoriteGroundsFx,
   logoutFx,
 } from '@/effector/store';
 import { setAuthStep, logout } from '@/effector/events/sync';
@@ -62,6 +63,12 @@ export default function ProfileHubScreen() {
     logoutFx();
     handleLogout();
   };
+
+  // ✅ При входе в профиль сверяем избранное с сервером: счётчик «Сохранено»
+  // и сердечки на карте берутся из одного и того же списка.
+  useEffect(() => {
+    if (user) fetchMyFavoriteGroundsFx();
+  }, [user?.id]);
 
   const navigateToHome = () => router.replace('/(drawer)/(tabs)');
 

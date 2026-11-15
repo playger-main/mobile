@@ -75,6 +75,7 @@ export default function GroundPreviewCard({
       return;
     }
 
+    // ✅ Только серверное подтверждение (без локального «переключения»)
     if (ground.isFavorite) {
       removeFavorite(ground.id);
     } else {

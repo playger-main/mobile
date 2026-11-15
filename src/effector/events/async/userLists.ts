@@ -34,8 +34,11 @@ const userListsApi = {
     await apiInstance.post('/favorite', { groundId });
   },
 
-  removeFavorite: async (groundId: string): Promise<void> => {
-    await apiInstance.delete(`/favorite/${groundId}`);
+  removeFavorite: async (groundId: string): Promise<{ deleted: number }> => {
+    const res = await apiInstance.delete<{ deleted: number }>(
+      `/favorite/${groundId}`,
+    );
+    return res.data ?? { deleted: 0 };
   },
 };
 

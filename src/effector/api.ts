@@ -2,7 +2,12 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-export const BASE_URL = 'https://playground-back-production.up.railway.app';
+// ✅ Адрес API: по умолчанию — прод на Railway.
+// Переопределяется на этапе сборки/запуска через EXPO_PUBLIC_API_URL
+// (например, чтобы направить приложение на локальный бэкенд).
+export const BASE_URL = (
+  process.env.EXPO_PUBLIC_API_URL || 'https://playground-back-production.up.railway.app'
+).replace(/\/+$/, '');
 
 export const ACCESS_TOKEN_KEY = 'pg_access_token';
 export const REFRESH_TOKEN_KEY = 'pg_refresh_token';

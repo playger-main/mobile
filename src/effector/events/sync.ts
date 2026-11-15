@@ -6,7 +6,6 @@ import { createEvent } from 'effector';
 // ПЛОЩАДКИ
 // ==========================================
 export const clearGrounds = createEvent();
-export const toggleFavoriteInStore = createEvent<string>();
 
 // ==========================================
 // ФИЛЬТРЫ И ПОИСК

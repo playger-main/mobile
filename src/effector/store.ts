@@ -29,6 +29,10 @@ export {
   $isEventDetailLoading,
   $currentDayEvents,
   $upcomingEventsCountByGround,
+  // ✅ единый источник истины по избранному (число в профиле = сердечки)
+  $favoriteIds,
+  $favoritesCount,
+  $favoriteIdsLoaded,
 } from './domains/data';
 
 export {
@@ -173,7 +177,6 @@ export {
   logout,
   sessionExpired,
   clearGrounds,
-  toggleFavoriteInStore,
 } from './events/sync';
 
 export type { MapBounds } from './events/sync';

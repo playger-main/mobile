@@ -94,6 +94,8 @@ export default function GroundDetailScreen() {
 
   const handleToggleFavorite = useCallback(() => {
     if (!ground) return;
+
+    // ✅ Только серверное подтверждение (без локального «переключения»)
     if (ground.isFavorite) {
       removeFavorite(ground.id);
     } else {

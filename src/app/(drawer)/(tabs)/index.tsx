@@ -145,6 +145,8 @@ export default function GroundsScreen() {
         );
         return;
       }
+      // ✅ Состояние меняется только по подтверждению сервера — так карточка
+      // и экран описания не могут разойтись.
       if (isFavorite) {
         removeFavorite(groundId);
       } else {

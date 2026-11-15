@@ -26,6 +26,8 @@ import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportKey } from '@/constants/sports';
 import {
   $myReviewsCount,
+  $favoriteIdsLoaded,
+  $favoritesCount,
   fetchMyReviewsFx,
   logout,
 } from '@/effector/store';
@@ -66,7 +68,13 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
   const hasAvatar = !!user.avatar;
 
   const joinedCount = user.joinedCount ?? 0;
-  const savedCount = user.savedCount ?? 0;
+  // ✅ «Сохранено» берём из того же набора id, что и сердечки на карточках,
+  // поэтому числа в профиле и на карте не могут расходиться.
+  const favoritesLoaded = useUnit($favoriteIdsLoaded);
+  const favoritesCount = useUnit($favoritesCount);
+  const savedCount = favoritesLoaded
+    ? favoritesCount
+    : (user.savedCount ?? 0);
   const gamesCount = user.gamesCount ?? 0;
 
   const isModerator =

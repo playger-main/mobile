@@ -68,8 +68,10 @@ export default function RootLayout() {
 
   // ✅ Гидратация при старте
   useEffect(() => {
-    hydrateSessionFx();
-    hydrateSettingsFx();
+    (async () => {
+      await hydrateSessionFx();
+      hydrateSettingsFx();
+    })();
 
     (async () => {
       try {
