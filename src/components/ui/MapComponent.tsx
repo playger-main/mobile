@@ -333,6 +333,37 @@ export default function MapComponent({
     return supercluster.getClusters(bbox, zoom);
   }, [supercluster, currentRegion]);
 
+  /**
+   * ✅ Статус кластера: самый «важный» среди его площадок.
+   *    active (есть идущее событие) > upcoming (только предстоящие) > none.
+   * Считаем один раз на набор кластеров (не на каждый рендер: выделение
+   * маркера перерисовывает карту).
+   */
+  const clusterLevels = useMemo(() => {
+    const levels = new Map<number, 'active' | 'upcoming' | 'none'>();
+
+    for (const feature of clusters as any[]) {
+      const props = feature.properties;
+      if (!props?.cluster) continue;
+
+      const leaves = supercluster.getLeaves(props.cluster_id, Infinity) as any[];
+      let level: 'active' | 'upcoming' | 'none' = 'none';
+
+      for (const leaf of leaves) {
+        const leafLevel = leaf?.properties?.marker?.activityLevel;
+        if (leafLevel === 'active') {
+          level = 'active';
+          break;
+        }
+        if (leafLevel === 'upcoming') level = 'upcoming';
+      }
+
+      levels.set(props.cluster_id, level);
+    }
+
+    return levels;
+  }, [clusters, supercluster]);
+
   // ✅ №16: тап по маркеру → показать превью
   const handleMarkerPress = useCallback(
     (marker: GroundMapMarker & { raw: ExtendedGroundItem }) => {
@@ -473,14 +504,19 @@ export default function MapComponent({
           const { cluster, cluster_id, point_count } = feature.properties;
 
           if (cluster) {
+            const level = clusterLevels.get(cluster_id) ?? 'none';
+
             return (
               <Marker
-                key={`cluster-${cluster_id}`}
+                // ✅ уровень в key: при смене статуса маркер перемонтируется,
+                // иначе Android может не перерисовать рамку при
+                // tracksViewChanges={false}
+                key={`cluster-${cluster_id}-${level}`}
                 coordinate={{ latitude, longitude }}
                 onPress={() => handleClusterPress(cluster_id)}
                 tracksViewChanges={false}
               >
-                <ClusterMarker count={point_count} />
+                <ClusterMarker count={point_count} level={level} />
               </Marker>
             );
           }

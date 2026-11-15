@@ -1,17 +1,33 @@
 // src/components/ui/ClusterMarker.tsx
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import {
+  ACTIVITY_COLORS,
+  GroundActivityLevel,
+} from '@/utils/groundActivity';
 import { useTheme } from '@/hooks/useTheme';
 
 interface ClusterMarkerProps {
   count: number;
+  /**
+   * ✅ Самый «важный» статус среди площадок кластера:
+   *   active   — есть площадка с идущим событием → зелёная рамка;
+   *   upcoming — только предстоящие события       → оранжевая рамка;
+   *   none     — событий нет                      → синяя рамка (как раньше).
+   */
+  level?: GroundActivityLevel;
 }
 
-export default function ClusterMarker({ count }: ClusterMarkerProps) {
+export default function ClusterMarker({
+  count,
+  level = 'none',
+}: ClusterMarkerProps) {
   const { colors } = useTheme();
 
   // Размер кластера зависит от количества
   const size = count < 10 ? 40 : count < 100 ? 48 : 56;
+  const borderColor =
+    level === 'none' ? colors.primaryDark : ACTIVITY_COLORS[level].border;
 
   return (
     <View
@@ -22,11 +38,11 @@ export default function ClusterMarker({ count }: ClusterMarkerProps) {
           height: size,
           borderRadius: size / 2,
           backgroundColor: colors.primary,
-          borderColor: colors.primaryDark,
-
+          borderColor,
           shadowColor: colors.shadow,
         },
       ]}
+      accessibilityLabel={`${count}${level !== 'none' ? ` · ${level}` : ''}`}
     >
       <Text style={styles.clusterText}>{count}</Text>
     </View>

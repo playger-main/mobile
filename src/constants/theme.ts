@@ -60,6 +60,14 @@ export interface AppColors {
   // Служебные
   overlay: string;
   shadow: string;
+
+  /**
+   * ✅ Кольцо выделения маркера на карте.
+   * Должно контрастировать с тайлами карты в обеих темах, поэтому в светлой
+   * теме оно тёмное, в тёмной — светлое. Цвет активности маркера при этом
+   * не меняется, чтобы «зелёный» всегда означал «есть активное событие».
+   */
+  selectionRing: string;
 }
 
 export const AppThemeColors: Record<'light' | 'dark', AppColors> = {
@@ -89,6 +97,7 @@ export const AppThemeColors: Record<'light' | 'dark', AppColors> = {
 
     overlay: 'rgba(0,0,0,0.4)',
     shadow: '#334A77',
+    selectionRing: '#1B2B4B',
   },
   dark: {
     background: '#0F1115',
@@ -116,6 +125,7 @@ export const AppThemeColors: Record<'light' | 'dark', AppColors> = {
 
     overlay: 'rgba(0,0,0,0.6)',
     shadow: '#000000',
+    selectionRing: '#EAF2FF',
   },
 };
 

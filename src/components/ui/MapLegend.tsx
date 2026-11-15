@@ -18,6 +18,15 @@ export default function MapLegend() {
     { key: 'none', labelKey: 'status.ground.none' },
   ];
 
+  // ✅ Рамка кластера: показывает, есть ли внутри площадки с событиями
+  const clusterItems: Array<{
+    key: 'active' | 'upcoming';
+    labelKey: string;
+  }> = [
+    { key: 'active', labelKey: 'map.legendClusterActive' },
+    { key: 'upcoming', labelKey: 'map.legendClusterUpcoming' },
+  ];
+
   return (
     <View
       style={[
@@ -35,6 +44,24 @@ export default function MapLegend() {
             style={[
               styles.dot,
               { backgroundColor: ACTIVITY_COLORS[key].bg },
+            ]}
+          />
+          <Text style={[styles.label, { color: colors.textPrimary }]}>
+            {t(labelKey)}
+          </Text>
+        </View>
+      ))}
+
+      <View
+        style={[styles.separator, { backgroundColor: colors.borderSubtle }]}
+      />
+
+      {clusterItems.map(({ key, labelKey }) => (
+        <View key={`cluster-${key}`} style={styles.row}>
+          <View
+            style={[
+              styles.ring,
+              { borderColor: ACTIVITY_COLORS[key].border },
             ]}
           />
           <Text style={[styles.label, { color: colors.textPrimary }]}>
@@ -66,6 +93,17 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
+  },
+  ring: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2.5,
+    backgroundColor: 'transparent',
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 2,
   },
   label: {
     fontSize: 12,

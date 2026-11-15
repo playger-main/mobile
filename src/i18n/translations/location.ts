@@ -38,6 +38,23 @@ export const location: TranslationDict = {
   'map.legendActive': { en: 'Active today', ru: 'Активна сегодня', be: 'Актыўная сёння', lt: 'Aktyvi šiandien', pl: 'Aktywne dziś', uk: 'Активна сьогодні' },
   'map.legendUpcoming': { en: 'Featured', ru: 'Есть события', be: 'Ёсць падзеі', lt: 'Yra renginių', pl: 'Ma wydarzenia', uk: 'Є події' },
   'map.legendNone': { en: 'Ground', ru: 'Площадка', be: 'Пляцоўка', lt: 'Aikštelė', pl: 'Boisko', uk: 'Майданчик' },
+  // ✅ рамка кластера показывает, есть ли внутри площадки с событиями
+  'map.legendClusterActive': {
+    en: 'Cluster: event now',
+    ru: 'Кластер: событие идёт',
+    be: 'Кластар: падзея ідзе',
+    lt: 'Klasteris: vyksta renginys',
+    pl: 'Klaster: trwa wydarzenie',
+    uk: 'Кластер: подія триває',
+  },
+  'map.legendClusterUpcoming': {
+    en: 'Cluster: has events',
+    ru: 'Кластер: есть события',
+    be: 'Кластар: ёсць падзеі',
+    lt: 'Klasteris: yra renginių',
+    pl: 'Klaster: są wydarzenia',
+    uk: 'Кластер: є події',
+  },
 
   // ===== CLUSTER =====
   // ✅ С плюрализацией — "N площадок рядом"
