@@ -31,7 +31,7 @@ export default function AuthSignIn({
   errorMessage,
 }: AuthSignInProps) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -67,7 +67,10 @@ export default function AuthSignIn({
       {/* ✅ иконка приложения вместо мяча */}
       <Image
         source={require('../../assets/images/playg-icon.png')}
-        style={styles.logoIconBlock}
+        style={[
+          styles.logoIconBlock,
+          { opacity: theme === 'light' ? 0.84 : 1 },
+        ]}
         resizeMode="cover"
       />
 

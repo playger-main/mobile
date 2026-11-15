@@ -27,7 +27,7 @@ import { useTheme } from '@/hooks/useTheme';
 function CustomDrawerContent(props: any) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
 
   const user = useUnit($userSession);
 
@@ -61,7 +61,11 @@ function CustomDrawerContent(props: any) {
             {/* ✅ иконка приложения вместо мяча */}
             <Image
               source={require('../../assets/images/playg-icon.png')}
-              style={styles.logoBox}
+              style={[
+                styles.logoBox,
+                // ✅ в светлой теме иконка чуть светлее
+                { opacity: theme === 'light' ? 0.84 : 1 },
+              ]}
               resizeMode="cover"
             />
             <Text style={[styles.appName, { color: colors.textPrimary }]}>

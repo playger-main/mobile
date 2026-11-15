@@ -1,6 +1,13 @@
 // src/app/(drawer)/about.tsx
 import React from 'react';
-import { StyleSheet, View, Text, ScrollView, Pressable } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  Image,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Ionicons from "@react-native-vector-icons/ionicons";
@@ -12,7 +19,7 @@ export default function AboutScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
 
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -57,14 +64,18 @@ export default function AboutScreen() {
         ]}
       >
         <View style={styles.logoContainer}>
-          <View
+          {/* ✅ иконка приложения вместо мяча */}
+          <Image
+            source={require('../../assets/images/playg-icon.png')}
             style={[
               styles.logoBox,
-              { backgroundColor: colors.primaryDark, shadowColor: colors.shadow },
+              {
+                shadowColor: colors.shadow,
+                opacity: theme === 'light' ? 0.84 : 1,
+              },
             ]}
-          >
-            <Ionicons name="basketball-outline" size={36} color="#FFFFFF" />
-          </View>
+            resizeMode="cover"
+          />
         </View>
 
         <Text style={[styles.title, { color: colors.textPrimary }]}>PlayG</Text>

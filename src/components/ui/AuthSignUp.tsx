@@ -29,7 +29,7 @@ export default function AuthSignUp({
   errorMessage,
 }: AuthSignUpProps) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -83,7 +83,10 @@ export default function AuthSignUp({
       {/* ✅ иконка приложения вместо мяча */}
       <Image
         source={require('../../assets/images/playg-icon.png')}
-        style={styles.logoIconBlock}
+        style={[
+          styles.logoIconBlock,
+          { opacity: theme === 'light' ? 0.84 : 1 },
+        ]}
         resizeMode="cover"
       />
 
