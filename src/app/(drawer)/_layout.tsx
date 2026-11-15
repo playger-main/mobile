@@ -8,6 +8,7 @@ import {
   Image,
 } from 'react-native';
 import { Drawer } from 'expo-router/drawer';
+import { useRouter } from 'expo-router';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -21,6 +22,7 @@ import {
 } from 'expo-router/drawer';
 
 import { $userSession } from '@/effector/store';
+import { setAuthStep } from '@/effector/events/sync';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -30,12 +32,25 @@ function CustomDrawerContent(props: any) {
   const { colors, theme } = useTheme();
 
   const user = useUnit($userSession);
+  const setAuthStepEvent = useUnit(setAuthStep);
+  const router = useRouter();
 
   const avatarLetter = user?.name?.charAt(0).toUpperCase() || '?';
   const hasAvatar = !!user?.avatar;
 
+  /**
+   * ✅ Гость → экран приветствия (welcome) и далее вход;
+   * авторизованный → свой профиль.
+   */
   const handleUserPress = () => {
-    props.navigation.navigate('(tabs)', { screen: 'profile' });
+    props.navigation.closeDrawer();
+
+    if (!user) {
+      // всегда начинаем с приветствия, даже если ранее дошли до формы входа
+      setAuthStepEvent('welcome');
+    }
+
+    router.navigate('/(drawer)/(tabs)/profile');
   };
 
   const handleClose = () => {
