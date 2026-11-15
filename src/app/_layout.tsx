@@ -32,6 +32,7 @@ import {
   checkLocationPermissionFx,
   detectCityFx,
   $appLanguage,
+  $useLocation,
 } from '@/effector/store';
 import { sessionExpired } from '@/effector/events/sync';
 
@@ -99,6 +100,12 @@ export default function RootLayout() {
 
     (async () => {
       try {
+        // ✅ Пользователь выключил геолокацию в настройках — не запрашиваем её
+        if (!$useLocation.getState()) {
+          detectCityFx(DEFAULT_CITY_CENTER);
+          return;
+        }
+
         const status = await checkLocationPermissionFx();
         if (status === 'denied') return;
 

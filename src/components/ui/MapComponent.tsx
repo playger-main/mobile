@@ -22,6 +22,7 @@ import ClusterGroundsSheet from './ClusterGroundsSheet';
 
 import {
   $groundActivityLevels,
+  $useLocation as $useLocationSetting,
   $eventFilter,
   $userLocation,
   $cityCenter,
@@ -106,6 +107,9 @@ export default function MapComponent({
   useEffect(() => {
     (async () => {
       try {
+        // ✅ Если геолокация выключена в настройках — не просим её сами
+        if (!$useLocationSetting.getState()) return;
+
         const status = await checkLocationPermissionFx();
         if (status === 'denied') {
           Alert.alert(

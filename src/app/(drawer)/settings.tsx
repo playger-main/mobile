@@ -19,13 +19,13 @@ import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
 
 import {
-  $eventReminders,
   $useLocation,
   $appLanguage,
   $themeMode,
-  toggleEventReminders,
   toggleUseLocation,
 } from '@/effector/store';
+// ✅ при отключении геолокации сбрасываем сохранённые координаты
+import { clearUserLocation } from '@/effector/events/sync';
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -34,23 +34,26 @@ export default function SettingsScreen() {
   const { colors } = useTheme();
 
   const {
-    eventReminders,
     useLocation,
     language,
     themeMode,
-    changeReminders,
     changeLocation,
   } = useUnit({
-    eventReminders: $eventReminders,
     useLocation: $useLocation,
     language: $appLanguage,
     themeMode: $themeMode,
-    changeReminders: toggleEventReminders,
     changeLocation: toggleUseLocation,
   });
 
   const [languagePickerVisible, setLanguagePickerVisible] = useState(false);
   const [themePickerVisible, setThemePickerVisible] = useState(false);
+
+  // ✅ Тумблер теперь реально управляет автогеолокацией:
+  // при выключении чистим координаты и больше не запрашиваем их сами.
+  const handleToggleLocation = (value: boolean) => {
+    changeLocation(value);
+    if (!value) clearUserLocation();
+  };
 
   const handleBack = () => {
     if (router.canGoBack()) router.back();
@@ -165,27 +168,6 @@ export default function SettingsScreen() {
             { backgroundColor: colors.surface, borderColor: colors.border },
           ]}
         >
-          <View style={[styles.rowItem, { borderColor: colors.borderSubtle }]}>
-            <View style={styles.rowLeft}>
-              <Ionicons
-                name="notifications-outline"
-                size={20}
-                color={colors.textSecondary}
-                style={styles.rowIcon}
-              />
-              <Text style={[styles.rowText, { color: colors.textPrimary }]}>
-                {t('settings.eventReminders')}
-              </Text>
-            </View>
-            <Switch
-              value={eventReminders}
-              onValueChange={(value) => {
-                changeReminders(value);
-              }}
-              trackColor={{ false: colors.textTertiary, true: colors.accent }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
 
           <View
             style={[
@@ -207,9 +189,7 @@ export default function SettingsScreen() {
             </View>
             <Switch
               value={useLocation}
-              onValueChange={(value) => {
-                changeLocation(value);
-              }}
+              onValueChange={handleToggleLocation}
               trackColor={{ false: colors.textTertiary, true: colors.accent }}
               thumbColor="#FFFFFF"
             />
@@ -227,7 +207,11 @@ export default function SettingsScreen() {
           ]}
         >
           <Pressable
-            style={[styles.rowItem, { borderColor: colors.borderSubtle }]}
+            style={[
+              styles.rowItem,
+              styles.noBorder,
+              { borderColor: colors.borderSubtle },
+            ]}
             onPress={() => setLanguagePickerVisible(true)}
           >
             <View style={styles.rowLeft}>
@@ -253,13 +237,23 @@ export default function SettingsScreen() {
             </View>
           </Pressable>
 
+        </View>
+
+        {/* ===== ДОКУМЕНТЫ ===== */}
+        <Text style={[styles.sectionHeader, { color: colors.textTertiary }]}>
+          {t('settings.documents')}
+        </Text>
+        <View
+          style={[
+            styles.blockContainer,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+          ]}
+        >
           <Pressable
-            style={[
-              styles.rowItem,
-              styles.noBorder,
-              { borderColor: colors.borderSubtle },
-            ]}
-            onPress={() => console.log('Privacy pressed')}
+            style={[styles.rowItem, { borderColor: colors.borderSubtle }]}
+            onPress={() => router.push('/(drawer)/privacy')}
+            accessibilityRole="button"
+            accessibilityLabel={t('legal.privacy.title')}
           >
             <View style={styles.rowLeft}>
               <Ionicons
@@ -269,13 +263,40 @@ export default function SettingsScreen() {
                 style={styles.rowIcon}
               />
               <Text style={[styles.rowText, { color: colors.textPrimary }]}>
-                {t('settings.privacy')}
+                {t('legal.privacy.title')}
               </Text>
             </View>
             <View style={styles.rowRight}>
-              <Text style={[styles.rowValueText, { color: colors.textTertiary }]}>
-                {t('settings.manage')}
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={colors.textTertiary}
+              />
+            </View>
+          </Pressable>
+
+          <Pressable
+            style={[
+              styles.rowItem,
+              styles.noBorder,
+              { borderColor: colors.borderSubtle },
+            ]}
+            onPress={() => router.push('/(drawer)/terms')}
+            accessibilityRole="button"
+            accessibilityLabel={t('legal.terms.title')}
+          >
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="document-text-outline"
+                size={20}
+                color={colors.textSecondary}
+                style={styles.rowIcon}
+              />
+              <Text style={[styles.rowText, { color: colors.textPrimary }]}>
+                {t('legal.terms.title')}
               </Text>
+            </View>
+            <View style={styles.rowRight}>
               <Ionicons
                 name="chevron-forward"
                 size={16}

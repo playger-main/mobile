@@ -253,6 +253,8 @@ export default function DrawerLayout() {
       <Drawer.Screen
         name="privacy"
         options={{
+          // ✅ документы живут в Настройках → «Документы», в меню не дублируем
+          drawerItemStyle: { display: 'none' },
           title: t('legal.privacy.title'),
           drawerIcon: ({ color, size }) => (
             <Ionicons
@@ -266,6 +268,7 @@ export default function DrawerLayout() {
       <Drawer.Screen
         name="terms"
         options={{
+          drawerItemStyle: { display: 'none' },
           title: t('legal.terms.title'),
           drawerIcon: ({ color, size }) => (
             <Ionicons

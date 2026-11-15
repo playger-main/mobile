@@ -130,11 +130,9 @@ export {
 // 4. НАСТРОЙКИ
 // ==========================================
 export {
-  $eventReminders,
   $useLocation,
   $appLanguage,
   $themeMode,
-  toggleEventReminders,
   toggleUseLocation,
   changeLanguage,
   changeThemeMode,

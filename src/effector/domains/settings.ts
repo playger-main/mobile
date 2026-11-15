@@ -9,7 +9,6 @@ const settingsDomain = createDomain('settings');
 // EVENTS
 // ============================================================
 
-export const toggleEventReminders = createEvent<boolean>();
 export const toggleUseLocation = createEvent<boolean>();
 export const changeLanguage = createEvent<Language>();
 
@@ -22,7 +21,6 @@ export const changeThemeMode = createEvent<ThemeMode>();
 // ============================================================
 
 const STORAGE_KEYS = {
-  REMINDERS: 'settings_event_reminders',
   LOCATION: 'settings_use_location',
   LANG: 'settings_language',
   THEME: 'settings_theme_mode',   // ✅ НОВОЕ
@@ -64,20 +62,17 @@ function normalizeTheme(raw: string | null): ThemeMode {
 
 export const hydrateSettingsFx = createEffect(async () => {
   try {
-    const reminders = await AsyncStorage.getItem(STORAGE_KEYS.REMINDERS);
     const location = await AsyncStorage.getItem(STORAGE_KEYS.LOCATION);
     const lang = await AsyncStorage.getItem(STORAGE_KEYS.LANG);
     const theme = await AsyncStorage.getItem(STORAGE_KEYS.THEME);   // ✅
 
     return {
-      eventReminders: reminders !== null ? reminders === 'true' : true,
       useLocation: location !== null ? location === 'true' : true,
       language: normalizeLanguage(lang),
       themeMode: normalizeTheme(theme),                             // ✅
     };
   } catch {
     return {
-      eventReminders: true,
       useLocation: true,
       language: 'en' as Language,
       themeMode: 'system' as ThemeMode,
@@ -89,13 +84,6 @@ export const hydrateSettingsFx = createEffect(async () => {
 // STORES
 // ============================================================
 
-export const $eventReminders = settingsDomain
-  .createStore<boolean>(true)
-  .on(toggleEventReminders, (_, value) => {
-    AsyncStorage.setItem(STORAGE_KEYS.REMINDERS, String(value));
-    return value;
-  })
-  .on(hydrateSettingsFx.doneData, (_, p) => p.eventReminders);
 
 export const $useLocation = settingsDomain
   .createStore<boolean>(true)
