@@ -74,6 +74,11 @@ export type LocationFilter = 'all' | 'visible' | 'near' | 'city';
 
 export const setLocationFilter = createEvent<LocationFilter>();
 
+/** ✅ Фильтр площадок по событиям: все / есть события / событие идёт */
+export type EventFilter = 'all' | 'any' | 'active';
+
+export const setEventFilter = createEvent<EventFilter>();
+
 // src/effector/events/sync.ts
 
 // ... существующие события ...

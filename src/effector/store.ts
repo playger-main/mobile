@@ -7,7 +7,8 @@ export {
   $searchQuery,
   $selectedCategory,
   $selectedDate,
-  $locationFilter 
+  $locationFilter,
+  $eventFilter
 } from './domains/filter';
 
 // ==========================================
@@ -33,6 +34,7 @@ export {
   $favoriteIds,
   $favoritesCount,
   $favoriteIdsLoaded,
+  $groundActivityLevels,
 } from './domains/data';
 
 export {
@@ -173,6 +175,7 @@ export {
   setSelectedCategory,
   setSelectedDate,
   setLocationFilter,
+  setEventFilter,
   setAuthStep,
   logout,
   sessionExpired,
@@ -182,6 +185,9 @@ export {
 export type { MapBounds } from './events/sync';
 
 export type { LocationFilter } from './events/sync';
+
+/** ✅ Фильтр площадок по событиям */
+export type { EventFilter } from './events/sync';
 
 // ==========================================
 // 7. ОТЗЫВЫ

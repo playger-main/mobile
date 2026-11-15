@@ -97,7 +97,7 @@ export const AppThemeColors: Record<'light' | 'dark', AppColors> = {
 
     overlay: 'rgba(0,0,0,0.4)',
     shadow: '#334A77',
-    selectionRing: '#1B2B4B',
+    selectionRing: '#6E4DFF',
   },
   dark: {
     background: '#0F1115',
@@ -125,7 +125,7 @@ export const AppThemeColors: Record<'light' | 'dark', AppColors> = {
 
     overlay: 'rgba(0,0,0,0.6)',
     shadow: '#000000',
-    selectionRing: '#EAF2FF',
+    selectionRing: '#9C86FF',
   },
 };
 

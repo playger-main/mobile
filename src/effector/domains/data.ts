@@ -5,6 +5,10 @@ import { ExtendedGroundItem } from '@/components/ui/CardGround';
 import { clearGrounds, logout } from '../events/sync';
 import { $selectedDate } from './filter';
 import { getEventStatus } from '@/utils/eventStatus';
+import {
+  getGroundActivityLevel,
+  type GroundActivityLevel,
+} from '@/utils/groundActivity';
 
 import {
   fetchGroundByIdFx,
@@ -311,6 +315,28 @@ export const $events = dataDomain
   .createStore<ServerEventItem[]>([])
   // ✅ P2: ошибка сети не обнуляет список событий
   .on(fetchAllEventsFx.doneData, (_, payload) => payload);
+
+/**
+ * ✅ Уровень активности по каждой площадке — один расчёт на изменение событий.
+ * Используется и картой (маркеры/кластеры), и списком (фильтр по событиям),
+ * чтобы не считать `events.filter(...)` на каждую площадку в каждом рендере.
+ */
+export const $groundActivityLevels = $events.map((events) => {
+  const byGround: Record<string, ServerEventItem[]> = {};
+
+  for (const event of events) {
+    const groundId = event.ground?.id;
+    if (!groundId) continue;
+    (byGround[groundId] ??= []).push(event);
+  }
+
+  const levels: Record<string, GroundActivityLevel> = {};
+  for (const [groundId, list] of Object.entries(byGround)) {
+    levels[groundId] = getGroundActivityLevel(list);
+  }
+
+  return levels;
+});
 
 export const $isEventsLoading = dataDomain
   .createStore<boolean>(false)

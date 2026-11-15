@@ -5,7 +5,9 @@ import {
   setSelectedCategory,
   setSelectedDate,
   setLocationFilter,
+  setEventFilter,
 } from '../events/sync';
+import type { EventFilter, LocationFilter } from '../events/sync';
 import { getTodayString } from '@/utils/getTodayString';
 
 const filterDomain = createDomain('filter');
@@ -24,5 +26,9 @@ export const $selectedDate = filterDomain
 
 // ✅ Фильтр по локации
 export const $locationFilter = filterDomain
-  .createStore<'all' | 'visible' | 'near' | 'city'>('all')
+  .createStore<LocationFilter>('all')
   .on(setLocationFilter, (_, value) => value);
+// ✅ Фильтр по событиям: все площадки / с любыми событиями / только с идущим
+export const $eventFilter = filterDomain
+  .createStore<EventFilter>('all')
+  .on(setEventFilter, (_, value) => value);

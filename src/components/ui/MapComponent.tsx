@@ -21,7 +21,8 @@ import ClusterMarker from './ClusterMarker';
 import ClusterGroundsSheet from './ClusterGroundsSheet';
 
 import {
-  $events,
+  $groundActivityLevels,
+  $eventFilter,
   $userLocation,
   $cityCenter,
   $mapFocusTarget,
@@ -35,7 +36,6 @@ import {
   detectCityFx,
   clearMapFocusTarget,
 } from '@/effector/store';
-import { getGroundActivityLevel } from '@/utils/groundActivity';
 import { GroundMapMarker } from '@/types/map';
 import {
   USER_ZOOM_LAT_DELTA,
@@ -79,7 +79,8 @@ export default function MapComponent({
   const { t } = useTranslation();
   const router = useRouter();
   const { theme, colors } = useTheme();
-  const events = useUnit($events);
+  const activityLevels = useUnit($groundActivityLevels);
+  const eventFilter = useUnit($eventFilter);
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
   const mapFocusTarget = useUnit($mapFocusTarget);
@@ -262,8 +263,7 @@ export default function MapComponent({
     return grounds
       .filter((g) => g.geolocation?.lat && g.geolocation?.lng)
       .map((g) => {
-        const groundEvents = events.filter((e) => e.ground?.id === g.id);
-        const activityLevel = getGroundActivityLevel(groundEvents);
+        const activityLevel = activityLevels[g.id] ?? 'none';
         const sports = Array.isArray(g.kindofsport) ? g.kindofsport : [];
         const sportId = sports.length > 0 ? sports[0] : 'Sport';
 
@@ -279,8 +279,16 @@ export default function MapComponent({
           avatar: g.avatar ?? undefined,
           raw: g,
         };
-      });
-  }, [grounds, events]);
+      })
+      // ✅ Фильтр по событиям (та же настройка, что и в списке площадок)
+      .filter((m) =>
+        eventFilter === 'all'
+          ? true
+          : eventFilter === 'active'
+            ? m.activityLevel === 'active'
+            : m.activityLevel !== 'none',
+      );
+  }, [grounds, activityLevels, eventFilter]);
 
   const supercluster = useMemo(() => {
     const index = new Supercluster({

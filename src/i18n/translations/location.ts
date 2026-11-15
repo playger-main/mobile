@@ -38,23 +38,6 @@ export const location: TranslationDict = {
   'map.legendActive': { en: 'Active today', ru: 'Активна сегодня', be: 'Актыўная сёння', lt: 'Aktyvi šiandien', pl: 'Aktywne dziś', uk: 'Активна сьогодні' },
   'map.legendUpcoming': { en: 'Featured', ru: 'Есть события', be: 'Ёсць падзеі', lt: 'Yra renginių', pl: 'Ma wydarzenia', uk: 'Є події' },
   'map.legendNone': { en: 'Ground', ru: 'Площадка', be: 'Пляцоўка', lt: 'Aikštelė', pl: 'Boisko', uk: 'Майданчик' },
-  // ✅ рамка кластера показывает, есть ли внутри площадки с событиями
-  'map.legendClusterActive': {
-    en: 'Cluster: event now',
-    ru: 'Кластер: событие идёт',
-    be: 'Кластар: падзея ідзе',
-    lt: 'Klasteris: vyksta renginys',
-    pl: 'Klaster: trwa wydarzenie',
-    uk: 'Кластер: подія триває',
-  },
-  'map.legendClusterUpcoming': {
-    en: 'Cluster: has events',
-    ru: 'Кластер: есть события',
-    be: 'Кластар: ёсць падзеі',
-    lt: 'Klasteris: yra renginių',
-    pl: 'Klaster: są wydarzenia',
-    uk: 'Кластер: є події',
-  },
 
   // ===== CLUSTER =====
   // ✅ С плюрализацией — "N площадок рядом"
@@ -159,5 +142,55 @@ export const location: TranslationDict = {
     lt: 'Mano miestas',
     pl: 'Moje miasto',
     uk: 'Моє місто',
+  },
+
+  // ✅ Фильтр по событиям (вторая секция того же листа фильтров)
+  'filters.title': {
+    en: 'Filters',
+    ru: 'Фильтры',
+    be: 'Фільтры',
+    lt: 'Filtrai',
+    pl: 'Filtry',
+    uk: 'Фільтри',
+  },
+  'filters.subtitle': {
+    en: 'What to show on the map',
+    ru: 'Что показывать на карте',
+    be: 'Што паказваць на карце',
+    lt: 'Ką rodyti žemėlapyje',
+    pl: 'Co pokazać na mapie',
+    uk: 'Що показувати на карті',
+  },
+  'filters.eventsSection': {
+    en: 'Events',
+    ru: 'События',
+    be: 'Падзеі',
+    lt: 'Renginiai',
+    pl: 'Wydarzenia',
+    uk: 'Події',
+  },
+  'filters.eventsAll': {
+    en: 'All grounds',
+    ru: 'Все площадки',
+    be: 'Усе пляцоўкі',
+    lt: 'Visos aikštelės',
+    pl: 'Wszystkie boiska',
+    uk: 'Усі майданчики',
+  },
+  'filters.eventsAny': {
+    en: 'With events',
+    ru: 'С событиями',
+    be: 'З падзеямі',
+    lt: 'Su renginiais',
+    pl: 'Z wydarzeniami',
+    uk: 'З подіями',
+  },
+  'filters.eventsActive': {
+    en: 'Happening now',
+    ru: 'Сейчас идёт',
+    be: 'Зараз ідзе',
+    lt: 'Vyksta dabar',
+    pl: 'Trwa teraz',
+    uk: 'Зараз триває',
   },
 };

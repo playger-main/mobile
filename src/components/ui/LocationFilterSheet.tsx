@@ -6,13 +6,19 @@ import {
   Text,
   StyleSheet,
   Pressable,
+  ScrollView,
 } from 'react-native';
 import Ionicons from "@react-native-vector-icons/ionicons";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnit } from 'effector-react';
 
-import { $locationFilter, setLocationFilter } from '@/effector/store';
-import type { LocationFilter } from '@/effector/store';
+import {
+  $locationFilter,
+  $eventFilter,
+  setLocationFilter,
+  setEventFilter,
+} from '@/effector/store';
+import type { LocationFilter, EventFilter } from '@/effector/store';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -21,17 +27,24 @@ interface LocationFilterSheetProps {
   onClose: () => void;
 }
 
-interface FilterOption {
-  code: LocationFilter;
+interface FilterOption<T> {
+  code: T;
   labelKey: string;
   icon: string;
 }
 
-const OPTIONS: FilterOption[] = [
+const LOCATION_OPTIONS: FilterOption<LocationFilter>[] = [
   { code: 'all', labelKey: 'locationFilter.all', icon: 'globe-outline' },
   { code: 'visible', labelKey: 'locationFilter.visible', icon: 'map-outline' },
   { code: 'near', labelKey: 'locationFilter.near', icon: 'navigate-outline' },
   { code: 'city', labelKey: 'locationFilter.city', icon: 'business-outline' },
+];
+
+// ✅ Фильтр по событиям: подсказывает, где вообще есть что-то живое
+const EVENT_OPTIONS: FilterOption<EventFilter>[] = [
+  { code: 'all', labelKey: 'filters.eventsAll', icon: 'albums-outline' },
+  { code: 'any', labelKey: 'filters.eventsAny', icon: 'calendar-outline' },
+  { code: 'active', labelKey: 'filters.eventsActive', icon: 'flash-outline' },
 ];
 
 export default function LocationFilterSheet({
@@ -42,12 +55,80 @@ export default function LocationFilterSheet({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const current = useUnit($locationFilter);
-  const setFilter = useUnit(setLocationFilter);
+  const currentLocation = useUnit($locationFilter);
+  const currentEvents = useUnit($eventFilter);
+  const setLocation = useUnit(setLocationFilter);
+  const setEvents = useUnit(setEventFilter);
 
-  const handleSelect = (code: LocationFilter) => {
-    setFilter(code);
+  const handleSelectLocation = (code: LocationFilter) => {
+    setLocation(code);
     onClose();
+  };
+
+  const handleSelectEvents = (code: EventFilter) => {
+    setEvents(code);
+    onClose();
+  };
+
+  const renderRow = <T extends string>(params: {
+    item: FilterOption<T>;
+    isActive: boolean;
+    isLast: boolean;
+    onPress: (code: T) => void;
+  }) => {
+    const { item, isActive, isLast, onPress } = params;
+    return (
+      <Pressable
+        key={item.code}
+        style={[
+          styles.row,
+          { borderBottomColor: colors.borderSubtle },
+          isLast && styles.rowLast,
+          isActive && { backgroundColor: colors.primaryBg },
+        ]}
+        onPress={() => onPress(item.code)}
+        accessibilityRole="button"
+        accessibilityState={{ selected: isActive }}
+        accessibilityLabel={t(item.labelKey)}
+      >
+        <View style={styles.rowLeft}>
+          <View
+            style={[
+              styles.iconBox,
+              {
+                backgroundColor: isActive
+                  ? colors.primaryBg
+                  : colors.surfaceSecondary,
+              },
+            ]}
+          >
+            <Ionicons
+              name={item.icon as any}
+              size={18}
+              color={isActive ? colors.primary : colors.textSecondary}
+            />
+          </View>
+          <Text
+            style={[
+              styles.label,
+              {
+                color: isActive ? colors.primary : colors.textPrimary,
+                fontWeight: isActive ? '700' : '600',
+              },
+            ]}
+          >
+            {t(item.labelKey)}
+          </Text>
+        </View>
+        {isActive && (
+          <Ionicons
+            name="checkmark-circle"
+            size={22}
+            color={colors.primary}
+          />
+        )}
+      </Pressable>
+    );
   };
 
   return (
@@ -84,10 +165,10 @@ export default function LocationFilterSheet({
           >
             <View style={{ flex: 1 }}>
               <Text style={[styles.title, { color: colors.textPrimary }]}>
-                {t('locationFilter.title')}
+                {t('filters.title')}
               </Text>
               <Text style={[styles.subtitle, { color: colors.textTertiary }]}>
-                {t('locationFilter.subtitle')}
+                {t('filters.subtitle')}
               </Text>
             </View>
             <Pressable
@@ -97,67 +178,44 @@ export default function LocationFilterSheet({
                 styles.closeBtn,
                 { backgroundColor: colors.surfaceSecondary },
               ]}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.close')}
             >
               <Ionicons name="close" size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
 
-          {/* Options */}
-          <View style={styles.listContent}>
-            {OPTIONS.map((item, idx) => {
-              const isActive = item.code === current;
-              const isLast = idx === OPTIONS.length - 1;
-              return (
-                <Pressable
-                  key={item.code}
-                  style={[
-                    styles.row,
-                    { borderBottomColor: colors.borderSubtle },
-                    isLast && styles.rowLast,
-                    isActive && { backgroundColor: colors.primaryBg },
-                  ]}
-                  onPress={() => handleSelect(item.code)}
-                >
-                  <View style={styles.rowLeft}>
-                    <View
-                      style={[
-                        styles.iconBox,
-                        {
-                          backgroundColor: isActive
-                            ? colors.primaryBg
-                            : colors.surfaceSecondary,
-                        },
-                      ]}
-                    >
-                      <Ionicons
-                        name={item.icon as any}
-                        size={18}
-                        color={isActive ? colors.primary : colors.textSecondary}
-                      />
-                    </View>
-                    <Text
-                      style={[
-                        styles.label,
-                        {
-                          color: isActive ? colors.primary : colors.textPrimary,
-                          fontWeight: isActive ? '700' : '600',
-                        },
-                      ]}
-                    >
-                      {t(item.labelKey)}
-                    </Text>
-                  </View>
-                  {isActive && (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={22}
-                      color={colors.primary}
-                    />
-                  )}
-                </Pressable>
-              );
-            })}
-          </View>
+          <ScrollView
+            style={styles.listContent}
+            contentContainerStyle={{ paddingBottom: 8 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* ===== ЛОКАЦИЯ ===== */}
+            {LOCATION_OPTIONS.map((item, idx) =>
+              renderRow({
+                item,
+                isActive: item.code === currentLocation,
+                isLast: idx === LOCATION_OPTIONS.length - 1,
+                onPress: handleSelectLocation,
+              }),
+            )}
+
+            {/* ===== СОБЫТИЯ ===== */}
+            <Text
+              style={[styles.sectionTitle, { color: colors.textTertiary }]}
+            >
+              {t('filters.eventsSection')}
+            </Text>
+
+            {EVENT_OPTIONS.map((item, idx) =>
+              renderRow({
+                item,
+                isActive: item.code === currentEvents,
+                isLast: idx === EVENT_OPTIONS.length - 1,
+                onPress: handleSelectEvents,
+              }),
+            )}
+          </ScrollView>
         </Pressable>
       </Pressable>
     </Modal>
@@ -176,7 +234,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     borderWidth: 1,
     borderBottomWidth: 0,
-    maxHeight: '70%',
+    maxHeight: '80%',
   },
   header: {
     flexDirection: 'row',
@@ -197,6 +255,15 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   listContent: { paddingHorizontal: 12, paddingTop: 8 },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 14,
+    marginBottom: 4,
+    paddingHorizontal: 8,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

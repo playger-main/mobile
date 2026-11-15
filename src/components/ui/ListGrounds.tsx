@@ -32,6 +32,8 @@ import {
   $cityCenter,
   $mapVisibleBounds,
   $locationFilter,
+  $eventFilter,
+  $groundActivityLevels,
 } from '@/effector/store';
 import { setSelectedCategory } from '@/effector/events/sync';
 import { calculateDistance } from '@/utils/distance';
@@ -71,6 +73,8 @@ export default function ListGrounds({
     cityCenter,
     mapBounds,
     locationFilter,
+    eventFilter,
+    activityLevels,
   } = useUnit({
     grounds: $grounds,
     isLoading: $isGroundsLoading,
@@ -83,6 +87,8 @@ export default function ListGrounds({
     cityCenter: $cityCenter,
     mapBounds: $mapVisibleBounds,
     locationFilter: $locationFilter,
+    eventFilter: $eventFilter,
+    activityLevels: $groundActivityLevels,
   });
 
   // ✅ P2: поиск дебаунсится, чтобы не отправлять запрос на каждую букву
@@ -146,6 +152,14 @@ export default function ListGrounds({
         break;
     }
 
+    // ✅ фильтр по событиям — тот же, что на карте
+    if (eventFilter !== 'all') {
+      list = list.filter((g) => {
+        const level = activityLevels[g.id] ?? 'none';
+        return eventFilter === 'active' ? level === 'active' : level !== 'none';
+      });
+    }
+
     if (origin) {
       list.sort((a, b) => {
         const da = getDistanceToGround(a, origin);
@@ -155,7 +169,15 @@ export default function ListGrounds({
     }
 
     return list.slice(0, MAX_GROUNDS_RESULTS);
-  }, [grounds, userLocation, cityCenter, mapBounds, locationFilter]);
+  }, [
+    grounds,
+    userLocation,
+    cityCenter,
+    mapBounds,
+    locationFilter,
+    eventFilter,
+    activityLevels,
+  ]);
 
   const filterLabel = useMemo(() => {
     switch (locationFilter) {
@@ -186,15 +208,25 @@ export default function ListGrounds({
           style={[
             styles.filterBtn,
             {
-              backgroundColor: colors.surface,
-              borderColor: colors.border,
+              backgroundColor:
+                eventFilter === 'all' ? colors.surface : colors.primaryBg,
+              borderColor:
+                eventFilter === 'all' ? colors.border : colors.primary,
             },
           ]}
           onPress={() => setFilterSheetVisible(true)}
+          accessibilityRole="button"
+          accessibilityLabel={t('filters.title')}
         >
           <Ionicons name={filterIcon as any} size={13} color={colors.primary} />
           <Text style={[styles.filterBtnText, { color: colors.primary }]}>
-            {filterLabel}
+            {eventFilter === 'all'
+              ? filterLabel
+              : `${filterLabel} · ${t(
+                  eventFilter === 'active'
+                    ? 'filters.eventsActive'
+                    : 'filters.eventsAny',
+                )}`}
           </Text>
           <Ionicons name="chevron-down" size={13} color={colors.primary} />
         </Pressable>

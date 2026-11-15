@@ -26,8 +26,10 @@ export default function ClusterMarker({
 
   // Размер кластера зависит от количества
   const size = count < 10 ? 40 : count < 100 ? 48 : 56;
+  // ✅ Рамка тем же цветом, что и заливка маркеров с событиями
+  //    (зелёный / оранжевый), чтобы связь читалась без подписей.
   const borderColor =
-    level === 'none' ? colors.primaryDark : ACTIVITY_COLORS[level].border;
+    level === 'none' ? colors.primaryDark : ACTIVITY_COLORS[level].bg;
 
   return (
     <View
