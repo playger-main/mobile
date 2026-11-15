@@ -42,6 +42,30 @@ import { useTheme } from '@/hooks/useTheme';
 registerCalendarLocales();
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+if (__DEV__) {
+  /**
+   * ✅ Reanimated 4 на нативе предупреждает, если в `useAnimatedProps` передан
+   * массив зависимостей (этот параметр нужен только для web). Так делают
+   * библиотеки, а не наш код:
+   *   - `react-native-drawer-layout` (drawer из React Navigation) — (updater, [progress]);
+   *   - `@gorhom/bottom-sheet` — в scrollable/refresh-control.
+   * На нативе зависимости игнорируются, поведение не меняется — это шум,
+   * который повторяется на каждый ререндер. Фильтруем только это сообщение,
+   * остальные предупреждения остаются видимыми.
+   */
+  const originalWarn = console.warn;
+  console.warn = ((...args: unknown[]) => {
+    const first = args[0];
+    if (
+      typeof first === 'string' &&
+      first.includes('Dependencies should only be used on the web')
+    ) {
+      return;
+    }
+    originalWarn(...(args as Parameters<typeof console.warn>));
+  }) as typeof console.warn;
+}
 LogBox.ignoreLogs([
   '[Reanimated] Dependencies should only be used on the web and are always ignored on native. Check DevTools to see the offending code.',
 ]);
