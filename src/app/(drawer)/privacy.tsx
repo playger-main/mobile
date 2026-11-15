@@ -41,7 +41,13 @@ export default function PrivacyScreen() {
           },
         ]}
       >
-        <Pressable onPress={handleBack} style={styles.backButton} hitSlop={12}>
+        <Pressable
+          onPress={handleBack}
+          style={styles.backButton}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back')}
+        >
           <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </Pressable>
         <Text

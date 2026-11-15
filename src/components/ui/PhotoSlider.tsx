@@ -9,6 +9,9 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
 } from 'react-native';
+// ✅ RN 0.88: тип инстанса ScrollView экспортируется отдельно,
+// сам `ScrollView` — это компонент, а не тип инстанса.
+import type { ScrollViewInstance } from 'react-native';
 import Ionicons from "@react-native-vector-icons/ionicons";
 
 import { useTheme } from '@/hooks/useTheme';
@@ -30,9 +33,12 @@ export default function PhotoSlider({
 }: PhotoSliderProps) {
   const { width } = useWindowDimensions();
   const { colors } = useTheme();
-  const scrollRef = useRef<ScrollView | null>(null);
+  const scrollRef = useRef<ScrollViewInstance | null>(null);
   const safeIndex = Math.max(0, Math.min(initialIndex, photos.length - 1));
   const [currentIndex, setCurrentIndex] = useState(safeIndex);
+  // ✅ P2: если картинка не загрузилась (нет сети / CDN недоступен), показываем
+  // заглушку вместо пустого места — иначе непонятно, сломалось ли фото.
+  const [failedUris, setFailedUris] = useState<string[]>([]);
 
   const showDots = photos.length > 1;
 
@@ -71,14 +77,39 @@ export default function PhotoSlider({
         onMomentumScrollEnd={onScroll}
         contentOffset={{ x: safeIndex * width, y: 0 }}
       >
-        {photos.map((uri, i) => (
-          <Image
-            key={`${uri}-${i}`}
-            source={{ uri }}
-            style={{ width, height }}
-            resizeMode="cover"
-          />
-        ))}
+        {photos.map((uri, i) => {
+          if (failedUris.includes(uri)) {
+            return (
+              <View
+                key={`${uri}-${i}`}
+                style={[
+                  styles.placeholderWrap,
+                  { width, height, backgroundColor: colors.surfaceSecondary },
+                ]}
+              >
+                <Ionicons
+                  name="image-outline"
+                  size={40}
+                  color={colors.textTertiary}
+                />
+              </View>
+            );
+          }
+
+          return (
+            <Image
+              key={`${uri}-${i}`}
+              source={{ uri }}
+              style={{ width, height }}
+              resizeMode="cover"
+              onError={() =>
+                setFailedUris((prev) =>
+                  prev.includes(uri) ? prev : [...prev, uri],
+                )
+              }
+            />
+          );
+        })}
       </ScrollView>
 
       {showDots && (

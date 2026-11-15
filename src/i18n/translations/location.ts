@@ -27,6 +27,14 @@ export const location: TranslationDict = {
   'groundPicker.locationAccessHint': { en: 'Enable location to see your position.', ru: 'Включите геолокацию, чтобы увидеть ваше положение.', be: 'Уключыце геалакацыю, каб убачыць ваша становішча.', lt: 'Įjunkite vietą, kad matytumėte savo poziciją.', pl: 'Włącz lokalizację, aby zobaczyć swoją pozycję.', uk: 'Увімкніть геолокацію, щоб побачити своє положення.' },
 
   // ===== MAP LEGEND =====
+  'map.webPlaceholder': {
+    en: 'The map is available in the mobile app. Grounds found: {{count}}',
+    ru: 'Карта доступна в мобильном приложении. Найдено площадок: {{count}}',
+    be: 'Карта даступная ў мабільным дадатку. Знойдзена пляцовак: {{count}}',
+    lt: 'Žemėlapis prieinamas mobiliąją programėlę. Rasta aikštelių: {{count}}',
+    pl: 'Mapa jest dostępna w aplikacji mobilnej. Znaleziono boisk: {{count}}',
+    uk: 'Карта доступна в мобільному додатку. Знайдено майданчиків: {{count}}',
+  },
   'map.legendActive': { en: 'Active today', ru: 'Активна сегодня', be: 'Актыўная сёння', lt: 'Aktyvi šiandien', pl: 'Aktywne dziś', uk: 'Активна сьогодні' },
   'map.legendUpcoming': { en: 'Featured', ru: 'Есть события', be: 'Ёсць падзеі', lt: 'Yra renginių', pl: 'Ma wydarzenia', uk: 'Є події' },
   'map.legendNone': { en: 'Ground', ru: 'Площадка', be: 'Пляцоўка', lt: 'Aikštelė', pl: 'Boisko', uk: 'Майданчик' },

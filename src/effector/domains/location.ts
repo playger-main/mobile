@@ -14,11 +14,9 @@ import {
   clearMapVisibleBounds,
   setSelectedMapGround,
   clearSelectedMapGround,
-  toggleFavoriteInStore,   // ✅ добавили
 } from '../events/sync';
-import { addFavoriteFx, removeFavoriteFx } from '../events/async/userLists'; // ✅ добавили
+import { $grounds } from './data';
 import { DEFAULT_CITY_CENTER, getCityCenter } from '@/constants/location';
-import type { ExtendedGroundItem } from '@/components/ui/CardGround';
 
 const locationDomain = createDomain('location');
 
@@ -184,21 +182,19 @@ export const $mapVisibleBounds = locationDomain
 // ==========================================
 // ✅ №16: превью выбранной площадки на карте
 // ==========================================
-export const $selectedMapGround = locationDomain
-  .createStore<ExtendedGroundItem | null>(null)
-  .on(setSelectedMapGround, (_, ground) => ground)
-  .on(clearSelectedMapGround, () => null)
-  // ✅ Оптимистичный тоггл — мгновенная реакция UI
-  .on(toggleFavoriteInStore, (state, id) =>
-    state && state.id === id
-      ? { ...state, isFavorite: !state.isFavorite }
-      : state,
-  )
-  // ✅ Синхронизация с сервером
-  .on(addFavoriteFx.done, (state, { params: groundId }) =>
-    state && state.id === groundId ? { ...state, isFavorite: true } : state,
-  )
-  .on(removeFavoriteFx.done, (state, { params: groundId }) =>
-    state && state.id === groundId ? { ...state, isFavorite: false } : state,
-  );
+/**
+ * ✅ P2 (нормализация): храним только id выбранной площадки, а сам объект
+ * выводим из `$grounds`. Раньше здесь лежала полная копия объекта, и её
+ * приходилось вручную патчить в трёх местах (избранное, обновление, удаление).
+ */
+export const $selectedMapGroundId = locationDomain
+  .createStore<string | null>(null)
+  .on(setSelectedMapGround, (_, ground) => ground?.id ?? null)
+  .on(clearSelectedMapGround, () => null);
+
+export const $selectedMapGround = combine(
+  $selectedMapGroundId,
+  $grounds,
+  (id, grounds) => (id ? grounds.find((g) => g.id === id) ?? null : null),
+);
   

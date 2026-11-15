@@ -3,15 +3,28 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { ExtendedGroundItem } from './CardGround';
 import MapLegend from './MapLegend';
+import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
 
+/**
+ * ✅ P2: интерфейс совпадает с нативным MapComponent, чтобы экраны
+ * не расходились по типам между платформами.
+ */
 interface MapComponentProps {
-  region: any;
+  region: {
+    latitude: number;
+    longitude: number;
+    latitudeDelta: number;
+    longitudeDelta: number;
+  };
   grounds: ExtendedGroundItem[];
+  onMarkerPress?: (ground: ExtendedGroundItem) => void;
+  topOffset?: number;
 }
 
 export default function MapComponentWeb({ grounds }: MapComponentProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <View style={styles.container}>
@@ -25,8 +38,7 @@ export default function MapComponentWeb({ grounds }: MapComponentProps) {
         ]}
       >
         <Text style={[styles.text, { color: colors.textSecondary }]}>
-          [ Карта для Web-версии: подключите Leaflet или Google Maps API.{'\n'}
-          Найдено площадок: {grounds.length} ]
+          {t('map.webPlaceholder', { count: grounds.length })}
         </Text>
       </View>
 

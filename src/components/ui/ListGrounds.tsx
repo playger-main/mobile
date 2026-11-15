@@ -37,6 +37,7 @@ import { setSelectedCategory } from '@/effector/events/sync';
 import { calculateDistance } from '@/utils/distance';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 
 const MAX_GROUNDS_RESULTS = 100;
 const NEAR_RADIUS_METERS = 5000;
@@ -84,14 +85,17 @@ export default function ListGrounds({
     locationFilter: $locationFilter,
   });
 
+  // ✅ P2: поиск дебаунсится, чтобы не отправлять запрос на каждую букву
+  const debouncedSearch = useDebouncedValue(searchQuery, 300);
+
   useFocusEffect(
     useCallback(() => {
       fetchGroundsFx({
         kindofsport: selectedCategory === 'all' ? undefined : selectedCategory,
-        search: searchQuery.trim() || undefined,
+        search: debouncedSearch.trim() || undefined,
         take: MAX_GROUNDS_RESULTS,
       });
-    }, [selectedCategory, searchQuery, user?.id]),
+    }, [selectedCategory, debouncedSearch, user?.id]),
   );
 
   React.useEffect(() => {

@@ -19,6 +19,8 @@ export default function TabLayout() {
   const renderDrawerButton = () => (
     <Pressable
       onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+      accessibilityRole="button"
+      accessibilityLabel={t('common.menu')}
       style={({ pressed }) => [
         styles.tabMenuButton,
         {
@@ -57,7 +59,6 @@ export default function TabLayout() {
                 },
                 style,
               ]}
-              android_ripple={null}
             >
               {children}
             </Pressable>

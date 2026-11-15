@@ -307,14 +307,27 @@ export default function MapComponent({
   }, [rawMarkers]);
 
   const clusters = useMemo(() => {
-    const zoom = Math.round(
-      Math.log2(360 / Math.max(currentRegion.latitudeDelta, 0.0001)),
+    // ✅ P2-fix: supercluster считает zoom от longitudeDelta (а не latitude),
+    // а bbox — это половинные дельты вокруг центра. Раньше окно было в 2 раза
+    // больше экрана и zoom завышался → фантомные кластеры за пределами карты.
+    const zoom = Math.max(
+      0,
+      Math.min(
+        16,
+        Math.round(
+          Math.log2(360 / Math.max(currentRegion.longitudeDelta, 0.0001)),
+        ),
+      ),
     );
+
+    const halfLng = currentRegion.longitudeDelta / 2;
+    const halfLat = currentRegion.latitudeDelta / 2;
+
     const bbox: [number, number, number, number] = [
-      currentRegion.longitude - currentRegion.longitudeDelta,
-      currentRegion.latitude - currentRegion.latitudeDelta,
-      currentRegion.longitude + currentRegion.longitudeDelta,
-      currentRegion.latitude + currentRegion.latitudeDelta,
+      currentRegion.longitude - halfLng,
+      currentRegion.latitude - halfLat,
+      currentRegion.longitude + halfLng,
+      currentRegion.latitude + halfLat,
     ];
 
     return supercluster.getClusters(bbox, zoom);
@@ -514,6 +527,9 @@ export default function MapComponent({
         ]}
         onPress={handleLocatePress}
         disabled={isLocating}
+        accessibilityRole="button"
+        accessibilityLabel={t('common.myLocation')}
+        accessibilityState={{ disabled: isLocating, busy: isLocating }}
       >
         <Ionicons
           name={isLocating ? 'hourglass-outline' : 'locate'}

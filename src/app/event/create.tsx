@@ -10,7 +10,6 @@ import {
   Platform,
   KeyboardAvoidingView,
   Alert,
-  ActivityIndicator,
   Modal,
   Keyboard,
 } from 'react-native';
@@ -23,6 +22,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { createEventFx } from '@/effector/events/async/events';
 import { $grounds, fetchGroundsFx } from '@/effector/store';
 import GroundPickerModal from '@/components/ui/GroundPickerModal';
+import ScreenHeader from '@/components/forms/ScreenHeader';
+import ChipGroup from '@/components/forms/ChipGroup';
+import Counter from '@/components/forms/Counter';
+import FormBottomBar from '@/components/forms/FormBottomBar';
 import { useTranslation } from '@/i18n';
 import { SKILL_LEVELS, getSkillLevelKey } from '@/constants/skillLevels';
 import { useTheme } from '@/hooks/useTheme';
@@ -182,29 +185,10 @@ export default function CreateEventScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={[styles.container, { backgroundColor: colors.listBackground }]}
     >
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: insets.top + 6,
-            backgroundColor: colors.background,
-            borderColor: colors.borderSubtle,
-          },
-        ]}
-      >
-        <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color={colors.primary} />
-        </Pressable>
-        <View style={styles.headerTitleContainer}>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            {t('events.create.title')}
-          </Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textTertiary }]}>
-            {t('events.create.subtitle')}
-          </Text>
-        </View>
-        <View style={{ width: 32 }} />
-      </View>
+      <ScreenHeader
+        title={t('events.create.title')}
+        subtitle={t('events.create.subtitle')}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -343,123 +327,39 @@ export default function CreateEventScreen() {
         <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
           {t('events.form.skillLevel')}
         </Text>
-        <View style={styles.chipsWrapContainer}>
-          {SKILL_LEVELS.map((level) => {
-            const isSelected = skillLevel === level;
-            return (
-              <Pressable
-                key={level}
-                onPress={() => setSkillLevel(level)}
-                style={[
-                  styles.chipItem,
-                  {
-                    backgroundColor: isSelected ? colors.primary : colors.surface,
-                    borderColor: isSelected ? colors.primary : colors.border,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.chipText,
-                    { color: isSelected ? '#FFFFFF' : colors.textPrimary },
-                  ]}
-                >
-                  {t(getSkillLevelKey(level))}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <ChipGroup
+          options={SKILL_LEVELS.map((level) => ({
+            value: level,
+            label: t(getSkillLevelKey(level)),
+          }))}
+          value={skillLevel}
+          onChange={setSkillLevel}
+        />
 
         <View style={styles.rowContainer}>
           <View style={styles.flexItem}>
             <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
               {t('events.form.playersNeeded')}
             </Text>
-            <View
-              style={[
-                styles.counterBlock,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                },
-              ]}
-            >
-              <Pressable
-                style={[
-                  styles.counterButton,
-                  { backgroundColor: colors.surfaceSecondary },
-                ]}
-                onPress={() => setPlayersNeeded(Math.max(2, playersNeeded - 1))}
-              >
-                <Text
-                  style={[styles.counterButtonText, { color: colors.textPrimary }]}
-                >
-                  -
-                </Text>
-              </Pressable>
-              <Text style={[styles.counterValue, { color: colors.textPrimary }]}>
-                {playersNeeded}
-              </Text>
-              <Pressable
-                style={[
-                  styles.counterButton,
-                  { backgroundColor: colors.surfaceSecondary },
-                ]}
-                onPress={() => setPlayersNeeded(playersNeeded + 1)}
-              >
-                <Text
-                  style={[styles.counterButtonText, { color: colors.textPrimary }]}
-                >
-                  +
-                </Text>
-              </Pressable>
-            </View>
+            <Counter
+              value={playersNeeded}
+              onChange={setPlayersNeeded}
+              min={2}
+              label={t('events.form.playersNeeded')}
+            />
           </View>
 
           <View style={styles.flexItem}>
             <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
               {t('events.form.duration')}
             </Text>
-            <View
-              style={[
-                styles.counterBlock,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                },
-              ]}
-            >
-              <Pressable
-                style={[
-                  styles.counterButton,
-                  { backgroundColor: colors.surfaceSecondary },
-                ]}
-                onPress={() => setDuration(Math.max(15, duration - 15))}
-              >
-                <Text
-                  style={[styles.counterButtonText, { color: colors.textPrimary }]}
-                >
-                  -
-                </Text>
-              </Pressable>
-              <Text style={[styles.counterValue, { color: colors.textPrimary }]}>
-                {duration}
-              </Text>
-              <Pressable
-                style={[
-                  styles.counterButton,
-                  { backgroundColor: colors.surfaceSecondary },
-                ]}
-                onPress={() => setDuration(duration + 15)}
-              >
-                <Text
-                  style={[styles.counterButtonText, { color: colors.textPrimary }]}
-                >
-                  +
-                </Text>
-              </Pressable>
-            </View>
+            <Counter
+              value={duration}
+              onChange={setDuration}
+              min={15}
+              step={15}
+              label={t('events.form.duration')}
+            />
           </View>
         </View>
 
@@ -594,31 +494,14 @@ export default function CreateEventScreen() {
         />
       )}
 
-      <View
-        style={[
-          styles.bottomBar,
-          {
-            paddingBottom: insets.bottom + 12,
-            backgroundColor: colors.background,
-            borderColor: colors.borderSubtle,
-          },
-        ]}
-      >
-        {/* ✅ №20: визуальный disabled */}
-        <Pressable
-          style={[styles.publishButton, { backgroundColor: publishBg }]}
-          onPress={handlePublish}
-          disabled={publishDisabled}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator color="#FFFFFF" size="small" />
-          ) : (
-            <Text style={[styles.publishButtonText, { color: publishTextColor }]}>
-              {t('events.form.publishButton')}
-            </Text>
-          )}
-        </Pressable>
-      </View>
+      <FormBottomBar
+        label={t('events.form.publishButton')}
+        onPress={handlePublish}
+        disabled={publishDisabled}
+        loading={isSubmitting}
+        backgroundColor={publishBg}
+        textColor={publishTextColor}
+      />
 
       <GroundPickerModal
         visible={showGroundPicker}
@@ -632,18 +515,6 @@ export default function CreateEventScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-  },
-  backButton: { padding: 4 },
-  headerTitleContainer: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '700' },
-  headerSubtitle: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   scrollContent: { paddingHorizontal: 16, paddingTop: 20 },
   inputLabel: {
     fontSize: 14,
@@ -718,40 +589,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   iconInputText: { fontSize: 14, fontWeight: '500' },
-  chipsWrapContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginVertical: 4,
-  },
-  chipItem: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderRadius: 20,
-  },
-  chipText: { fontSize: 13, fontWeight: '600' },
-  counterBlock: {
-    height: 48,
-    borderWidth: 1,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  counterButton: {
-    width: 44,
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  counterButtonText: { fontSize: 20, fontWeight: '600' },
-  counterValue: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 15,
-    fontWeight: '700',
-  },
   textareaField: {
     width: '100%',
     height: 100,
@@ -761,24 +598,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    zIndex: 99,
-  },
-  publishButton: {
-    width: '100%',
-    height: 50,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  publishButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   iosModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.4)',

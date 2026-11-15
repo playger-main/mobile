@@ -120,7 +120,13 @@ export default function ReviewCard({
         {isMine && (
           <View style={styles.actions}>
             {onEdit && (
-              <Pressable onPress={onEdit} hitSlop={8} style={styles.actionBtn}>
+              <Pressable
+                onPress={onEdit}
+                style={styles.actionBtn}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.edit')}
+              >
                 <Ionicons
                   name="create-outline"
                   size={18}

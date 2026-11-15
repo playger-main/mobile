@@ -35,14 +35,14 @@ export const isValidAmenity = (value: string): value is Amenity =>
 export const getAmenityKey = (amenity: string): string => `amenity.${amenity}`;
 
 /**
- * Возвращает иконку Ionicons для удобства.
+ * Возвращает имя иконки Ionicons для удобства.
  * Работает и по camelCase-ключу, и по старому значению (для совместимости).
+ *
+ * Раньше тип брался из `@expo/vector-icons/.../Ionicons.json`, но этого пакета
+ * в зависимостях нет — импорт существовал только в type-позиции и ломал `tsc`.
  */
-export const getAmenityIcon = (
-  amenity: string,
-): keyof typeof import('@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/Ionicons.json') => {
-  const map: Record<string, any> = {
-    // ✅ ключи
+export const getAmenityIcon = (amenity: string): string => {
+  const map: Record<string, string> = {
     floodlights: 'flashlight-outline',
     benches: 'bed-outline',
     freeEntry: 'pricetag-outline',
@@ -57,8 +57,8 @@ export const getAmenityIcon = (
     firstAidKit: 'medkit-outline',
     equipmentRental: 'construct-outline',
     wheelchairAccessible: 'accessibility-outline',
-    evCharging: 'battery-charging-outline',   // ✅ NEW
-    // legacy
+    evCharging: 'battery-charging-outline',
+    // legacy-значения из старых записей в БД
     Floodlights: 'flashlight-outline',
     Benches: 'bed-outline',
     'Free entry': 'pricetag-outline',
@@ -73,7 +73,7 @@ export const getAmenityIcon = (
     'First aid kit': 'medkit-outline',
     'Equipment rental': 'construct-outline',
     'Wheelchair accessible': 'accessibility-outline',
-    'EV charging': 'battery-charging-outline',   // ✅ legacy
+    'EV charging': 'battery-charging-outline',
   };
   return map[amenity] ?? 'checkmark-circle-outline';
 };

@@ -1,5 +1,5 @@
 // src/app/ground/moderate/[id].tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -19,6 +19,7 @@ import { useUnit } from 'effector-react';
 import Ionicons from "@react-native-vector-icons/ionicons";
 
 import {
+  $appLanguage,
   $currentGround,
   $isGroundDetailLoading,
   $moderateForm,
@@ -47,6 +48,9 @@ import { SPORT_OPTIONS, getSportKey } from '@/constants/sports';
 import { AMENITIES_OPTIONS, getAmenityKey } from '@/constants/amenities';
 import { SURFACE_OPTIONS, getSurfaceKey } from '@/constants/surface';
 import PhotoPicker, { PhotoInput } from '@/components/ui/PhotoPicker';
+import ScreenHeader from '@/components/forms/ScreenHeader';
+import MultiChipGroup from '@/components/forms/MultiChipGroup';
+import FormBottomBar from '@/components/forms/FormBottomBar';
 import LocationPickerModal from '@/components/ui/LocationPickerModal';
 import { SUPPORTED_LANGUAGES } from '@/i18n';
 import type { Language } from '@/i18n';
@@ -82,12 +86,20 @@ export default function ModerateGroundScreen() {
 
   const [locationPickerVisible, setLocationPickerVisible] = useState(false);
 
+  // ✅ P2-fix: форма инициализируется один раз на площадку.
+  // Раньше эффект срабатывал на каждое изменение `$currentGround` — а его
+  // меняет и `updateGroundFx.doneData`, и фоновый refetch. В итоге сохранение
+  // или обновление данных молча затирало правки модератора.
+  const initializedForRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (id) fetchGroundByIdFx(id);
   }, [id]);
 
   useEffect(() => {
     if (!ground) return;
+    if (initializedForRef.current === ground.id) return;
+    initializedForRef.current = ground.id;
 
     const photos: PhotoInput[] = (ground.photos ?? []).map((uri, i) => ({
       uri,
@@ -111,7 +123,10 @@ export default function ModerateGroundScreen() {
           : null,
       photos,
       initialPhotoIds: ground.photoIds ?? [],
-      activeLang: 'en',
+      // ✅ P2: стартовый язык перевода — язык приложения (был жёстко 'en').
+      // Читаем getState(), чтобы не тащить lang в deps эффекта и не
+      // переинициализировать форму при смене языка.
+      activeLang: $appLanguage.getState() ?? 'en',
     });
   }, [ground]);
 
@@ -193,30 +208,11 @@ export default function ModerateGroundScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={[styles.container, { backgroundColor: colors.listBackground }]}
     >
-      {/* HEADER */}
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: insets.top + 6,
-            backgroundColor: colors.background,
-            borderColor: colors.borderSubtle,
-          },
-        ]}
-      >
-        <Pressable onPress={handleBack} style={styles.backButton} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color={colors.primary} />
-        </Pressable>
-        <View style={styles.headerTitleContainer}>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            {t('moderate.title')}
-          </Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textTertiary }]}>
-            {t('moderate.subtitle')}
-          </Text>
-        </View>
-        <View style={{ width: 32 }} />
-      </View>
+      <ScreenHeader
+        title={t('moderate.title')}
+        subtitle={t('moderate.subtitle')}
+        onBack={handleBack}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -341,87 +337,40 @@ export default function ModerateGroundScreen() {
         <Text style={[styles.label, { color: colors.textPrimary }]}>
           {t('groundForm.surface')}
         </Text>
-        <View style={styles.surfaceWrap}>
-          {SURFACE_OPTIONS.map((s) => {
-            const isSelected = form.coverage.includes(s.id);
-            return (
-              <Pressable
-                key={s.id}
-                onPress={() => {
-                  const next = isSelected
-                    ? form.coverage.filter((x) => x !== s.id)
-                    : [...form.coverage, s.id];
-                  changeCoverage(next);
-                }}
-                style={[
-                  styles.surfaceChip,
-                  {
-                    backgroundColor: isSelected ? colors.primary : colors.surface,
-                    borderColor: isSelected ? colors.primary : colors.border,
-                  },
-                ]}
-              >
-                <SurfaceIcon
-                  id={s.id}
-                  size={14}
-                  color={isSelected ? '#FFFFFF' : colors.textPrimary}
-                />
-                <Text
-                  style={[
-                    styles.surfaceChipText,
-                    {
-                      color: isSelected ? '#FFFFFF' : colors.textPrimary,
-                      marginLeft: 6,
-                    },
-                    isSelected && { fontWeight: '600' },
-                  ]}
-                >
-                  {t(getSurfaceKey(s.id))}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <MultiChipGroup
+          options={SURFACE_OPTIONS.map((s) => ({ value: s.id, label: t(getSurfaceKey(s.id)) }))}
+          values={form.coverage}
+          onToggle={(value) => {
+            const next = form.coverage.includes(value)
+              ? form.coverage.filter((x) => x !== value)
+              : [...form.coverage, value];
+            changeCoverage(next);
+          }}
+          compact
+          renderLeading={(option, isSelected) => (
+            <SurfaceIcon
+              id={option.value}
+              size={14}
+              color={isSelected ? '#FFFFFF' : colors.textPrimary}
+            />
+          )}
+        />
 
         {/* ============ AMENITIES ============ */}
         <Text style={[styles.label, { color: colors.textPrimary }]}>
           {t('groundForm.amenities')}
         </Text>
-        <View style={styles.amenitiesWrap}>
-          {AMENITIES_OPTIONS.map((amenity) => {
-            const isSelected = form.amenities.includes(amenity);
-            return (
-              <Pressable
-                key={amenity}
-                onPress={() => {
-                  const next = isSelected
-                    ? form.amenities.filter((a) => a !== amenity)
-                    : [...form.amenities, amenity];
-                  changeAmenities(next);
-                }}
-                style={[
-                  styles.amenityChip,
-                  {
-                    backgroundColor: isSelected ? colors.primary : colors.surface,
-                    borderColor: isSelected ? colors.primary : colors.border,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.amenityText,
-                    {
-                      color: isSelected ? '#FFFFFF' : colors.textPrimary,
-                    },
-                    isSelected && { fontWeight: '600' },
-                  ]}
-                >
-                  {t(getAmenityKey(amenity))}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <MultiChipGroup
+          options={AMENITIES_OPTIONS.map((amenity) => ({ value: amenity, label: t(getAmenityKey(amenity)) }))}
+          values={form.amenities}
+          onToggle={(value) => {
+            const next = form.amenities.includes(value)
+              ? form.amenities.filter((x) => x !== value)
+              : [...form.amenities, value];
+            changeAmenities(next);
+          }}
+          compact
+        />
 
         {/* ORIGINAL DESCRIPTION */}
         <Text style={[styles.label, { color: colors.textPrimary }]}>
@@ -580,47 +529,16 @@ export default function ModerateGroundScreen() {
         />
       </ScrollView>
 
-      {/* SAVE */}
-      <View
-        style={[
-          styles.bottomBar,
-          {
-            paddingBottom: insets.bottom + 12,
-            backgroundColor: colors.background,
-            borderColor: colors.borderSubtle,
-          },
-        ]}
-      >
-        <Pressable
-          style={[
-            styles.saveBtn,
-            {
-              backgroundColor:
-                hasChanges && isValid && !isSaving
-                  ? colors.primaryDark
-                  : colors.disabledBg,
-            },
-          ]}
-          onPress={handleSave}
-          disabled={!hasChanges || !isValid || isSaving}
-        >
-          {isSaving ? (
-            <ActivityIndicator color="#FFFFFF" size="small" />
-          ) : (
-            <Text
-              style={[
-                styles.saveBtnText,
-                {
-                  color:
-                    hasChanges && isValid ? '#FFFFFF' : colors.textTertiary,
-                },
-              ]}
-            >
-              {hasChanges ? t('common.saveChanges') : t('common.noChangesYet')}
-            </Text>
-          )}
-        </Pressable>
-      </View>
+      <FormBottomBar
+        label={hasChanges ? t('common.saveChanges') : t('common.noChangesYet')}
+        onPress={handleSave}
+        disabled={!hasChanges || !isValid || isSaving}
+        loading={isSaving}
+        backgroundColor={
+          hasChanges && isValid && !isSaving ? colors.primaryDark : colors.disabledBg
+        }
+        textColor={hasChanges && isValid ? '#FFFFFF' : colors.textTertiary}
+      />
 
       <LocationPickerModal
         visible={locationPickerVisible}
@@ -642,18 +560,6 @@ export default function ModerateGroundScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-  },
-  backButton: { padding: 4 },
-  headerTitleContainer: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '700' },
-  headerSubtitle: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   scroll: { paddingHorizontal: 16, paddingTop: 16 },
   creatorCard: {
     flexDirection: 'row',
@@ -725,25 +631,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   // Surfaces
-  surfaceWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  surfaceChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderRadius: 20,
-  },
-  surfaceChipText: { fontSize: 13, fontWeight: '500' },
   // Amenities
-  amenitiesWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  amenityChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderRadius: 20,
-  },
-  amenityText: { fontSize: 13, fontWeight: '500' },
   // Tabs
   tabsRow: { marginBottom: 8 },
   tab: {
@@ -785,21 +673,4 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   locationBtnText: { fontSize: 14, fontWeight: '600' },
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    borderTopWidth: 1,
-  },
-  saveBtn: {
-    width: '100%',
-    height: 50,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  saveBtnText: { fontSize: 16, fontWeight: '700' },
 });

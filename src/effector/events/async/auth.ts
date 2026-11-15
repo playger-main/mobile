@@ -1,6 +1,8 @@
 // src/effector/events/async/auth.ts
 import { createEffect } from 'effector';
-import { apiInstance } from '../../api';
+import axios from 'axios';
+import * as SecureStore from 'expo-secure-store';
+import { ACCESS_TOKEN_KEY, BASE_URL, apiInstance } from '../../api';
 import { jwtDecode } from 'jwt-decode';
 
 export interface SignUpPayload {
@@ -85,3 +87,25 @@ export const resetPasswordFx = createEffect(
     return res.data;
   },
 );
+
+/**
+ * ✅ P1: серверный logout — отзывает refresh-токен на бэкенде.
+ *
+ * Токен читаем явно из SecureStore в самом начале эффекта: событие `logout`
+ * чистит хранилище параллельно, а getItemAsync попадает в очередь раньше
+ * deleteItemAsync, поэтому токен успевает прочитаться.
+ * Любая ошибка сети игнорируется — локальный выход не должен блокироваться.
+ */
+export const logoutFx = createEffect(async (): Promise<void> => {
+  try {
+    const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+    if (!token) return;
+
+    await axios.post(`${BASE_URL}/auth/logout`, null, {
+      headers: { Authorization: `Bearer ${token}` },
+      timeout: 5000,
+    });
+  } catch {
+    // сеть недоступна или токен уже истёк — ничего страшного
+  }
+});

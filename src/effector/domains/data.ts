@@ -31,14 +31,35 @@ import { addFavoriteFx, removeFavoriteFx } from '../events/async/userLists';
 
 const dataDomain = createDomain('data');
 
+/**
+ * ✅ P2: канонический ключ запроса — нужен для latest-wins гейтинга.
+ * Порядок ключей сортируется, чтобы одинаковые параметры давали один ключ.
+ */
+const requestKey = (params?: unknown): string => {
+  if (!params || typeof params !== 'object') return String(params ?? '');
+  const entries = Object.entries(params as Record<string, unknown>)
+    .filter(([, value]) => value !== undefined && value !== null)
+    .sort(([a], [b]) => a.localeCompare(b));
+  return JSON.stringify(entries);
+};
+
+/** Ключ последнего запущенного запроса площадок. */
+export const $groundsRequestKey = dataDomain
+  .createStore<string>('')
+  .on(fetchGroundsFx, (_, params) => requestKey(params));
+
 // ==========================================
 // ПЛОЩАДКИ
 // ==========================================
 
 export const $grounds = dataDomain
   .createStore<ExtendedGroundItem[]>([])
-  .on(fetchGroundsFx.doneData, (_, payload) => payload)
-  .on(fetchGroundsFx.failData, () => [])
+  // ✅ P2: применяем ответ, только если он принадлежит последнему запросу —
+  // иначе ответ на «vil» может перетереть результат для «vilnius».
+  .on(fetchGroundsFx.done, (state, { params, result }) =>
+    requestKey(params) === $groundsRequestKey.getState() ? result : state,
+  )
+  // ✅ P2: ошибка сети больше не обнуляет уже загруженные данные
   .on(clearGrounds, () => [])
   .on(toggleFavoriteInStore, (state, id) =>
     state.map((item) =>
@@ -148,28 +169,15 @@ export const $isGroundDetailLoading = dataDomain
 
 export const $currentGroundEvents = dataDomain
   .createStore<RealEventItem[]>([])
-  .on(fetchEventsByGroundIdFx.doneData, (_, payload) => payload)
-  .on(fetchEventsByGroundIdFx.failData, () => []);
+  .on(fetchEventsByGroundIdFx.doneData, (_, payload) => payload);
 
-export const $pendingGrounds = dataDomain
-  .createStore<ExtendedGroundItem[]>([])
-  .on(fetchGroundsFx.doneData, (_, payload) =>
-    payload.filter((g) => g.confirmed === false),
-  )
-  .on(updateGroundFx.doneData, (state, updated) => {
-    if (updated.confirmed !== false) {
-      return state.filter((item) => item.id !== updated.id);
-    }
-    return state.map((item) =>
-      item.id === updated.id ? { ...item, ...updated } : item,
-    );
-  })
-  .on(confirmGroundFx.doneData, (state, updated) =>
-    state.filter((item) => item.id !== updated.id),
-  )
-  .on(deleteGroundFx.done, (state, { params: id }) =>
-    state.filter((item) => item.id !== id),
-  );
+/**
+ * ✅ P2: единственный источник истины — `$grounds`.
+ * Раньше здесь был дублирующий стор со своими редукторами на update/confirm/delete.
+ */
+export const $pendingGrounds = $grounds.map((grounds) =>
+  grounds.filter((g) => g.confirmed === false),
+);
 
 export const $isPendingLoading = dataDomain
   .createStore<boolean>(false)
@@ -182,8 +190,8 @@ export const $isPendingLoading = dataDomain
 
 export const $events = dataDomain
   .createStore<ServerEventItem[]>([])
-  .on(fetchAllEventsFx.doneData, (_, payload) => payload)
-  .on(fetchAllEventsFx.failData, () => []);
+  // ✅ P2: ошибка сети не обнуляет список событий
+  .on(fetchAllEventsFx.doneData, (_, payload) => payload);
 
 export const $isEventsLoading = dataDomain
   .createStore<boolean>(false)

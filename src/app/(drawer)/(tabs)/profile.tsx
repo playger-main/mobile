@@ -26,6 +26,7 @@ import {
   $authStep,
   $userSession,
   $isAuthSubmitting,
+  logoutFx,
 } from '@/effector/store';
 import { setAuthStep, logout } from '@/effector/events/sync';
 
@@ -55,10 +56,17 @@ export default function ProfileHubScreen() {
     handleLogout: logout,
   });
 
+  // ✅ P1: сначала отзываем refresh на сервере, затем чистим локальную сессию.
+  // Эффект сам читает токен из SecureStore и глотает сетевые ошибки.
+  const handleSignOut = () => {
+    logoutFx();
+    handleLogout();
+  };
+
   const navigateToHome = () => router.replace('/(drawer)/(tabs)');
 
   if (user) {
-    return <UserProfile user={user} onLogout={handleLogout} />;
+    return <UserProfile user={user} onLogout={handleSignOut} />;
   }
 
   if (currentStep === 'welcome') {

@@ -64,4 +64,38 @@ export const common: TranslationDict = {
     pl: '{{count}} dni temu',
     uk: '{{count}} дн тому',
   },
+
+  // ✅ P2: подписи для accessibilityLabel у иконочных кнопок
+  'common.back': {
+    en: 'Back',
+    ru: 'Назад',
+    be: 'Назад',
+    lt: 'Atgal',
+    pl: 'Wstecz',
+    uk: 'Назад',
+  },
+  'common.close': {
+    en: 'Close',
+    ru: 'Закрыть',
+    be: 'Зачыніць',
+    lt: 'Uždaryti',
+    pl: 'Zamknij',
+    uk: 'Закрити',
+  },
+  'common.menu': {
+    en: 'Menu',
+    ru: 'Меню',
+    be: 'Меню',
+    lt: 'Meniu',
+    pl: 'Menu',
+    uk: 'Меню',
+  },
+  'common.myLocation': {
+    en: 'My location',
+    ru: 'Моё местоположение',
+    be: 'Маё месцазнаходжанне',
+    lt: 'Mano buvimo vieta',
+    pl: 'Moja lokalizacja',
+    uk: 'Моє місцеположення',
+  },
 };

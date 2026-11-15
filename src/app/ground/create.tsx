@@ -20,6 +20,9 @@ import * as ImagePicker from 'expo-image-picker';
 
 import { createGroundFx } from '@/effector/events/async/grounds';
 import { $userSession } from '@/effector/store';
+import ScreenHeader from '@/components/forms/ScreenHeader';
+import MultiChipGroup from '@/components/forms/MultiChipGroup';
+import FormBottomBar from '@/components/forms/FormBottomBar';
 import LocationPickerModal from '@/components/ui/LocationPickerModal';
 import PhotoPicker, { PhotoInput } from '@/components/ui/PhotoPicker';
 import SportIcon from '@/components/ui/SportIcon';
@@ -187,33 +190,10 @@ export default function CreateGroundScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={[styles.container, { backgroundColor: colors.listBackground }]}
     >
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: insets.top + 6,
-            backgroundColor: colors.background,
-            borderColor: colors.borderSubtle,
-          },
-        ]}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          style={styles.backButton}
-          hitSlop={12}
-        >
-          <Ionicons name="chevron-back" size={24} color={colors.primary} />
-        </Pressable>
-        <View style={styles.headerTitleContainer}>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            {t('grounds.addButtonTitle')}
-          </Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textTertiary }]}>
-            {t('grounds.addButtonSubtitle')}
-          </Text>
-        </View>
-        <View style={{ width: 32 }} />
-      </View>
+      <ScreenHeader
+        title={t('grounds.addButtonTitle')}
+        subtitle={t('grounds.addButtonSubtitle')}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -407,46 +387,19 @@ export default function CreateGroundScreen() {
             </Text>
           )}
         </View>
-        <View style={styles.surfaceWrap}>
-          {SURFACE_OPTIONS.map((s) => {
-            const isSelected = surfaces.includes(s.id);
-            return (
-              <Pressable
-                key={s.id}
-                onPress={() => toggleSurface(s.id)}
-                style={[
-                  styles.surfaceChip,
-                  {
-                    backgroundColor: isSelected
-                      ? colors.primary
-                      : colors.surface,
-                    borderColor: isSelected
-                      ? colors.primary
-                      : colors.border,
-                  },
-                ]}
-              >
-                <SurfaceIcon
-                  id={s.id}
-                  size={14}
-                  color={isSelected ? '#FFFFFF' : colors.textPrimary}
-                />
-                <Text
-                  style={[
-                    styles.surfaceChipText,
-                    {
-                      color: isSelected ? '#FFFFFF' : colors.textPrimary,
-                    },
-                    isSelected && { fontWeight: '600' },
-                    { marginLeft: 6 },
-                  ]}
-                >
-                  {t(getSurfaceKey(s.id))}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <MultiChipGroup
+          options={SURFACE_OPTIONS.map((s) => ({ value: s.id, label: t(getSurfaceKey(s.id)) }))}
+          values={surfaces}
+          onToggle={toggleSurface}
+          compact
+          renderLeading={(option, isSelected) => (
+            <SurfaceIcon
+              id={option.value}
+              size={14}
+              color={isSelected ? '#FFFFFF' : colors.textPrimary}
+            />
+          )}
+        />
 
         <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
           {t('groundForm.description')}
@@ -472,40 +425,12 @@ export default function CreateGroundScreen() {
         <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
           {t('groundForm.amenities')}
         </Text>
-        <View style={styles.amenitiesWrap}>
-          {AMENITIES_OPTIONS.map((amenity) => {
-            const isSelected = amenities.includes(amenity);
-            return (
-              <Pressable
-                key={amenity}
-                onPress={() => toggleAmenity(amenity)}
-                style={[
-                  styles.amenityChip,
-                  {
-                    backgroundColor: isSelected
-                      ? colors.primary
-                      : colors.surface,
-                    borderColor: isSelected
-                      ? colors.primary
-                      : colors.border,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.amenityText,
-                    {
-                      color: isSelected ? '#FFFFFF' : colors.textPrimary,
-                    },
-                    isSelected && { fontWeight: '600' },
-                  ]}
-                >
-                  {t(getAmenityKey(amenity))}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <MultiChipGroup
+          options={AMENITIES_OPTIONS.map((amenity) => ({ value: amenity, label: t(getAmenityKey(amenity)) }))}
+          values={amenities}
+          onToggle={toggleAmenity}
+          compact
+        />
 
         <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
           {t('groundForm.photos')}
@@ -519,30 +444,14 @@ export default function CreateGroundScreen() {
         />
       </ScrollView>
 
-      <View
-        style={[
-          styles.bottomBar,
-          {
-            paddingBottom: insets.bottom + 12,
-            backgroundColor: colors.background,
-            borderColor: colors.borderSubtle,
-          },
-        ]}
-      >
-        <Pressable
-          style={[styles.publishButton, { backgroundColor: publishBg }]}
-          onPress={handlePublish}
-          disabled={publishDisabled}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator color="#FFFFFF" size="small" />
-          ) : (
-            <Text style={[styles.publishButtonText, { color: publishTextColor }]}>
-              {t('groundForm.publishButton')}
-            </Text>
-          )}
-        </Pressable>
-      </View>
+      <FormBottomBar
+        label={t('groundForm.publishButton')}
+        onPress={handlePublish}
+        disabled={publishDisabled}
+        loading={isSubmitting}
+        backgroundColor={publishBg}
+        textColor={publishTextColor}
+      />
 
       <LocationPickerModal
         visible={locationPickerVisible}
@@ -557,18 +466,6 @@ export default function CreateGroundScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-  },
-  backButton: { padding: 4 },
-  headerTitleContainer: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '700' },
-  headerSubtitle: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   scrollContent: { paddingHorizontal: 16, paddingTop: 20 },
   inputLabel: {
     fontSize: 14,
@@ -639,24 +536,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  surfaceWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  surfaceChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderRadius: 20,
-  },
-  surfaceChipText: { fontSize: 13, fontWeight: '500' },
-  amenitiesWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  amenityChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderRadius: 20,
-  },
-  amenityText: { fontSize: 13, fontWeight: '500' },
   mapPickerBox: {
     width: '100%',
     minHeight: 80,
@@ -681,22 +560,4 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 2,
   },
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    zIndex: 99,
-  },
-  publishButton: {
-    width: '100%',
-    height: 50,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  publishButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 });

@@ -60,17 +60,9 @@ export const getEventStatusLabelKey = (status: EventStatus): string => {
 };
 
 /**
- * ⚠️ Legacy: возвращает английский текст.
- * Оставлено для обратной совместимости — если где-то ещё не
- * переведено на i18n. В новом коде используйте getEventStatusLabelKey.
+ * ✅ P3: удалён legacy `getEventStatusLabel` (возвращал английский текст и
+ * нигде не использовался) — статус всегда берётся через i18n-ключ.
  */
-export const getEventStatusLabel = (status: EventStatus): string => {
-  switch (status) {
-    case 'upcoming': return 'Upcoming';
-    case 'active':   return 'Active';
-    case 'finished': return 'Finished';
-  }
-};
 
 // ============================================================
 // СТИЛИ (с учётом темы)

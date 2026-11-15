@@ -50,7 +50,7 @@ export default function RootLayout() {
   const { isHydrating } = useUnit({ isHydrating: $isHydrating });
   const appLanguage = useUnit($appLanguage);
 
-  const { theme, colors } = useTheme();
+  const { theme, colors, mode } = useTheme();
 
   const [fontsLoaded, fontError] = useFonts({});
 
@@ -59,10 +59,12 @@ export default function RootLayout() {
     setCalendarLocale(appLanguage);
   }, [appLanguage]);
 
-  // ✅ Синхронизация нативной темы
+  // ✅ P2-fix: в режиме «как в системе» нативную тему не фиксируем, иначе
+  // iOS перестаёт реагировать на смену системной темы после первого рендера.
+  // 'unspecified' снимает override (тип ColorSchemeOverride не допускает null).
   useEffect(() => {
-    Appearance.setColorScheme(theme);
-  }, [theme]);
+    Appearance.setColorScheme(mode === 'system' ? 'unspecified' : theme);
+  }, [theme, mode]);
 
   // ✅ Гидратация при старте
   useEffect(() => {

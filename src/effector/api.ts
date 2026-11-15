@@ -9,6 +9,8 @@ export const REFRESH_TOKEN_KEY = 'pg_refresh_token';
 
 export const apiInstance = axios.create({
   baseURL: BASE_URL,
+  // ✅ P2: без таймаута «зависший» запрос держал спиннер вечно
+  timeout: 15_000,
   headers: {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -29,6 +31,7 @@ const isAuthEndpoint = (url?: string) => {
     url.includes('/auth/resend-code') ||
     url.includes('/auth/forgot-password') ||
     url.includes('/auth/reset-password') ||
+    url.includes('/auth/logout') ||
     url.includes('/auth/refresh')
   );
 };

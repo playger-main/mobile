@@ -21,6 +21,12 @@ export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
       package: 'com.dziforge.playg',
       versionCode: 1,
       predictiveBackGestureEnabled: false,
+      // ✅ P2: без этого ключа react-native-maps на Android рисует пустую карту
+      config: {
+        googleMaps: {
+          apiKey: process.env.GOOGLE_MAPS_API_KEY,
+        },
+      },
       adaptiveIcon: {
         backgroundColor: '#E6F4FE',
         foregroundImage: './assets/images/android-icon-foreground.png',
@@ -35,6 +41,10 @@ export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
       bundleIdentifier: 'com.dziforge.playg',
       buildNumber: '1',
       supportsTablet: false,
+      // ✅ P2: ключ для Google Maps на iOS (provider=google)
+      config: {
+        googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
+      },
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
         NSLocationWhenInUseUsageDescription:

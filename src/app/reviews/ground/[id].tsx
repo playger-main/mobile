@@ -142,7 +142,13 @@ export default function GroundReviewsScreen() {
           },
         ]}
       >
-        <Pressable onPress={handleBack} style={styles.backButton} hitSlop={12}>
+        <Pressable
+          onPress={handleBack}
+          style={styles.backButton}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back')}
+        >
           <Ionicons name="chevron-back" size={24} color={colors.primaryDark} />
         </Pressable>
         <View style={styles.headerTitleContainer}>
@@ -197,7 +203,7 @@ export default function GroundReviewsScreen() {
                   {t(reviewsCountKey, { count: reviewStats.totalReviews })}
                 </Text>
               </View>
-            ) : null
+            ) : undefined
           }
           contentContainerStyle={[
             styles.listContent,

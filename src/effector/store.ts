@@ -68,6 +68,7 @@ export {
   resendCodeFx,
   forgotPasswordFx,
   resetPasswordFx,
+  logoutFx,
 } from './events/async/auth';
 
 export type { SessionUser } from './domains/auth';
