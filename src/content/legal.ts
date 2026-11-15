@@ -145,8 +145,8 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     ],
     paragraphs: [
       {
-        en: 'Legal bases where the GDPR applies: performance of a contract for the core service; your consent for optional features such as location; legitimate interests for security, abuse prevention and service improvement; legal obligation where applicable. For users outside the EEA we rely on the same principles under local data protection law, including the consent you give when you create an account and enable optional features.',
-        ru: 'Правовые основания там, где применяется GDPR: исполнение договора для основного сервиса; ваше согласие для опциональных функций (геолокация); законный интерес для безопасности, предотвращения злоупотреблений и улучшения сервиса; исполнение требований закона, где применимо. Для пользователей вне ЕЭЗ мы опираемся на те же принципы по местному законодательству о персональных данных, включая согласие, которое вы даёте при создании аккаунта и включении опциональных функций.',
+        en: 'Where the law requires a legal basis for processing, we rely on: performance of our agreement with you for the core service; your consent for optional features such as location; our legitimate interest in security, abuse prevention and service improvement; and legal obligations where applicable. Where local law uses different concepts, we rely on the equivalent grounds and on the consent you give when creating an account or enabling optional features.',
+        ru: 'Там, где закон требует правового основания обработки, мы опираемся на: исполнение нашего соглашения с вами для основного сервиса; ваше согласие для опциональных функций (геолокация); наш законный интерес в безопасности, предотвращении злоупотреблений и улучшении сервиса; и исполнение требований закона, где применимо. Если местное право использует иные конструкции, мы опираемся на равнозначные основания и на согласие, которое вы даёте при создании аккаунта или включении опциональных функций.',
       },
     ],
   },
@@ -184,8 +184,8 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         ru: 'Мы можем раскрыть данные, если этого требует закон или если это необходимо для защиты прав и безопасности пользователей и сервиса.',
       },
       {
-        en: 'Some providers are located outside your country (for example in the United States or the EU). Such transfers are covered by appropriate safeguards, including the European Commission Standard Contractual Clauses where the GDPR applies, and we apply the same level of protection for users in other countries.',
-        ru: 'Часть подрядчиков находится за пределами вашей страны (например, в США или ЕС). Такие передачи защищены надлежащими гарантиями, включая Стандартные договорные условия Европейской комиссии там, где применяется GDPR; для пользователей из других стран мы обеспечиваем тот же уровень защиты.',
+        en: 'Some providers are located outside your country. Where data is transferred across borders, we use appropriate safeguards (such as standard contractual clauses) and apply the same level of protection wherever the data is processed.',
+        ru: 'Часть подрядчиков находится за пределами вашей страны. При трансграничной передаче данных мы используем надлежащие гарантии (например, стандартные договорные условия) и обеспечиваем одинаковый уровень защиты независимо от места обработки.',
       },
     ],
   },
@@ -214,8 +214,8 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     title: { en: '7. Your rights', ru: '7. Ваши права' },
     paragraphs: [
       {
-        en: 'Under the GDPR you have the right to access your data, correct it, delete it, restrict or object to processing, receive a copy in a portable format, and withdraw consent at any time.',
-        ru: 'Согласно GDPR вы вправе получить доступ к своим данным, исправить их, удалить, ограничить обработку или возразить против неё, получить копию в машиночитаемом виде и в любой момент отозвать согласие.',
+        en: 'Depending on the law of your country, you may have the right to access your data, correct it, delete it, restrict or object to processing, receive a copy in a portable format, and withdraw consent at any time. We provide these rights to all users, regardless of where you live.',
+        ru: 'В зависимости от законодательства вашей страны вы можете иметь право на доступ к своим данным, их исправление, удаление, ограничение обработки или возражение против неё, получение копии в машиночитаемом виде и отзыв согласия в любой момент. Мы предоставляем эти права всем пользователям независимо от страны проживания.',
       },
       {
         en: 'You can delete your account and the associated content yourself: Profile → Delete account. Deletion is immediate; some data may remain in backups for up to 30 days.',
@@ -226,12 +226,8 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         ru: `Для реализации остальных прав напишите на ${LEGAL_META.contactEmail}. Мы отвечаем в течение 30 дней.`,
       },
       {
-        en: 'You may also complain to a data protection authority. Users in the EU/EEA can contact the national authority of their country of residence or work (for example UODO in Poland or VDAI in Lithuania). Users in Ukraine can contact the Ukrainian Parliament Commissioner for Human Rights; users in Belarus the National Center for Personal Data Protection.',
-        ru: 'Вы также вправе обратиться в надзорный орган по защите данных. Пользователи в ЕС/ЕЭЗ могут обратиться в национальный орган страны проживания или работы (например, UODO в Польше или VDAI в Литве). Пользователи в Украине — к Уполномоченному Верховной Рады по правам человека; пользователи в Беларуси — в Национальный центр защиты персональных данных.',
-      },
-      {
-        en: 'We apply the same rights to all users, regardless of where you live, even where local law does not formally grant them.',
-        ru: 'Эти права мы предоставляем всем пользователям независимо от страны проживания — даже там, где местное законодательство их формально не предусматривает.',
+        en: 'If you believe your data was handled unlawfully, you may complain to the data protection or privacy authority of your country of residence, if one exists.',
+        ru: 'Если вы считаете, что ваши данные обрабатывались незаконно, вы можете обратиться в орган по защите данных или приватности страны вашего проживания, если такой орган существует.',
       },
     ],
   },
@@ -239,8 +235,8 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     title: { en: '8. Children', ru: '8. Дети' },
     paragraphs: [
       {
-        en: 'PlayG is not intended for children under 13 — anywhere. If local law sets a higher minimum age (16 is the default in the EU, and local rules apply in Ukraine and Belarus), that age applies for users in that country; users below it need consent of a parent or guardian where local law allows this.',
-        ru: 'PlayG не предназначен для детей младше 13 лет — ни в одной стране. Если местное законодательство устанавливает более высокий минимальный возраст (16 по умолчанию в ЕС, свои правила действуют в Украине и Беларуси), для пользователей этой страны применяется он; лицам младше нужен согласие родителей или опекунов, если местное право это допускает.',
+        en: 'PlayG is not intended for children under 13. If the law of your country sets a higher minimum age for online services, that age applies; users below it need consent of a parent or guardian where local law allows this.',
+        ru: 'PlayG не предназначен для детей младше 13 лет. Если законодательство вашей страны устанавливает более высокий минимальный возраст для онлайн-сервисов, применяется он; лицам младше необходимо согласие родителей или опекунов там, где местное право это допускает.',
       },
       {
         en: 'If we learn that a child below the applicable minimum age created an account, we delete the account and its content.',
@@ -299,8 +295,8 @@ export const TERMS_SECTIONS: LegalSection[] = [
     title: { en: '2. Eligibility', ru: '2. Кто может пользоваться' },
     paragraphs: [
       {
-        en: 'You must be at least 16 years old, or the minimum age that applies in your country (never under 13), and legally capable of entering into this agreement; if you are below that age, a parent or guardian must consent where local law allows it. If you use PlayG on behalf of an organisation, you confirm that you are authorised to do so.',
-        ru: 'Вам должно быть не менее 16 лет либо минимального возраста, установленного в вашей стране (но не младше 13), и вы должны обладать дееспособностью для заключения этого соглашения; если вы младше, требуется согласие родителей или опекунов там, где местное право это допускает. Если вы используете PlayG от имени организации, вы подтверждаете наличие полномочий.',
+        en: 'You must be at least 13 years old and, if the law of your country sets a higher minimum age for using online services, that age applies; users below it need consent of a parent or guardian where local law allows. You must also be legally capable of entering into this agreement. If you use PlayG on behalf of an organisation, you confirm that you are authorised to do so.',
+        ru: 'Вам должно быть не менее 13 лет, а если законодательство вашей страны устанавливает более высокий минимальный возраст для использования онлайн-сервисов, применяется он; лицам младше необходимо согласие родителей или опекунов там, где местное право это допускает. Вы также должны обладать дееспособностью для заключения этого соглашения. Если вы используете PlayG от имени организации, вы подтверждаете наличие полномочий.',
       },
     ],
   },
@@ -448,8 +444,8 @@ export const TERMS_SECTIONS: LegalSection[] = [
     title: { en: '13. Governing law and disputes', ru: '13. Применимое право и споры' },
     paragraphs: [
       {
-        en: `These Terms are governed by the laws of ${LEGAL_META.jurisdiction.en}, without prejudice to mandatory consumer protection rules of your country of residence. If you live in the EU/EEA, the law of your country of residence may give you additional rights that these Terms do not limit. Before going to court, please contact us at ${LEGAL_META.contactEmail} — most issues can be solved directly. Consumers in the EU may also use the Online Dispute Resolution platform of the European Commission.`,
-        ru: `К этим Условиям применяется право: ${LEGAL_META.jurisdiction.ru}, без ущерба для обязательных норм защиты потребителей страны вашего проживания. Если вы живёте в ЕС/ЕЭЗ, законодательство вашей страны может давать вам дополнительные права, которые эти Условия не ограничивают. Прежде чем обращаться в суд, напишите нам на ${LEGAL_META.contactEmail} — большинство вопросов решается напрямую. Потребители в ЕС также могут воспользоваться платформой онлайн-урегулирования споров Европейской комиссии.`,
+        en: `These Terms are governed by the laws of ${LEGAL_META.jurisdiction.en}, without prejudice to mandatory rules of your country of residence, which always prevail where they give you stronger protection. Before going to court, please contact us at ${LEGAL_META.contactEmail} — most issues can be solved directly, and you may also use any out-of-court dispute resolution available in your country.`,
+        ru: `К этим Условиям применяется право: ${LEGAL_META.jurisdiction.ru}, без ущерба для обязательных норм страны вашего проживания, которые всегда имеют приоритет, если дают вам более сильную защиту. Прежде чем обращаться в суд, напишите нам на ${LEGAL_META.contactEmail} — большинство вопросов решается напрямую; вы также можете воспользоваться доступными в вашей стране способами внесудебного урегулирования споров.`,
       },
     ],
   },
