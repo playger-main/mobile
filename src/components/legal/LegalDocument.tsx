@@ -16,13 +16,16 @@ import { useTheme } from '@/hooks/useTheme';
 import {
   LEGAL_META,
   LegalSection,
-  pickLegalText,
+  RenderedSection,
+  resolveSections,
 } from '@/content/legal';
 
 interface LegalDocumentProps {
   /** Заголовок экрана (из i18n) */
   title: string;
   sections: LegalSection[];
+  /** Полный перевод документа, если он есть для текущего языка */
+  overrides?: RenderedSection[];
   /** Свой обработчик «назад» (например, при открытии по ссылке) */
   onBack?: () => void;
 }
@@ -34,6 +37,7 @@ interface LegalDocumentProps {
 export default function LegalDocument({
   title,
   sections,
+  overrides,
   onBack,
 }: LegalDocumentProps) {
   const { t, lang } = useTranslation();
@@ -43,6 +47,9 @@ export default function LegalDocument({
   // Переводы есть для en/ru; для остальных языков показываем английский
   // и честно предупреждаем, какая версия юридически значимая.
   const showEnglishNote = lang !== 'en' && lang !== 'ru';
+
+  // ✅ Тексты приводятся к языку здесь: перевод (если есть) → ru → en
+  const localizedSections = resolveSections(sections, lang, overrides);
 
   const openEmail = () => {
     Linking.openURL(`mailto:${LEGAL_META.contactEmail}`).catch(() => {});
@@ -79,19 +86,19 @@ export default function LegalDocument({
           </Text>
         )}
 
-        {sections.map((section, index) => (
-          <View key={`${section.title.en}-${index}`} style={styles.section}>
+        {localizedSections.map((section, index) => (
+          <View key={`${index}`} style={styles.section}>
             <Text
               style={[styles.sectionTitle, { color: colors.textPrimary }]}
             >
-              {pickLegalText(section.title, lang)}
+              {section.title}
             </Text>
 
             {section.lead && (
               <Text
                 style={[styles.paragraph, { color: colors.textSecondary }]}
               >
-                {pickLegalText(section.lead, lang)}
+                {section.lead}
               </Text>
             )}
 
@@ -103,7 +110,7 @@ export default function LegalDocument({
                 <Text
                   style={[styles.bulletText, { color: colors.textSecondary }]}
                 >
-                  {pickLegalText(bullet, lang)}
+                  {bullet}
                 </Text>
               </View>
             ))}
@@ -113,7 +120,7 @@ export default function LegalDocument({
                 key={`p-${i}`}
                 style={[styles.paragraph, { color: colors.textSecondary }]}
               >
-                {pickLegalText(paragraph, lang)}
+                {paragraph}
               </Text>
             ))}
 

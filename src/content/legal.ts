@@ -14,6 +14,17 @@
 
 export type LegalLang = 'en' | 'ru';
 
+/** Язык, для которого есть полный перевод документа (см. content/legal-overrides). */
+export type LegalLocale = 'pl' | 'uk' | 'lt' | 'be';
+
+/** Раздел, уже приведённый к одному языку — то, что рисует экран. */
+export interface RenderedSection {
+  title: string;
+  lead?: string;
+  bullets?: string[];
+  paragraphs?: string[];
+}
+
 export interface LocalizedText {
   en: string;
   ru: string;
@@ -45,12 +56,41 @@ export const LEGAL_META = {
   jurisdiction: {
     en: 'the country in which the operator is established',
     ru: 'страна регистрации оператора',
+    pl: 'kraj rejestracji operatora',
   },
 } as const;
 
 /** Текст, для которого нет перевода, показываем на английском. */
 export function pickLegalText(text: LocalizedText, lang: string): string {
   return lang === 'ru' ? text.ru : text.en;
+}
+
+/**
+ * ✅ Приводит разделы к нужному языку.
+ * Приоритет: полный перевод (overrides) → ru → en.
+ * Длина overrides должна совпадать с числом разделов — иначе берём базу,
+ * чтобы при правке документа не показать «съехавший» перевод.
+ */
+export function resolveSections(
+  sections: LegalSection[],
+  lang: string,
+  overrides?: RenderedSection[],
+): RenderedSection[] {
+  const useOverrides =
+    overrides && overrides.length === sections.length ? overrides : undefined;
+
+  return sections.map((section, index) => {
+    if (useOverrides) return useOverrides[index];
+
+    return {
+      title: pickLegalText(section.title, lang),
+      lead: section.lead ? pickLegalText(section.lead, lang) : undefined,
+      bullets: section.bullets?.map((bullet) => pickLegalText(bullet, lang)),
+      paragraphs: section.paragraphs?.map((paragraph) =>
+        pickLegalText(paragraph, lang),
+      ),
+    };
+  });
 }
 
 // ============================================================
