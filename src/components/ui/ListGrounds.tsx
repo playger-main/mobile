@@ -208,25 +208,40 @@ export default function ListGrounds({
           style={[
             styles.filterBtn,
             {
-              backgroundColor:
-                eventFilter === 'all' ? colors.surface : colors.primaryBg,
-              borderColor:
-                eventFilter === 'all' ? colors.border : colors.primary,
+              // ✅ Кнопка остаётся нейтральной: активный фильтр событий
+              // показываем точкой перед иконкой (не расширяет строку).
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
             },
           ]}
           onPress={() => setFilterSheetVisible(true)}
           accessibilityRole="button"
-          accessibilityLabel={t('filters.title')}
-        >
-          <Ionicons name={filterIcon as any} size={13} color={colors.primary} />
-          <Text style={[styles.filterBtnText, { color: colors.primary }]}>
-            {eventFilter === 'all'
-              ? filterLabel
-              : `${filterLabel} · ${t(
+          accessibilityLabel={
+            eventFilter === 'all'
+              ? `${t('filters.title')}: ${filterLabel}`
+              : `${t('filters.title')}: ${filterLabel}, ${t(
                   eventFilter === 'active'
                     ? 'filters.eventsActive'
                     : 'filters.eventsAny',
-                )}`}
+                )}`
+          }
+        >
+          {eventFilter !== 'all' && (
+            <View
+              style={[
+                styles.filterDot,
+                {
+                  backgroundColor:
+                    eventFilter === 'active'
+                      ? colors.accent
+                      : colors.warning,
+                },
+              ]}
+            />
+          )}
+          <Ionicons name={filterIcon as any} size={13} color={colors.primary} />
+          <Text style={[styles.filterBtnText, { color: colors.primary }]}>
+            {filterLabel}
           </Text>
           <Ionicons name="chevron-down" size={13} color={colors.primary} />
         </Pressable>
@@ -340,6 +355,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   filterBtnText: { fontSize: 12, fontWeight: '600' },
+  // ✅ индикатор активного фильтра событий (цвет по легенде)
+  filterDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 1,
+  },
   categoriesWrapper: {
     marginLeft: -16,
     marginRight: -16,

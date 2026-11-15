@@ -27,10 +27,14 @@ interface LocationFilterSheetProps {
   onClose: () => void;
 }
 
+type FilterTone = 'primary' | 'accent' | 'warning';
+
 interface FilterOption<T> {
   code: T;
   labelKey: string;
   icon: string;
+  /** ✅ Цвет по смыслу: как в легенде карты (зелёный/оранжевый) */
+  tone?: FilterTone;
 }
 
 const LOCATION_OPTIONS: FilterOption<LocationFilter>[] = [
@@ -42,9 +46,9 @@ const LOCATION_OPTIONS: FilterOption<LocationFilter>[] = [
 
 // ✅ Фильтр по событиям: подсказывает, где вообще есть что-то живое
 const EVENT_OPTIONS: FilterOption<EventFilter>[] = [
-  { code: 'all', labelKey: 'filters.eventsAll', icon: 'albums-outline' },
-  { code: 'any', labelKey: 'filters.eventsAny', icon: 'calendar-outline' },
-  { code: 'active', labelKey: 'filters.eventsActive', icon: 'flash-outline' },
+  { code: 'all', labelKey: 'filters.eventsAll', icon: 'albums-outline', tone: 'primary' },
+  { code: 'any', labelKey: 'filters.eventsAny', icon: 'calendar-outline', tone: 'warning' },
+  { code: 'active', labelKey: 'filters.eventsActive', icon: 'flash-outline', tone: 'accent' },
 ];
 
 export default function LocationFilterSheet({
@@ -77,6 +81,22 @@ export default function LocationFilterSheet({
     onPress: (code: T) => void;
   }) => {
     const { item, isActive, isLast, onPress } = params;
+
+    // ✅ Цвет выбранного = цвет смысла опции (легенда карты),
+    //    «Все площадки» остаётся нейтральным (primary).
+    const toneFg =
+      item.tone === 'accent'
+        ? colors.accent
+        : item.tone === 'warning'
+          ? colors.warning
+          : colors.primary;
+    const toneBg =
+      item.tone === 'accent'
+        ? colors.accentBg
+        : item.tone === 'warning'
+          ? colors.warningBg
+          : colors.primaryBg;
+
     return (
       <Pressable
         key={item.code}
@@ -84,7 +104,7 @@ export default function LocationFilterSheet({
           styles.row,
           { borderBottomColor: colors.borderSubtle },
           isLast && styles.rowLast,
-          isActive && { backgroundColor: colors.primaryBg },
+          isActive && { backgroundColor: toneBg },
         ]}
         onPress={() => onPress(item.code)}
         accessibilityRole="button"
@@ -97,7 +117,7 @@ export default function LocationFilterSheet({
               styles.iconBox,
               {
                 backgroundColor: isActive
-                  ? colors.primaryBg
+                  ? toneBg
                   : colors.surfaceSecondary,
               },
             ]}
@@ -105,14 +125,15 @@ export default function LocationFilterSheet({
             <Ionicons
               name={item.icon as any}
               size={18}
-              color={isActive ? colors.primary : colors.textSecondary}
+              // ✅ иконка всегда в цвете смысла (зелёный / оранжевый / синий)
+              color={toneFg}
             />
           </View>
           <Text
             style={[
               styles.label,
               {
-                color: isActive ? colors.primary : colors.textPrimary,
+                color: isActive ? toneFg : colors.textPrimary,
                 fontWeight: isActive ? '700' : '600',
               },
             ]}
@@ -124,7 +145,7 @@ export default function LocationFilterSheet({
           <Ionicons
             name="checkmark-circle"
             size={22}
-            color={colors.primary}
+            color={toneFg}
           />
         )}
       </Pressable>
