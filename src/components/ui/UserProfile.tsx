@@ -393,6 +393,30 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           {isModerator && (
             <Pressable
               style={[styles.menuItem, { borderColor: colors.borderSubtle }]}
+              onPress={() => router.push('/moderation/reports')}
+            >
+              <View style={styles.menuItemLeft}>
+                <Ionicons
+                  name="flag-outline"
+                  size={20}
+                  color={colors.danger}
+                  style={styles.menuIcon}
+                />
+                <Text style={[styles.menuItemText, { color: colors.danger }]}>
+                  {t('moderation.reports.title')}
+                </Text>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={colors.textTertiary}
+              />
+            </Pressable>
+          )}
+
+          {isModerator && (
+            <Pressable
+              style={[styles.menuItem, { borderColor: colors.borderSubtle }]}
               onPress={() => router.push('/ground/moderation')}
             >
               <View style={styles.menuItemLeft}>

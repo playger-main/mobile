@@ -20,7 +20,8 @@ import { about } from './about';
 import { calendar } from './calendar';
 import { drawer } from './drawer';
 import { legal } from './legal';
-import { report } from './report'; 
+import { report } from './report';
+import { moderationReports } from './moderationReports'; 
 
 export const translations: TranslationDict = {
   ...tabs,
@@ -43,4 +44,5 @@ export const translations: TranslationDict = {
   ...drawer,
   ...legal,
   ...report,
+  ...moderationReports,
 };

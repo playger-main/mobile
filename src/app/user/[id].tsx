@@ -8,6 +8,7 @@ import {
   Pressable,
   Image,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,6 +21,10 @@ import {
   $isViewedUserLoading,
   $userSession,
   fetchPublicUserFx,
+  $blockedIds,
+  blockUserFx,
+  unblockUserFx,
+  fetchMyBlocksFx,
 } from '@/effector/store';
 import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportKey } from '@/constants/sports';
@@ -40,6 +45,11 @@ export default function UserPublicProfileScreen() {
   const isLoading = useUnit($isViewedUserLoading);
   const me = useUnit($userSession);
   const fetchUser = useUnit(fetchPublicUserFx);
+  // ✅ блокировка пользователя (Apple 1.2)
+  const blockedIds = useUnit($blockedIds);
+  const blockUser = useUnit(blockUserFx);
+  const unblockUser = useUnit(unblockUserFx);
+  const fetchBlocks = useUnit(fetchMyBlocksFx);
 
   // ✅ №9: гость → на /profile
   useEffect(() => {
@@ -56,6 +66,30 @@ export default function UserPublicProfileScreen() {
   };
 
   const isMe = me?.id === id;
+  const isBlocked = !!id && blockedIds.includes(id as string);
+
+  useEffect(() => {
+    if (!isMe) fetchBlocks();
+  }, [isMe, fetchBlocks]);
+
+  const handleToggleBlock = () => {
+    if (!id || isMe) return;
+    Alert.alert(
+      t(isBlocked ? 'block.unblock' : 'block.confirmTitle'),
+      isBlocked ? undefined : t('block.confirmHint'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t(isBlocked ? 'block.unblock' : 'block.action'),
+          style: isBlocked ? 'default' : 'destructive',
+          onPress: () => {
+            if (isBlocked) unblockUser(id as string);
+            else blockUser(id as string);
+          },
+        },
+      ],
+    );
+  };
 
   if (isLoading && !user) {
     return (
@@ -129,7 +163,23 @@ export default function UserPublicProfileScreen() {
               <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
             </Pressable>
             <Text style={styles.headerTitle}>{t('profile.title')}</Text>
-            <View style={{ width: 32 }} />
+            {!isMe && !!me ? (
+              <Pressable
+                onPress={handleToggleBlock}
+                style={styles.backButton}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel={t(isBlocked ? 'block.unblock' : 'block.action')}
+              >
+                <Ionicons
+                  name={isBlocked ? 'person-add-outline' : 'ban-outline'}
+                  size={22}
+                  color="#FFFFFF"
+                />
+              </Pressable>
+            ) : (
+              <View style={{ width: 32 }} />
+            )}
           </View>
 
           <View style={styles.avatarWrapper}>

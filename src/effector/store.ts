@@ -188,6 +188,21 @@ export type { LocationFilter } from './events/sync';
 
 // ✅ жалобы на контент
 export { $reportTarget } from './domains/report';
+export { $blockedIds } from './domains/blocks';
+// ✅ модерация жалоб
+export { $moderationReports, $moderationReportsLoading } from './domains/moderation';
+export type { ModerationReport } from './domains/moderation';
+
+export {
+  fetchMyBlocksFx,
+  blockUserFx,
+  unblockUserFx,
+} from './events/async/blocks';
+export {
+  fetchReportsFx,
+  resolveReportFx,
+  deleteReportedContentFx,
+} from './events/async/reportsAdmin';
 export type { ReportTarget } from './domains/report';
 
 /** ✅ Фильтр площадок по событиям */

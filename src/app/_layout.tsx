@@ -189,6 +189,7 @@ export default function RootLayout() {
           <Stack.Screen name="ground/create" />
           <Stack.Screen name="ground/edit" />
           <Stack.Screen name="ground/moderation" />
+      <Stack.Screen name="moderation/reports" />
           <Stack.Screen name="reviews/ground/[id]" />
           <Stack.Screen name="event/[id]" />
           <Stack.Screen name="event/create" />
