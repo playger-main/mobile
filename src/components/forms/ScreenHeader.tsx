@@ -85,7 +85,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   backButton: { padding: 4 },
-  titleContainer: { flex: 1, alignItems: 'center' },
+  // ✅ 10px отступ от кнопок, чтобы длинный заголовок не наезжал на них
+  titleContainer: { flex: 1, alignItems: 'center', paddingHorizontal: 10 },
   title: { fontSize: 17, fontWeight: '700' },
   subtitle: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   // ширина фиксирована, чтобы заголовок оставался по центру

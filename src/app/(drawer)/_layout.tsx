@@ -253,6 +253,9 @@ export default function DrawerLayout() {
       <Drawer.Screen
         name="privacy"
         options={{
+          // ✅ документ открывается из настроек: свой заголовок с «назад»,
+          // глобальная полупрозрачная кнопка меню перекрывала заголовок
+          headerShown: false,
           // ✅ документы живут в Настройках → «Документы», в меню не дублируем
           drawerItemStyle: { display: 'none' },
           title: t('legal.privacy.title'),
@@ -268,6 +271,7 @@ export default function DrawerLayout() {
       <Drawer.Screen
         name="terms"
         options={{
+          headerShown: false,
           drawerItemStyle: { display: 'none' },
           title: t('legal.terms.title'),
           drawerIcon: ({ color, size }) => (
