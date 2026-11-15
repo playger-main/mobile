@@ -5,7 +5,10 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
   expo: {
     // Базовые настройки
-    name: 'playg-mobile',
+    // ✅ name — отображаемое имя приложения (под иконкой на устройстве и в
+    // App Store Connect для новой сборки). Само имя в App Store задаётся в
+    // App Store Connect → App Information, код на уже созданную карточку не влияет.
+    name: 'PlayG',
     slug: 'playg',
     version: '1.0.0',
     orientation: 'portrait',
