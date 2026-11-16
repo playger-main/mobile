@@ -9,7 +9,7 @@ import {
   updateProfileFx,
   updateAvatarFx,
   confirmEmailChangeFx,
-  ServerUserProfile,
+  ServerUserProfile,  acceptTermsFx,
 } from '../events/async/users';
 
 const authDomain = createDomain('auth');
@@ -40,6 +40,8 @@ export interface SessionUser {
   /** ✅ согласие с документами: дата и редакция */
   termsAcceptedAt?: number | null;
   termsVersion?: string | null;
+  /** ✅ true, когда профиль уже загружен и данные о согласии достоверны */
+  termsKnown?: boolean;
 }
 
 // ==========================================
@@ -72,6 +74,7 @@ const mapProfileToSession = (p: ServerUserProfile): SessionUser => ({
   gamesCount: p.gamesCount ?? 0,
   termsAcceptedAt: p.termsAcceptedAt ?? null,
   termsVersion: p.termsVersion ?? null,
+  termsKnown: true,
 });
 
 // ==========================================
@@ -154,6 +157,10 @@ export const $userSession = authDomain
     state ? { ...state, ...mapProfileToSession(profile) } : state,
   )
   .on(confirmEmailChangeFx.doneData, (state, profile) =>
+    state ? { ...state, ...mapProfileToSession(profile) } : state,
+  )
+  // ✅ после принятия документов обновляем дату и версию в сессии
+  .on(acceptTermsFx.doneData, (state, profile) =>
     state ? { ...state, ...mapProfileToSession(profile) } : state,
   )
   // ✅ №21-23: единая очистка и на logout, и на sessionExpired

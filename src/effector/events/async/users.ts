@@ -127,3 +127,11 @@ export const updateAvatarFx = createEffect(userApi.updateAvatar);
 export const uploadUserPhotoFx = createEffect(userApi.uploadPhoto);
 export const deleteUserPhotoFx = createEffect(userApi.deletePhoto);
 export const deleteAccountFx = createEffect(userApi.deleteAccount); // ✅
+/**
+ * ✅ Фиксация согласия с актуальной редакцией документов
+ * (старые аккаунты и повторное согласие после обновления текста).
+ */
+export const acceptTermsFx = createEffect(async () => {
+  const { data } = await apiInstance.post<ServerUserProfile>('/user/me/consent');
+  return data;
+});

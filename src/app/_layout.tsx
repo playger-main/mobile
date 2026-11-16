@@ -18,6 +18,7 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import KeyboardDoneButton from '@/components/ui/KeyboardDoneButton';
+import ConsentUpdateModal from '@/components/legal/ConsentUpdateModal';
 import { useFonts } from 'expo-font';
 import Ionicons from "@react-native-vector-icons/ionicons";
 import { useUnit } from 'effector-react';
@@ -188,7 +189,8 @@ export default function RootLayout() {
       <ThemeProvider value={navTheme}>
         <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
 
-        <Stack screenOptions={{ headerShown: false }}>
+        <ConsentUpdateModal />
+      <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(drawer)" />
           <Stack.Screen name="ground/[id]" />
           <Stack.Screen name="ground/create" />

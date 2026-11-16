@@ -88,6 +88,7 @@ export {
   updateProfileFx,
   requestEmailChangeFx,
   confirmEmailChangeFx,
+  acceptTermsFx,
   updateAvatarFx,
   uploadUserPhotoFx,
   deleteUserPhotoFx,
