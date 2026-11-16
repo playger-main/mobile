@@ -2,6 +2,26 @@
 import 'dotenv/config';
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
+/**
+ * ✅ Google Maps нужен только Android: на iOS карта рисуется Apple Maps
+ * (PROVIDER_DEFAULT), поэтому iOS-сборки можно делать без ключа.
+ * Пустая карта в Android-релизе — недопустима, поэтому падаем на этапе сборки
+ * с понятным сообщением, а не отдаём пользователю серый экран.
+ */
+const mapsApiKey = (process.env.GOOGLE_MAPS_API_KEY ?? '').trim();
+const isPlaceholderMapsKey =
+  mapsApiKey.length < 30 || mapsApiKey.includes('...');
+
+if (
+  process.env.EAS_BUILD_PLATFORM === 'android' &&
+  process.env.APP_ENV === 'production' &&
+  isPlaceholderMapsKey
+) {
+  throw new Error(
+    'GOOGLE_MAPS_API_KEY is missing or still a placeholder. Android release builds need a real key (Google Cloud → Maps SDK for Android). iOS builds do not need it.',
+  );
+}
+
 export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
   expo: {
     // Базовые настройки
