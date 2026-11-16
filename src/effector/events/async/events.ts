@@ -107,8 +107,14 @@ export interface UpdateEventPayload {
 // ==========================================
 
 const eventApi = {
+  /**
+   * ✅ Окно истории задаёт бэкенд по умолчанию (30 дней назад … 180 вперёд),
+   * поэтому лента и календарь не теряют будущие события при накоплении архива.
+   */
   getAll: async (): Promise<ServerEventItem[]> => {
-    const response = await apiInstance.get<ServerEventItem[]>('/event');
+    const response = await apiInstance.get<ServerEventItem[]>('/event', {
+      params: { take: 200 },
+    });
     return response.data;
   },
 
