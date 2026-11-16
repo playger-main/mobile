@@ -22,6 +22,9 @@ export interface ServerUserProfile {
   photoIds: string[];
   createdAt: number;
   updatedAt: number;
+  /** ✅ когда и какую редакцию документов принял пользователь */
+  termsAcceptedAt?: number | null;
+  termsVersion?: string | null;
 
   joinedCount?: number;
   savedCount?: number;

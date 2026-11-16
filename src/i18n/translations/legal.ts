@@ -53,4 +53,29 @@ export const legal: TranslationDict = {
     pl: 'Warunki użytkowania',
     uk: 'Умови використання',
   },
+  // ✅ плашка «согласие зафиксировано» на экранах документов
+  'legal.consent.title': {
+    en: 'Consent recorded',
+    ru: 'Согласие зафиксировано',
+    be: 'Згода зафіксавана',
+    lt: 'Sutikimas užfiksuotas',
+    pl: 'Zgoda zapisana',
+    uk: 'Згоду зафіксовано',
+  },
+  'legal.consent.body': {
+    en: 'You accepted the Terms of Use and the Privacy Policy and have read them.',
+    ru: 'Вы согласились с Условиями использования и Политикой конфиденциальности и ознакомились с ними.',
+    be: 'Вы пагадзіліся з Умовамі выкарыстання і Палітыкай прыватнасці і азнаёміліся з імі.',
+    lt: 'Jūs sutikote su naudojimo sąlygomis ir privatumo politika bei susipažinote su jais.',
+    pl: 'Zaakceptowałeś Warunki korzystania i Politykę prywatności oraz zapoznałeś się z nimi.',
+    uk: 'Ви погодилися з Умовами використання та Політикою конфіденційності й ознайомилися з ними.',
+  },
+  'legal.consent.meta': {
+    en: 'Version {{version}} · {{date}}',
+    ru: 'Версия {{version}} · {{date}}',
+    be: 'Версія {{version}} · {{date}}',
+    lt: 'Versija {{version}} · {{date}}',
+    pl: 'Wersja {{version}} · {{date}}',
+    uk: 'Версія {{version}} · {{date}}',
+  },
 };

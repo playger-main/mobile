@@ -37,6 +37,9 @@ export interface SessionUser {
   joinedCount?: number;
   savedCount?: number;
   gamesCount?: number;
+  /** ✅ согласие с документами: дата и редакция */
+  termsAcceptedAt?: number | null;
+  termsVersion?: string | null;
 }
 
 // ==========================================
@@ -67,6 +70,8 @@ const mapProfileToSession = (p: ServerUserProfile): SessionUser => ({
   joinedCount: p.joinedCount ?? 0,
   savedCount: p.savedCount ?? 0,
   gamesCount: p.gamesCount ?? 0,
+  termsAcceptedAt: p.termsAcceptedAt ?? null,
+  termsVersion: p.termsVersion ?? null,
 });
 
 // ==========================================

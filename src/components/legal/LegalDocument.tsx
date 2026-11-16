@@ -9,8 +9,11 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useUnit } from 'effector-react';
+import Ionicons from '@react-native-vector-icons/ionicons';
 
 import ScreenHeader from '@/components/forms/ScreenHeader';
+import { $userSession } from '@/effector/store';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
 import {
@@ -50,6 +53,23 @@ export default function LegalDocument({
 
   // ✅ Тексты приводятся к языку здесь: перевод (если есть) → ru → en
   const localizedSections = resolveSections(sections, lang, overrides);
+
+  // ✅ плашка о согласии — только для вошедших пользователей
+  const user = useUnit($userSession);
+  const consentAt = user?.termsAcceptedAt ? new Date(user.termsAcceptedAt) : null;
+  const consentVersion = user?.termsVersion ?? LEGAL_META.version;
+  const dateLocale =
+    lang === 'ru'
+      ? 'ru-RU'
+      : lang === 'pl'
+        ? 'pl-PL'
+        : lang === 'lt'
+          ? 'lt-LT'
+          : lang === 'uk'
+            ? 'uk-UA'
+            : lang === 'be'
+              ? 'be-BY'
+              : 'en-GB';
 
   const openEmail = () => {
     Linking.openURL(`mailto:${LEGAL_META.contactEmail}`).catch(() => {});
@@ -148,6 +168,37 @@ export default function LegalDocument({
             </Text>
           </Pressable>
         </View>
+
+        {consentAt && (
+          <View
+            style={[
+              styles.consentCard,
+              { backgroundColor: colors.accentBg, borderColor: colors.accent },
+            ]}
+          >
+            <View style={styles.consentHeader}>
+              <Ionicons
+                name="checkmark-circle"
+                size={22}
+                color={colors.accent}
+              />
+              <Text style={[styles.consentTitle, { color: colors.accent }]}>
+                {t('legal.consent.title')}
+              </Text>
+            </View>
+            <Text
+              style={[styles.consentBody, { color: colors.textSecondary }]}
+            >
+              {t('legal.consent.body')}
+            </Text>
+            <Text style={[styles.consentMeta, { color: colors.textTertiary }]}>
+              {t('legal.consent.meta', {
+                version: consentVersion,
+                date: consentAt.toLocaleDateString(dateLocale),
+              })}
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -183,5 +234,16 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   contactTitle: { fontSize: 14, fontWeight: '700' },
+  consentCard: {
+    marginTop: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 14,
+    gap: 6,
+  },
+  consentHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  consentTitle: { fontSize: 14, fontWeight: '700' },
+  consentBody: { fontSize: 13, lineHeight: 19 },
+  consentMeta: { fontSize: 12 },
   contactEmail: { fontSize: 14, fontWeight: '600' },
 });

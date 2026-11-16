@@ -28,9 +28,11 @@ import {
   hydrateSettingsFx,
   fetchGroundsFx,
   fetchAllEventsFx,
+  fetchMyProfileFx,
   requestUserLocationFx,
   checkLocationPermissionFx,
   detectCityFx,
+  $userSession,
   $appLanguage,
   $useLocation,
 } from '@/effector/store';
@@ -96,6 +98,9 @@ export default function RootLayout() {
     (async () => {
       await hydrateSessionFx();
       hydrateSettingsFx();
+
+      // ✅ профиль нужен сразу: в нём дата/версия согласия с документами
+      if ($userSession.getState()) fetchMyProfileFx();
     })();
 
     (async () => {
