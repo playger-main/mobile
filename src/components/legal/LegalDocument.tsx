@@ -1,5 +1,5 @@
 // src/components/legal/LegalDocument.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Linking,
   Pressable,
@@ -13,7 +13,15 @@ import { useUnit } from 'effector-react';
 import Ionicons from '@react-native-vector-icons/ionicons';
 
 import ScreenHeader from '@/components/forms/ScreenHeader';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { $userSession } from '@/effector/store';
+import {
+  getLegalOverrides,
+  hasLegalTranslation,
+  LEGAL_LANGUAGES,
+  LEGAL_LANGUAGE_LABELS,
+  normalizeLegalLanguage,
+} from '@/content/legal-overrides';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
 import {
@@ -21,14 +29,13 @@ import {
   LegalSection,
   RenderedSection,
   resolveSections,
+  TERMS_SECTIONS,
 } from '@/content/legal';
 
 interface LegalDocumentProps {
   /** Заголовок экрана (из i18n) */
   title: string;
   sections: LegalSection[];
-  /** Полный перевод документа, если он есть для текущего языка */
-  overrides?: RenderedSection[];
   /** Свой обработчик «назад» (например, при открытии по ссылке) */
   onBack?: () => void;
 }
@@ -40,34 +47,55 @@ interface LegalDocumentProps {
 export default function LegalDocument({
   title,
   sections,
-  overrides,
   onBack,
 }: LegalDocumentProps) {
   const { t, lang } = useTranslation();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
-  // Переводы есть для en/ru; для остальных языков показываем английский
-  // и честно предупреждаем, какая версия юридически значимая.
-  const showEnglishNote = lang !== 'en' && lang !== 'ru';
-
-  // ✅ Тексты приводятся к языку здесь: перевод (если есть) → ru → en
-  const localizedSections = resolveSections(sections, lang, overrides);
-
   // ✅ плашка о согласии — только для вошедших пользователей
   const user = useUnit($userSession);
+
+  // ✅ язык документа выбирается отдельно от языка интерфейса и запоминается
+  const [preferredLang, setPreferredLang] = useState<string | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem(LEGAL_LANG_KEY)
+      .then((value) => setPreferredLang(value ? normalizeLegalLanguage(value) : null))
+      .catch(() => {});
+  }, []);
+
+  const docLang =
+    preferredLang ?? (hasLegalTranslation(lang) ? lang : 'en');
+
+  const chooseLang = (value: string) => {
+    setPreferredLang(value);
+    AsyncStorage.setItem(LEGAL_LANG_KEY, value).catch(() => {});
+  };
+
+  // переводы подтягиваем по выбранному языку документа
+  const activeOverrides = getLegalOverrides(
+    sections === TERMS_SECTIONS ? 'terms' : 'privacy',
+    docLang,
+  );
+
+  // ✅ для не-английского языка показываем пометку о юридически значимой версии
+  const showEnglishNote = docLang !== 'en';
+
+  // ✅ Тексты приводятся к языку: перевод (если есть) → ru → en
+  const localizedSections = resolveSections(sections, docLang, activeOverrides);
   const consentAt = user?.termsAcceptedAt ? new Date(user.termsAcceptedAt) : null;
   const consentVersion = user?.termsVersion ?? LEGAL_META.version;
   const dateLocale =
-    lang === 'ru'
+    docLang === 'ru'
       ? 'ru-RU'
-      : lang === 'pl'
+      : docLang === 'pl'
         ? 'pl-PL'
-        : lang === 'lt'
+        : docLang === 'lt'
           ? 'lt-LT'
-          : lang === 'uk'
+          : docLang === 'uk'
             ? 'uk-UA'
-            : lang === 'be'
+            : docLang === 'be'
               ? 'be-BY'
               : 'en-GB';
 
@@ -86,6 +114,38 @@ export default function LegalDocument({
           { paddingBottom: insets.bottom + 40 },
         ]}
       >
+        {/* ✅ выбор языка документа (не зависит от языка приложения) */}
+        <View style={styles.langRow}>
+          {LEGAL_LANGUAGES.map((code) => {
+            const active = code === docLang;
+            return (
+              <Pressable
+                key={code}
+                onPress={() => chooseLang(code)}
+                style={[
+                  styles.langChip,
+                  {
+                    backgroundColor: active ? colors.primary : colors.surface,
+                    borderColor: active ? colors.primary : colors.border,
+                  },
+                ]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                accessibilityLabel={LEGAL_LANGUAGE_LABELS[code]}
+              >
+                <Text
+                  style={[
+                    styles.langChipText,
+                    { color: active ? '#FFFFFF' : colors.textSecondary },
+                  ]}
+                >
+                  {LEGAL_LANGUAGE_LABELS[code]}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
         {/* Мета: версия и дата вступления в силу */}
         <View
           style={[
@@ -204,9 +264,27 @@ export default function LegalDocument({
   );
 }
 
+const LEGAL_LANG_KEY = 'settings_legal_lang';
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 16 },
+  langRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  langChip: {
+    minWidth: 44,
+    height: 32,
+    paddingHorizontal: 10,
+    borderRadius: 9,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  langChipText: { fontSize: 12, fontWeight: '800' },
   metaCard: {
     borderRadius: 12,
     borderWidth: 1,

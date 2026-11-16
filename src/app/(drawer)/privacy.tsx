@@ -5,10 +5,9 @@ import { useRouter } from 'expo-router';
 import LegalDocument from '@/components/legal/LegalDocument';
 import { PRIVACY_SECTIONS } from '@/content/legal';
 import { useTranslation } from '@/i18n';
-import { getLegalOverrides } from '@/content/legal-overrides';
 
 export default function PrivacyScreen() {
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   const router = useRouter();
 
   // ✅ при открытии по прямой ссылке истории может не быть
@@ -21,7 +20,6 @@ export default function PrivacyScreen() {
     <LegalDocument
       title={t('legal.privacy.title')}
       sections={PRIVACY_SECTIONS}
-      overrides={getLegalOverrides('privacy', lang)}
       onBack={handleBack}
     />
   );
