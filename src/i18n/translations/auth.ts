@@ -84,4 +84,13 @@ export const auth: TranslationDict = {
     pl: 'Nie udało się wysłać wiadomości. Spróbuj ponownie później.',
     uk: 'Не вдалося надіслати лист. Спробуйте пізніше.',
   },
+  // ✅ имя больше не уникально: при совпадении просим войти по email
+  'auth.error.nameAmbiguous': {
+    en: 'Several accounts use this name. Please sign in with your email.',
+    ru: 'С таким именем несколько аккаунтов. Войдите по электронной почте.',
+    be: 'З такім імем некалькі акаўнтаў. Увайдзіце па электроннай пошце.',
+    lt: 'Šiuo vardu yra kelios paskyros. Prisijunkite el. paštu.',
+    pl: 'Kilka kont używa tej nazwy. Zaloguj się przez e-mail.',
+    uk: 'З таким ім’ям кілька акаунтів. Увійдіть електронною поштою.',
+  },
 };

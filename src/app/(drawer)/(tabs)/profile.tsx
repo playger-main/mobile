@@ -130,6 +130,9 @@ export default function ProfileHubScreen() {
         changeStep('verify');
         setErrorMessage(t('auth.error.accountUnverified'));
         resendCodeFx(email.trim()).catch(() => {});
+      } else if (statusCode === 409) {
+        // ✅ несколько аккаунтов с таким именем — просим email
+        setErrorMessage(t('auth.error.nameAmbiguous'));
       } else {
         setErrorMessage(
           serverMessage || t('auth.error.invalidCredentials'),
