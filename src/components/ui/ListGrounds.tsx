@@ -236,7 +236,7 @@ export default function ListGrounds({
                 styles.filterDot,
                 {
                   backgroundColor:
-                    eventFilter === 'today' ? colors.accent : colors.primary,
+                    eventFilter === 'today' ? colors.accent : colors.warning,
                 },
               ]}
             />

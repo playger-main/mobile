@@ -46,10 +46,10 @@ const LOCATION_OPTIONS: FilterOption<LocationFilter>[] = [
 
 // ✅ Фильтр по событиям: подсказывает, где вообще есть что-то живое
 const EVENT_OPTIONS: FilterOption<EventFilter>[] = [
-  // ✅ зелёный — события сегодня; «есть события» — любой день, поэтому нейтральный тон
+  // ✅ полная палитра: зелёный — события сегодня, оранжевый — есть события
   { code: 'all', labelKey: 'filters.eventsAll', icon: 'albums-outline', tone: 'primary' },
   { code: 'today', labelKey: 'filters.eventsToday', icon: 'flash', tone: 'accent' },
-  { code: 'any', labelKey: 'filters.eventsAny', icon: 'calendar', tone: 'primary' },
+  { code: 'any', labelKey: 'filters.eventsAny', icon: 'calendar', tone: 'warning' },
 ];
 
 export default function LocationFilterSheet({
