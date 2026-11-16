@@ -97,6 +97,8 @@ export default function ProfileHubScreen() {
         username: fullName.trim(),
         email: email.trim(),
         password,
+        // ✅ галочка согласия обязательна в форме регистрации
+        acceptTerms: true,
       });
     } catch (err: any) {
       setErrorMessage(

@@ -66,4 +66,13 @@ export const auth: TranslationDict = {
   'auth.error.invalidCode': { en: 'Invalid or expired code.', ru: 'Неверный или просроченный код.', be: 'Няправільны або пратэрмінаваны код.', lt: 'Neteisingas arba pasibaigęs kodas.', pl: 'Nieprawidłowy lub wygasły kod.', uk: 'Невірний або прострочений код.' },
   'auth.error.couldNotSendCode': { en: 'Could not send code.', ru: 'Не удалось отправить код.', be: 'Не ўдалося адправіць код.', lt: 'Nepavyko išsiųsti kodo.', pl: 'Nie udało się wysłać kodu.', uk: 'Не вдалося надіслати код.' },
   'auth.error.missingEmail': { en: 'Missing email.', ru: 'Отсутствует email.', be: 'Адсутнічае email.', lt: 'Trūksta el. pašto.', pl: 'Brak adresu e-mail.', uk: 'Відсутня електронна пошта.' },
+  // ✅ согласие с документами при регистрации
+  'auth.signUp.consentLabel': {
+    en: 'By creating an account I accept:',
+    ru: 'Создавая аккаунт, я принимаю:',
+    be: 'Ствараючы акаўнт, я прымаю:',
+    lt: 'Kurdamas paskyrą, sutinku su:',
+    pl: 'Tworząc konto, akceptuję:',
+    uk: 'Створюючи акаунт, я приймаю:',
+  },
 };

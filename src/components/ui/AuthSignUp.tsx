@@ -10,6 +10,7 @@ import {
   Image,
 } from 'react-native';
 import Ionicons from "@react-native-vector-icons/ionicons";
+import { useRouter } from 'expo-router';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -29,6 +30,7 @@ export default function AuthSignUp({
   errorMessage,
 }: AuthSignUpProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const { colors, theme } = useTheme();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -36,6 +38,8 @@ export default function AuthSignUp({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  // ✅ согласие с условиями и политикой — без него регистрация недоступна
+  const [accepted, setAccepted] = useState(false);
 
   const passwordsMatch =
     password.length > 0 &&
@@ -50,6 +54,7 @@ export default function AuthSignUp({
     email.trim().length > 0 &&
     password.length >= 6 &&
     passwordsMatch &&
+    accepted &&
     !isSubmitting;
 
   const handleSubmit = () => {
@@ -194,6 +199,50 @@ export default function AuthSignUp({
         )}
       </View>
 
+      {/* ✅ согласие с документами: без галочки кнопка неактивна */}
+      <Pressable
+        style={styles.consentRow}
+        onPress={() => setAccepted((value) => !value)}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: accepted }}
+        accessibilityLabel={t('auth.signUp.consentLabel')}
+        hitSlop={6}
+      >
+        <Ionicons
+          name={accepted ? 'checkbox' : 'square-outline'}
+          size={22}
+          color={accepted ? colors.primary : colors.textTertiary}
+        />
+        <Text
+          style={[styles.consentText, { color: colors.textSecondary }]}
+        >
+          {t('auth.signUp.consentLabel')}
+        </Text>
+      </Pressable>
+
+      <View style={styles.consentLinks}>
+        <Pressable
+          onPress={() => router.push('/(drawer)/terms')}
+          accessibilityRole="link"
+          accessibilityLabel={t('legal.terms.title')}
+          hitSlop={6}
+        >
+          <Text style={[styles.consentLink, { color: colors.primary }]}>
+            {t('legal.terms.title')}
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => router.push('/(drawer)/privacy')}
+          accessibilityRole="link"
+          accessibilityLabel={t('legal.privacy.title')}
+          hitSlop={6}
+        >
+          <Text style={[styles.consentLink, { color: colors.primary }]}>
+            {t('legal.privacy.title')}
+          </Text>
+        </Pressable>
+      </View>
+
       <Pressable
         style={[styles.primaryButton, { backgroundColor: submitBtnBg }]}
         onPress={handleSubmit}
@@ -262,6 +311,20 @@ const styles = StyleSheet.create({
   eyeButton: { padding: 4, marginLeft: 4 },
   confirmIcon: { marginLeft: 4 },
   mismatchText: { fontSize: 12, fontWeight: '600', marginTop: -4 },
+  consentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingRight: 8,
+  },
+  consentText: { flex: 1, fontSize: 13, lineHeight: 19 },
+  consentLinks: {
+    paddingLeft: 32,
+    paddingTop: 6,
+    paddingBottom: 16,
+    gap: 6,
+  },
+  consentLink: { fontSize: 13, fontWeight: '600', textDecorationLine: 'underline' },
   primaryButton: {
     width: '100%',
     height: 50,

@@ -9,6 +9,8 @@ export interface SignUpPayload {
   username: string;
   email: string;
   password: string;
+  /** ✅ обязательное согласие с Условиями и Политикой (проверяет бэкенд) */
+  acceptTerms: boolean;
 }
 
 export interface SignInPayload {
