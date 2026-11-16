@@ -75,4 +75,13 @@ export const auth: TranslationDict = {
     pl: 'Tworząc konto, akceptuję:',
     uk: 'Створюючи акаунт, я приймаю:',
   },
+  // ✅ письмо не ушло (503 от сервера)
+  'auth.error.emailSendFailed': {
+    en: 'Could not send the email. Please try again later.',
+    ru: 'Не удалось отправить письмо. Попробуйте позже.',
+    be: 'Не ўдалося адправіць ліст. Паспрабуйце пазней.',
+    lt: 'Nepavyko išsiųsti laiško. Bandykite vėliau.',
+    pl: 'Nie udało się wysłać wiadomości. Spróbuj ponownie później.',
+    uk: 'Не вдалося надіслати лист. Спробуйте пізніше.',
+  },
 };

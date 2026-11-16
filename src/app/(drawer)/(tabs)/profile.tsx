@@ -105,7 +105,9 @@ export default function ProfileHubScreen() {
       });
     } catch (err: any) {
       setErrorMessage(
-        err?.response?.data?.message || t('auth.error.registrationFailed'),
+        err?.response?.status === 503
+          ? t('auth.error.emailSendFailed')
+          : err?.response?.data?.message || t('auth.error.registrationFailed'),
       );
     }
   };
@@ -147,7 +149,9 @@ export default function ProfileHubScreen() {
       Alert.alert(t('auth.error.codeSent'), t('auth.error.newCodeSent'));
     } catch (err: any) {
       setErrorMessage(
-        err?.response?.data?.message || t('auth.error.couldNotSendCode'),
+        err?.response?.status === 503
+          ? t('auth.error.emailSendFailed')
+          : err?.response?.data?.message || t('auth.error.couldNotSendCode'),
       );
     }
   };
@@ -175,7 +179,9 @@ export default function ProfileHubScreen() {
       await forgotPasswordFx(email.trim());
     } catch (err: any) {
       setErrorMessage(
-        err?.response?.data?.message || t('auth.error.couldNotSendCode'),
+        err?.response?.status === 503
+          ? t('auth.error.emailSendFailed')
+          : err?.response?.data?.message || t('auth.error.couldNotSendCode'),
       );
     }
   };
