@@ -12,40 +12,50 @@ import { getTodayString } from './getTodayString';
  */
 export type GroundActivityLevel = 'active' | 'upcoming' | 'none';
 
-/** Событие уже закончилось — не влияет ни на цвет, ни на счётчик */
-const isFinished = (event: ServerEventItem): boolean =>
-  getEventStatus(event.date, event.startTime, event.duration) === 'finished';
+/**
+ * Независимые признаки площадки. Нужны для фильтров: площадка с событием
+ * сегодня И завтра должна попадать в оба фильтра, поэтому уровень
+ * (одно значение) для этого не подходит.
+ */
+export interface GroundEventFlags {
+  /** есть незавершённое событие сегодня */
+  today: boolean;
+  /** есть незавершённое событие завтра или позже */
+  upcoming: boolean;
+}
 
-/** Событие идёт прямо сейчас */
-export const isEventActiveNow = (event: ServerEventItem): boolean =>
-  getEventStatus(event.date, event.startTime, event.duration) === 'active';
+export const getGroundEventFlags = (
+  events: ServerEventItem[],
+): GroundEventFlags => {
+  const flags: GroundEventFlags = { today: false, upcoming: false };
+  if (!events || events.length === 0) return flags;
 
-/** Событие запланировано на сегодня (по локальной дате) */
-const isToday = (event: ServerEventItem): boolean =>
-  event.date === getTodayString();
+  const today = getTodayString();
+
+  for (const event of events) {
+    const status = getEventStatus(event.date, event.startTime, event.duration);
+    if (status === 'finished') continue;
+
+    // идёт сейчас (даже если началось вчера) или запланировано на сегодня
+    if (status === 'active' || event.date === today) flags.today = true;
+    else flags.upcoming = true;
+  }
+
+  return flags;
+};
 
 export const getGroundActivityLevel = (
   events: ServerEventItem[],
 ): GroundActivityLevel => {
-  if (!events || events.length === 0) return 'none';
-
-  let hasFuture = false;
-
-  for (const event of events) {
-    if (isFinished(event)) continue;
-
-    // идёт сейчас или запланировано на сегодня → «сегодня»
-    if (isEventActiveNow(event) || isToday(event)) return 'active';
-
-    hasFuture = true;
-  }
-
-  return hasFuture ? 'upcoming' : 'none';
+  const flags = getGroundEventFlags(events);
+  if (flags.today) return 'active';
+  if (flags.upcoming) return 'upcoming';
+  return 'none';
 };
 
-/** ✅ Строгая проверка «идёт прямо сейчас» — для фильтра «Сейчас идёт» */
-export const hasEventActiveNow = (events: ServerEventItem[]): boolean =>
-  (events ?? []).some(isEventActiveNow);
+/** Событие идёт прямо сейчас (для бейджей/подписей, где нужна строгость) */
+export const isEventActiveNow = (event: ServerEventItem): boolean =>
+  getEventStatus(event.date, event.startTime, event.duration) === 'active';
 
 export const ACTIVITY_COLORS: Record<
   GroundActivityLevel,

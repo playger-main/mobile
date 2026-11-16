@@ -34,7 +34,7 @@ import {
   $locationFilter,
   $eventFilter,
   $groundActivityLevels,
-  $groundActiveNow,
+  $groundEventFlags,
 } from '@/effector/store';
 import { setSelectedCategory } from '@/effector/events/sync';
 import { calculateDistance } from '@/utils/distance';
@@ -76,7 +76,7 @@ export default function ListGrounds({
     locationFilter,
     eventFilter,
     activityLevels,
-    activeNow,
+    eventFlags,
   } = useUnit({
     grounds: $grounds,
     isLoading: $isGroundsLoading,
@@ -91,7 +91,7 @@ export default function ListGrounds({
     locationFilter: $locationFilter,
     eventFilter: $eventFilter,
     activityLevels: $groundActivityLevels,
-    activeNow: $groundActiveNow,
+    eventFlags: $groundEventFlags,
   });
 
   // ✅ P2: поиск дебаунсится, чтобы не отправлять запрос на каждую букву
@@ -158,10 +158,10 @@ export default function ListGrounds({
     // ✅ фильтр по событиям — тот же, что на карте
     if (eventFilter !== 'all') {
       list = list.filter((g) => {
-        const level = activityLevels[g.id] ?? 'none';
-        return eventFilter === 'active'
-          ? !!activeNow[g.id]
-          : level !== 'none';
+        const flags = eventFlags[g.id];
+        if (!flags) return false;
+        // ✅ сегодня и будущие — независимые признаки: площадка может быть в обоих
+        return eventFilter === 'today' ? flags.today : flags.upcoming;
       });
     }
 
@@ -182,7 +182,7 @@ export default function ListGrounds({
     locationFilter,
     eventFilter,
     activityLevels,
-    activeNow,
+    eventFlags,
   ]);
 
   const filterLabel = useMemo(() => {
@@ -226,9 +226,9 @@ export default function ListGrounds({
             eventFilter === 'all'
               ? `${t('filters.title')}: ${filterLabel}`
               : `${t('filters.title')}: ${filterLabel}, ${t(
-                  eventFilter === 'active'
-                    ? 'filters.eventsActive'
-                    : 'filters.eventsAny',
+                  eventFilter === 'today'
+                    ? 'filters.eventsToday'
+                    : 'filters.eventsUpcoming',
                 )}`
           }
         >
@@ -238,7 +238,7 @@ export default function ListGrounds({
                 styles.filterDot,
                 {
                   backgroundColor:
-                    eventFilter === 'active'
+                    eventFilter === 'today'
                       ? colors.accent
                       : colors.warning,
                 },

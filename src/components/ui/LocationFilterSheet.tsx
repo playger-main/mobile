@@ -46,9 +46,10 @@ const LOCATION_OPTIONS: FilterOption<LocationFilter>[] = [
 
 // ✅ Фильтр по событиям: подсказывает, где вообще есть что-то живое
 const EVENT_OPTIONS: FilterOption<EventFilter>[] = [
+  // ✅ цвета совпадают с картой: зелёный — события сегодня, оранжевый — будущие
   { code: 'all', labelKey: 'filters.eventsAll', icon: 'albums-outline', tone: 'primary' },
-  { code: 'any', labelKey: 'filters.eventsAny', icon: 'calendar-outline', tone: 'warning' },
-  { code: 'active', labelKey: 'filters.eventsActive', icon: 'flash-outline', tone: 'accent' },
+  { code: 'today', labelKey: 'filters.eventsToday', icon: 'flash', tone: 'accent' },
+  { code: 'upcoming', labelKey: 'filters.eventsUpcoming', icon: 'calendar', tone: 'warning' },
 ];
 
 export default function LocationFilterSheet({

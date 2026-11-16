@@ -35,7 +35,7 @@ export {
   $favoritesCount,
   $favoriteIdsLoaded,
   $groundActivityLevels,
-  $groundActiveNow,
+  $groundEventFlags,
 } from './domains/data';
 
 export {

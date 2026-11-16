@@ -6,9 +6,9 @@ import { clearGrounds, logout } from '../events/sync';
 import { $selectedDate } from './filter';
 import { getEventStatus } from '@/utils/eventStatus';
 import {
-  getGroundActivityLevel,
-  hasEventActiveNow,
+  getGroundEventFlags,
   type GroundActivityLevel,
+  type GroundEventFlags,
 } from '@/utils/groundActivity';
 
 import {
@@ -318,15 +318,10 @@ export const $events = dataDomain
   .on(fetchAllEventsFx.doneData, (_, payload) => payload);
 
 /**
- * ✅ Уровень активности по каждой площадке — один расчёт на изменение событий.
- * Используется и картой (маркеры/кластеры), и списком (фильтр по событиям),
- * чтобы не считать `events.filter(...)` на каждую площадку в каждом рендере.
+ * ✅ Независимые признаки по каждой площадке: есть событие сегодня /
+ * есть событие завтра и позже. Используются фильтрами и цветами.
  */
-/**
- * ✅ Строгая проверка «событие идёт прямо сейчас» — для фильтра
- * «Сейчас идёт». Цвет маркера при этом означает «сегодня».
- */
-export const $groundActiveNow = $events.map((events) => {
+export const $groundEventFlags = $events.map((events) => {
   const byGround: Record<string, ServerEventItem[]> = {};
 
   for (const event of events) {
@@ -335,30 +330,30 @@ export const $groundActiveNow = $events.map((events) => {
     (byGround[groundId] ??= []).push(event);
   }
 
-  const activeNow: Record<string, boolean> = {};
+  const flags: Record<string, GroundEventFlags> = {};
   for (const [groundId, list] of Object.entries(byGround)) {
-    if (hasEventActiveNow(list)) activeNow[groundId] = true;
+    flags[groundId] = getGroundEventFlags(list);
   }
 
-  return activeNow;
+  return flags;
 });
 
-export const $groundActivityLevels = $events.map((events) => {
-  const byGround: Record<string, ServerEventItem[]> = {};
-
-  for (const event of events) {
-    const groundId = event.ground?.id;
-    if (!groundId) continue;
-    (byGround[groundId] ??= []).push(event);
-  }
-
+/**
+ * ✅ Цвет площадки: зелёный — событие сегодня, оранжевый — только будущие,
+ * синий — событий нет. Считается из флагов, чтобы не дублировать логику.
+ */
+export const $groundActivityLevels = $groundEventFlags.map((flags) => {
   const levels: Record<string, GroundActivityLevel> = {};
-  for (const [groundId, list] of Object.entries(byGround)) {
-    levels[groundId] = getGroundActivityLevel(list);
+  for (const [groundId, item] of Object.entries(flags)) {
+    levels[groundId] = item.today
+      ? 'active'
+      : item.upcoming
+        ? 'upcoming'
+        : 'none';
   }
-
   return levels;
 });
+
 
 export const $isEventsLoading = dataDomain
   .createStore<boolean>(false)
