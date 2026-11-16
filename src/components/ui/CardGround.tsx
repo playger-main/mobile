@@ -11,10 +11,16 @@ import {
   $userLocation,
   $cityCenter,
   $upcomingEventsCountByGround,
+  $groundActivityLevels,
 } from '@/effector/store';
 import { calculateDistance, formatDistance } from '@/utils/distance';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
+import {
+  ACTIVITY_COLORS,
+  ACTIVITY_ICONS,
+  getActivityLabelKey,
+} from '@/utils/groundActivity';
 
 export interface ExtendedGroundItem {
   id: string;
@@ -54,6 +60,7 @@ export default function CardGround({
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
   const upcomingByGround = useUnit($upcomingEventsCountByGround);
+  const activityLevels = useUnit($groundActivityLevels);
 
   const [imageError, setImageError] = useState(false);
   useEffect(() => {
@@ -68,6 +75,7 @@ export default function CardGround({
   }, [item.kindofsport]);
 
   const upcomingCount = upcomingByGround[item.id] ?? 0;
+  const activityLevel = activityLevels[item.id] ?? 'none';
 
   const distanceMeters = useMemo(() => {
     const origin = userLocation ?? cityCenter;
@@ -114,8 +122,22 @@ export default function CardGround({
         )}
 
         {upcomingCount > 0 && (
-          <View style={styles.compactEventBadge}>
-            <Ionicons name="calendar" size={11} color="#FFFFFF" style={styles.badgeIcon} />
+          <View
+            style={[
+              styles.compactEventBadge,
+              {
+                // ✅ зелёный — событие сегодня, оранжевый — будущие дни
+                backgroundColor: ACTIVITY_COLORS[activityLevel].bg,
+              },
+            ]}
+            accessibilityLabel={`${t(getActivityLabelKey(activityLevel))}: ${upcomingCount}`}
+          >
+            <Ionicons
+              name={ACTIVITY_ICONS[activityLevel] as any}
+              size={11}
+              color="#FFFFFF"
+              style={styles.badgeIcon}
+            />
             <Text style={styles.compactEventText}>{upcomingCount}</Text>
           </View>
         )}

@@ -7,6 +7,7 @@ import { $selectedDate } from './filter';
 import { getEventStatus } from '@/utils/eventStatus';
 import {
   getGroundActivityLevel,
+  hasEventActiveNow,
   type GroundActivityLevel,
 } from '@/utils/groundActivity';
 
@@ -321,6 +322,27 @@ export const $events = dataDomain
  * Используется и картой (маркеры/кластеры), и списком (фильтр по событиям),
  * чтобы не считать `events.filter(...)` на каждую площадку в каждом рендере.
  */
+/**
+ * ✅ Строгая проверка «событие идёт прямо сейчас» — для фильтра
+ * «Сейчас идёт». Цвет маркера при этом означает «сегодня».
+ */
+export const $groundActiveNow = $events.map((events) => {
+  const byGround: Record<string, ServerEventItem[]> = {};
+
+  for (const event of events) {
+    const groundId = event.ground?.id;
+    if (!groundId) continue;
+    (byGround[groundId] ??= []).push(event);
+  }
+
+  const activeNow: Record<string, boolean> = {};
+  for (const [groundId, list] of Object.entries(byGround)) {
+    if (hasEventActiveNow(list)) activeNow[groundId] = true;
+  }
+
+  return activeNow;
+});
+
 export const $groundActivityLevels = $events.map((events) => {
   const byGround: Record<string, ServerEventItem[]> = {};
 

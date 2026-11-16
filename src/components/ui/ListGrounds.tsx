@@ -34,6 +34,7 @@ import {
   $locationFilter,
   $eventFilter,
   $groundActivityLevels,
+  $groundActiveNow,
 } from '@/effector/store';
 import { setSelectedCategory } from '@/effector/events/sync';
 import { calculateDistance } from '@/utils/distance';
@@ -75,6 +76,7 @@ export default function ListGrounds({
     locationFilter,
     eventFilter,
     activityLevels,
+    activeNow,
   } = useUnit({
     grounds: $grounds,
     isLoading: $isGroundsLoading,
@@ -89,6 +91,7 @@ export default function ListGrounds({
     locationFilter: $locationFilter,
     eventFilter: $eventFilter,
     activityLevels: $groundActivityLevels,
+    activeNow: $groundActiveNow,
   });
 
   // ✅ P2: поиск дебаунсится, чтобы не отправлять запрос на каждую букву
@@ -156,7 +159,9 @@ export default function ListGrounds({
     if (eventFilter !== 'all') {
       list = list.filter((g) => {
         const level = activityLevels[g.id] ?? 'none';
-        return eventFilter === 'active' ? level === 'active' : level !== 'none';
+        return eventFilter === 'active'
+          ? !!activeNow[g.id]
+          : level !== 'none';
       });
     }
 
@@ -177,6 +182,7 @@ export default function ListGrounds({
     locationFilter,
     eventFilter,
     activityLevels,
+    activeNow,
   ]);
 
   const filterLabel = useMemo(() => {

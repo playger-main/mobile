@@ -22,6 +22,7 @@ import ClusterGroundsSheet from './ClusterGroundsSheet';
 
 import {
   $groundActivityLevels,
+  $groundActiveNow,
   $useLocation as $useLocationSetting,
   $eventFilter,
   $userLocation,
@@ -81,6 +82,7 @@ export default function MapComponent({
   const router = useRouter();
   const { theme, colors } = useTheme();
   const activityLevels = useUnit($groundActivityLevels);
+  const activeNow = useUnit($groundActiveNow);
   const eventFilter = useUnit($eventFilter);
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
@@ -289,10 +291,10 @@ export default function MapComponent({
         eventFilter === 'all'
           ? true
           : eventFilter === 'active'
-            ? m.activityLevel === 'active'
+            ? !!activeNow[m.id]
             : m.activityLevel !== 'none',
       );
-  }, [grounds, activityLevels, eventFilter]);
+  }, [grounds, activityLevels, activeNow, eventFilter]);
 
   const supercluster = useMemo(() => {
     const index = new Supercluster({
