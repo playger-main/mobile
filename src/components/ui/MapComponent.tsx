@@ -292,7 +292,7 @@ export default function MapComponent({
           ? true
           : eventFilter === 'today'
             ? !!eventFlags[m.id]?.today
-            : !!eventFlags[m.id]?.upcoming,
+            : !!(eventFlags[m.id]?.today || eventFlags[m.id]?.upcoming),
       );
   }, [grounds, activityLevels, eventFlags, eventFilter]);
 

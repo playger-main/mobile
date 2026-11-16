@@ -185,12 +185,12 @@ export const location: TranslationDict = {
     pl: 'Dzisiaj',
     uk: 'Сьогодні',
   },
-  'filters.eventsUpcoming': {
-    en: 'Upcoming',
-    ru: 'Предстоящие',
-    be: 'Будучыя',
-    lt: 'Būsimi',
-    pl: 'Nadchodzące',
-    uk: 'Майбутні',
+  'filters.eventsAny': {
+    en: 'Has events',
+    ru: 'Есть события',
+    be: 'Ёсць падзеі',
+    lt: 'Yra renginių',
+    pl: 'Ma wydarzenia',
+    uk: 'Є події',
   },
 };

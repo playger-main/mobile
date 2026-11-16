@@ -33,7 +33,6 @@ import {
   $mapVisibleBounds,
   $locationFilter,
   $eventFilter,
-  $groundActivityLevels,
   $groundEventFlags,
 } from '@/effector/store';
 import { setSelectedCategory } from '@/effector/events/sync';
@@ -75,7 +74,6 @@ export default function ListGrounds({
     mapBounds,
     locationFilter,
     eventFilter,
-    activityLevels,
     eventFlags,
   } = useUnit({
     grounds: $grounds,
@@ -90,7 +88,6 @@ export default function ListGrounds({
     mapBounds: $mapVisibleBounds,
     locationFilter: $locationFilter,
     eventFilter: $eventFilter,
-    activityLevels: $groundActivityLevels,
     eventFlags: $groundEventFlags,
   });
 
@@ -160,8 +157,10 @@ export default function ListGrounds({
       list = list.filter((g) => {
         const flags = eventFlags[g.id];
         if (!flags) return false;
-        // ✅ сегодня и будущие — независимые признаки: площадка может быть в обоих
-        return eventFilter === 'today' ? flags.today : flags.upcoming;
+        // ✅ «сегодня» — только сегодняшние; «есть события» — любой день
+        return eventFilter === 'today'
+          ? flags.today
+          : flags.today || flags.upcoming;
       });
     }
 
@@ -181,7 +180,6 @@ export default function ListGrounds({
     mapBounds,
     locationFilter,
     eventFilter,
-    activityLevels,
     eventFlags,
   ]);
 
@@ -228,7 +226,7 @@ export default function ListGrounds({
               : `${t('filters.title')}: ${filterLabel}, ${t(
                   eventFilter === 'today'
                     ? 'filters.eventsToday'
-                    : 'filters.eventsUpcoming',
+                    : 'filters.eventsAny',
                 )}`
           }
         >
@@ -238,9 +236,7 @@ export default function ListGrounds({
                 styles.filterDot,
                 {
                   backgroundColor:
-                    eventFilter === 'today'
-                      ? colors.accent
-                      : colors.warning,
+                    eventFilter === 'today' ? colors.accent : colors.primary,
                 },
               ]}
             />
