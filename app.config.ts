@@ -41,12 +41,12 @@ export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
     // Настройки платформы iOS
     ios: {
       bundleIdentifier: 'com.dziforge.playg',
-      buildNumber: '1',
+      buildNumber: '2',
       supportsTablet: false,
-      // ✅ P2: ключ для Google Maps на iOS (provider=google)
-      config: {
-        googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
-      },
+      // ✅ Google Maps на iOS НЕ используем: приложение рисует Apple Maps
+      // (PROVIDER_DEFAULT). Ключ googleMapsApiKey в ios.config заставлял
+      // Expo дописывать в Podfile устаревший pod 'react-native-google-maps',
+      // которого нет в react-native-maps 1.29 — сборка падала на pod install.
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
         NSLocationWhenInUseUsageDescription:
