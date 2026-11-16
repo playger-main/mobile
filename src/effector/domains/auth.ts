@@ -40,6 +40,7 @@ export interface SessionUser {
   /** ✅ согласие с документами: дата и редакция */
   termsAcceptedAt?: number | null;
   termsVersion?: string | null;
+  termsLanguage?: string | null;
   /** ✅ true, когда профиль уже загружен и данные о согласии достоверны */
   termsKnown?: boolean;
 }
@@ -74,6 +75,7 @@ const mapProfileToSession = (p: ServerUserProfile): SessionUser => ({
   gamesCount: p.gamesCount ?? 0,
   termsAcceptedAt: p.termsAcceptedAt ?? null,
   termsVersion: p.termsVersion ?? null,
+  termsLanguage: p.termsLanguage ?? null,
   termsKnown: true,
 });
 

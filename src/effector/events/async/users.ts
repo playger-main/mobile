@@ -25,6 +25,7 @@ export interface ServerUserProfile {
   /** ✅ когда и какую редакцию документов принял пользователь */
   termsAcceptedAt?: number | null;
   termsVersion?: string | null;
+  termsLanguage?: string | null;
 
   joinedCount?: number;
   savedCount?: number;
@@ -131,7 +132,12 @@ export const deleteAccountFx = createEffect(userApi.deleteAccount); // ✅
  * ✅ Фиксация согласия с актуальной редакцией документов
  * (старые аккаунты и повторное согласие после обновления текста).
  */
-export const acceptTermsFx = createEffect(async () => {
-  const { data } = await apiInstance.post<ServerUserProfile>('/user/me/consent');
-  return data;
-});
+export const acceptTermsFx = createEffect(
+  async (params: { language?: string } = {}) => {
+    const { data } = await apiInstance.post<ServerUserProfile>(
+      '/user/me/consent',
+      { language: params.language },
+    );
+    return data;
+  },
+);

@@ -11,6 +11,8 @@ export interface SignUpPayload {
   password: string;
   /** ✅ обязательное согласие с Условиями и Политикой (проверяет бэкенд) */
   acceptTerms: boolean;
+  /** ✅ язык редакции, которую принял пользователь */
+  termsLanguage?: string;
 }
 
 export interface SignInPayload {

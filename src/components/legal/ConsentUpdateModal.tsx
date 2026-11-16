@@ -1,5 +1,5 @@
 // src/components/legal/ConsentUpdateModal.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -19,6 +19,7 @@ import {
   acceptTermsFx,
   logout as logoutEvent,
 } from '@/effector/store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LEGAL_META } from '@/content/legal';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
@@ -33,7 +34,7 @@ import { useTheme } from '@/hooks/useTheme';
  * Пока не примет — модалка не закрывается; можно только выйти из аккаунта.
  */
 export default function ConsentUpdateModal() {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -44,6 +45,14 @@ export default function ConsentUpdateModal() {
   const logout = useUnit(logoutEvent);
 
   const [checked, setChecked] = useState(false);
+  const [docLang, setDocLang] = useState<string | null>(null);
+
+  // ✅ фиксируем язык документа, который пользователь читал
+  useEffect(() => {
+    AsyncStorage.getItem(LEGAL_LANG_KEY)
+      .then((value) => setDocLang(value))
+      .catch(() => {});
+  }, []);
 
   // ✅ не мигаем модалкой, пока профиль не загружен (после входа сессия идёт из токена)
   const consentKnown = !!user?.termsKnown;
@@ -136,7 +145,7 @@ export default function ConsentUpdateModal() {
           </Pressable>
 
           <Pressable
-            onPress={() => accept()}
+            onPress={() => accept({ language: docLang ?? lang })}
             disabled={!checked || acceptPending}
             style={({ pressed }) => [
               styles.primaryBtn,
@@ -176,6 +185,8 @@ export default function ConsentUpdateModal() {
     </Modal>
   );
 }
+
+const LEGAL_LANG_KEY = 'settings_legal_lang';
 
 const styles = StyleSheet.create({
   backdrop: {

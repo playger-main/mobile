@@ -24,6 +24,7 @@ import {
 } from '@/effector/events/async/auth';
 import {
   $authStep,
+  $appLanguage,
   $userSession,
   $isAuthSubmitting,
   fetchMyFavoriteGroundsFx,
@@ -49,11 +50,12 @@ export default function ProfileHubScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pendingEmail, setPendingEmail] = useState<string>('');
 
-  const { currentStep, user, isSubmitting, changeStep, handleLogout } = useUnit({
+  const { currentStep, user, isSubmitting, changeStep, handleLogout, language } = useUnit({
     currentStep: $authStep,
     user: $userSession,
     isSubmitting: $isAuthSubmitting,
     changeStep: setAuthStep,
+    language: $appLanguage,
     handleLogout: logout,
   });
 
@@ -99,6 +101,7 @@ export default function ProfileHubScreen() {
         password,
         // ✅ галочка согласия обязательна в форме регистрации
         acceptTerms: true,
+        termsLanguage: language,
       });
     } catch (err: any) {
       setErrorMessage(
