@@ -71,6 +71,9 @@ export default ({ config }: ConfigContext): { expo: ExpoConfig } => ({
         ITSAppUsesNonExemptEncryption: false,
         NSLocationWhenInUseUsageDescription:
           'PlayG uses your location to show grounds near you.',
+        // ✅ выбор фото площадки/аватара (expo-image-picker, только галерея)
+        NSPhotoLibraryUsageDescription:
+          'PlayG needs access to your photos so you can upload a ground photo or an avatar.',
       },
     },
 
