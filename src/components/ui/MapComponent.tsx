@@ -84,6 +84,8 @@ export default function MapComponent({
   const activityLevels = useUnit($groundActivityLevels);
   const eventFlags = useUnit($groundEventFlags);
   const eventFilter = useUnit($eventFilter);
+  // ✅ настройка «использовать геолокацию»: без неё карта не показывает точку и не просит GPS
+  const useLocationSetting = useUnit($useLocationSetting);
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
   const mapFocusTarget = useUnit($mapFocusTarget);
@@ -207,6 +209,8 @@ export default function MapComponent({
   }, [mapFocusTarget]);
 
   const handleLocatePress = useCallback(async () => {
+    // ✅ если геолокация выключена в настройках — не запрашиваем координаты
+    if (!$useLocationSetting.getState()) return;
     setIsLocating(true);
     try {
       const status = await checkLocationPermissionFx();
@@ -502,7 +506,7 @@ export default function MapComponent({
         style={styles.map}
         initialRegion={region}
         onRegionChangeComplete={handleRegionChangeComplete}
-        showsUserLocation={true}
+        showsUserLocation={useLocationSetting}
         showsMyLocationButton={false}
         toolbarEnabled={false}
         userInterfaceStyle={theme === 'dark' ? 'dark' : 'light'}
@@ -565,6 +569,7 @@ export default function MapComponent({
         })}
       </MapView>
 
+      {useLocationSetting && (
       <Pressable
         style={({ pressed }) => [
           styles.locateButton,
@@ -587,6 +592,7 @@ export default function MapComponent({
           color={colors.primary}
         />
       </Pressable>
+      )}
 
       <ClusterGroundsSheet
         visible={clusterSheetVisible}

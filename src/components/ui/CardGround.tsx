@@ -8,6 +8,7 @@ import SportIcon from './SportIcon';
 import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportKey } from '@/constants/sports';
 import {
+  $useLocation,
   $userLocation,
   $cityCenter,
   $upcomingEventsCountByGround,
@@ -57,6 +58,8 @@ export default function CardGround({
 }: CardGroundProps) {
   const { t } = useTranslation();
   const { theme, colors } = useTheme();
+  // ✅ без геолокации не показываем расстояние «от себя» — его просто нет
+  const useLocation = useUnit($useLocation);
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
   const upcomingByGround = useUnit($upcomingEventsCountByGround);
@@ -90,8 +93,9 @@ export default function CardGround({
     );
   }, [userLocation, cityCenter, item.geolocation, item.distanceMeters]);
 
-  const displayDistance =
-    formatDistance(distanceMeters) ?? t('distance.nearby');
+  const displayDistance = useLocation
+    ? (formatDistance(distanceMeters) ?? t('distance.nearby'))
+    : null;
   const showImage = !!item.avatar && !imageError;
 
   return (
@@ -216,12 +220,16 @@ export default function CardGround({
             </Text>
           </View>
 
-          <View style={styles.distanceBlock}>
-            <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
-            <Text style={[styles.distanceText, { color: colors.textSecondary }]}>
-              {displayDistance}
-            </Text>
-          </View>
+          {displayDistance ? (
+            <View style={styles.distanceBlock}>
+              <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
+              <Text
+                style={[styles.distanceText, { color: colors.textSecondary }]}
+              >
+                {displayDistance}
+              </Text>
+            </View>
+          ) : null}
         </View>
       </View>
     </Pressable>

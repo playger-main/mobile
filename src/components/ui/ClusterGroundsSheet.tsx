@@ -13,7 +13,7 @@ import {
 import { getBadgeStyle } from '@/constants/badgeStyle';
 import { getSportKey } from '@/constants/sports';
 import { GroundMapMarker } from '@/types/map';
-import { $userLocation, $cityCenter } from '@/effector/store';
+import { $useLocation, $userLocation, $cityCenter } from '@/effector/store';
 import { calculateDistance, formatDistance } from '@/utils/distance';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
@@ -36,6 +36,8 @@ export default function ClusterGroundsSheet({
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['50%', '85%'], []);
 
+  // ✅ расстояние показываем только при включённой геолокации
+  const useLocation = useUnit($useLocation);
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
 
@@ -130,8 +132,9 @@ export default function ClusterGroundsSheet({
                 item.longitude,
               )
             : undefined;
-          const displayDistance =
-            formatDistance(distanceMeters) ?? t('distance.nearby');
+          const displayDistance = useLocation
+            ? formatDistance(distanceMeters) ?? t('distance.nearby')
+            : null;
 
           return (
             <Pressable
@@ -235,21 +238,23 @@ export default function ClusterGroundsSheet({
                   </View>
                 </View>
 
-                <View style={styles.distanceRow}>
-                  <Ionicons
-                    name="location-outline"
-                    size={12}
-                    color={colors.textSecondary}
-                  />
-                  <Text
-                    style={[
-                      styles.distanceText,
-                      { color: colors.textSecondary },
-                    ]}
-                  >
-                    {displayDistance}
-                  </Text>
-                </View>
+                {displayDistance ? (
+                  <View style={styles.distanceRow}>
+                    <Ionicons
+                      name="location-outline"
+                      size={12}
+                      color={colors.textSecondary}
+                    />
+                    <Text
+                      style={[
+                        styles.distanceText,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
+                      {displayDistance}
+                    </Text>
+                  </View>
+                ) : null}
               </View>
 
               <Ionicons

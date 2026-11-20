@@ -24,6 +24,7 @@ import {
   $currentGroundEvents,
   $isGroundDetailLoading,
   $userSession,
+  $useLocation,
   $userLocation,
   $cityCenter,
   $groundReviewStats,
@@ -56,6 +57,7 @@ export default function GroundDetailScreen() {
     isLoading,
     user,
     userLocation,
+    useLocation,
     cityCenter,
     appLanguage,
     addFavorite,
@@ -66,6 +68,7 @@ export default function GroundDetailScreen() {
     isLoading: $isGroundDetailLoading,
     user: $userSession,
     userLocation: $userLocation,
+    useLocation: $useLocation,
     cityCenter: $cityCenter,
     appLanguage: $appLanguage,
     addFavorite: addFavoriteFx,
@@ -176,8 +179,9 @@ export default function GroundDetailScreen() {
       Number(ground.geolocation.lng),
     );
   })();
-  const displayDistance =
-    formatDistance(distanceMeters) ?? t('distance.nearby');
+  const displayDistance = useLocation
+    ? formatDistance(distanceMeters) ?? t('distance.nearby')
+    : null;
 
   const amenitiesList: string[] = Array.isArray(ground.amenities)
     ? ground.amenities
@@ -447,16 +451,20 @@ export default function GroundDetailScreen() {
             ) : (
               <View />
             )}
-            <View style={styles.distanceBlock}>
-              <Ionicons
-                name="navigate-outline"
-                size={14}
-                color={colors.textSecondary}
-              />
-              <Text style={[styles.distanceText, { color: colors.textSecondary }]}>
-                {displayDistance}
-              </Text>
-            </View>
+            {displayDistance ? (
+              <View style={styles.distanceBlock}>
+                <Ionicons
+                  name="navigate-outline"
+                  size={14}
+                  color={colors.textSecondary}
+                />
+                <Text
+                  style={[styles.distanceText, { color: colors.textSecondary }]}
+                >
+                  {displayDistance}
+                </Text>
+              </View>
+            ) : null}
           </View>
 
           {surfacesList.length > 0 && (
