@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Image,
   Keyboard,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -101,7 +102,13 @@ export default function EditProfileScreen() {
       const permission =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert(t('photos.permissionNeeded'), t('photos.accessHint'));
+        Alert.alert(t('photos.permissionNeeded'), t('photos.accessHint'), [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('photos.openSettings'),
+            onPress: () => Linking.openSettings().catch(() => {}),
+          },
+        ]);
         return;
       }
 
@@ -112,7 +119,19 @@ export default function EditProfileScreen() {
         quality: 0.85,
       });
 
-      if (result.canceled) return;
+      if (result.canceled) {
+        // ✅ доступ «только к выбранным фото»: список может быть пустым
+        if (permission.accessPrivileges === 'limited') {
+          Alert.alert(t('photos.permissionNeeded'), t('photos.limitedHint'), [
+            { text: t('common.cancel'), style: 'cancel' },
+            {
+              text: t('photos.openSettings'),
+              onPress: () => Linking.openSettings().catch(() => {}),
+            },
+          ]);
+        }
+        return;
+      }
 
       const uri = result.assets[0].uri;
       await uploadPhoto({ uri, setAsMain: true });

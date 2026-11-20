@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Alert,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -67,7 +68,13 @@ export default function CreateGroundScreen() {
     // ✅ granted === true и при «доступе к выбранным фото» (iOS limited)
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert(t('photos.permissionNeeded'), t('photos.accessHint'));
+      Alert.alert(t('photos.permissionNeeded'), t('photos.accessHint'), [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('photos.openSettings'),
+          onPress: () => Linking.openSettings().catch(() => {}),
+        },
+      ]);
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -76,13 +83,25 @@ export default function CreateGroundScreen() {
       aspect: [16, 9],
       quality: 0.8,
     });
-    if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      setPhotoInputs((prev) => [
-        ...prev,
-        { uri, isNew: true, isMain: prev.length === 0 },
-      ]);
+    if (result.canceled) {
+      // ✅ доступ «только к выбранным фото»: список может быть пустым
+      if (permission.accessPrivileges === 'limited') {
+        Alert.alert(t('photos.permissionNeeded'), t('photos.limitedHint'), [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('photos.openSettings'),
+            onPress: () => Linking.openSettings().catch(() => {}),
+          },
+        ]);
+      }
+      return;
     }
+
+    const uri = result.assets[0].uri;
+    setPhotoInputs((prev) => [
+      ...prev,
+      { uri, isNew: true, isMain: prev.length === 0 },
+    ]);
   };
 
   const removePhoto = (index: number) => {

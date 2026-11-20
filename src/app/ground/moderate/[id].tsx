@@ -12,6 +12,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  Linking,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -508,13 +509,25 @@ export default function ModerateGroundScreen() {
               aspect: [16, 9],
               quality: 0.8,
             });
-            if (!result.canceled) {
-              const uri = result.assets[0].uri;
-              changePhotos([
-                ...form.photos,
-                { uri, isNew: true, isMain: form.photos.length === 0 },
-              ]);
+            if (result.canceled) {
+              // ✅ доступ «только к выбранным фото»: список может быть пустым
+              if (permission.accessPrivileges === 'limited') {
+                Alert.alert(t('photos.permissionNeeded'), t('photos.limitedHint'), [
+                  { text: t('common.cancel'), style: 'cancel' },
+                  {
+                    text: t('photos.openSettings'),
+                    onPress: () => Linking.openSettings().catch(() => {}),
+                  },
+                ]);
+              }
+              return;
             }
+
+            const uri = result.assets[0].uri;
+            changePhotos([
+              ...form.photos,
+              { uri, isNew: true, isMain: form.photos.length === 0 },
+            ]);
           }}
           onRemove={(index) => {
             const next = form.photos.filter((_, i) => i !== index);
