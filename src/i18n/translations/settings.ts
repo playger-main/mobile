@@ -116,11 +116,11 @@ export const settings: TranslationDict = {
     uk: 'Кнопка вигляду карти',
   },
   'settings.mapStyleButtonHint': {
-    en: 'Show the layers button on the map. The style can always be changed here.',
-    ru: 'Показывать кнопку слоёв на карте. Вид карты всегда можно сменить здесь.',
-    be: 'Паказваць кнопку слаёў на карце. Выгляд карты заўсёды можна змяніць тут.',
-    lt: 'Rodyti sluoksnių mygtuką žemėlapyje. Vaizdą visada galite pakeisti čia.',
-    pl: 'Pokazuj przycisk warstw na mapie. Wygląd mapy zawsze zmienisz tutaj.',
-    uk: 'Показувати кнопку шарів на карті. Вигляд карти завжди можна змінити тут.',
+    en: 'Show the layers button on the map.',
+    ru: 'Показывать кнопку слоёв на карте.',
+    be: 'Паказваць кнопку слаёў на карце.',
+    lt: 'Rodyti sluoksnių mygtuką žemėlapyje.',
+    pl: 'Pokazuj przycisk warstw na mapie.',
+    uk: 'Показувати кнопку шарів на карті.',
   },
 };

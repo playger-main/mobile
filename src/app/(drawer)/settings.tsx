@@ -265,10 +265,11 @@ export default function SettingsScreen() {
           <View
             style={[
               styles.rowItem,
+              styles.noBorder,
               { borderColor: colors.borderSubtle },
             ]}
           >
-            <View style={styles.rowLeft}>
+            <View style={[styles.rowLeft, styles.rowLeftFlexible]}>
               <MaterialDesignIcons
                 name="layers-outline"
                 size={20}
@@ -464,6 +465,8 @@ const styles = StyleSheet.create({
   },
   noBorder: { borderBottomWidth: 0 },
   rowLeft: { flexDirection: 'row', alignItems: 'center' },
+  // ✅ длинный текст не должен выталкивать Switch за пределы карточки
+  rowLeftFlexible: { flex: 1, minWidth: 0, marginRight: 12 },
   rowIcon: { marginRight: 12 },
   rowText: { fontSize: 14, fontWeight: '600' },
   mapChips: {
