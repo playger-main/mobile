@@ -26,6 +26,7 @@ import {
   $groundEventFlags,
   $useLocation as $useLocationSetting,
   $mapType,
+  $showMapStyleButton,
   setMapType,
   $eventFilter,
   $userLocation,
@@ -91,6 +92,9 @@ export default function MapComponent({
   const useLocationSetting = useUnit($useLocationSetting);
   // ✅ стиль карты: обычная / спутник
   const mapType = useUnit($mapType);
+  // ✅ кнопку слоёв можно отключить в настройках
+  const showMapStyleButton = useUnit($showMapStyleButton);
+  // ✅ кнопку слоёв можно отключить в настройках
   const changeMapType = useUnit(setMapType);
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
@@ -581,22 +585,24 @@ export default function MapComponent({
         })}
       </MapView>
 
-      <Pressable
-        style={({ pressed }) => [
-          styles.locateButton,
-          {
-            top: useLocationSetting ? topOffset + 56 : topOffset,
-            opacity: pressed ? 0.7 : 1,
-            backgroundColor: colors.surface,
-            shadowColor: colors.shadow,
-          },
-        ]}
-        onPress={handleToggleMapType}
-        accessibilityRole="button"
-        accessibilityLabel={t('settings.mapType')}
-      >
-        <MaterialDesignIcons name="layers-outline" size={22} color={colors.primary} />
-      </Pressable>
+      {showMapStyleButton && (
+        <Pressable
+          style={({ pressed }) => [
+            styles.locateButton,
+            {
+              top: useLocationSetting ? topOffset + 56 : topOffset,
+              opacity: pressed ? 0.7 : 1,
+              backgroundColor: colors.surface,
+              shadowColor: colors.shadow,
+            },
+          ]}
+          onPress={handleToggleMapType}
+          accessibilityRole="button"
+          accessibilityLabel={t('settings.mapType')}
+        >
+          <MaterialDesignIcons name="layers-outline" size={22} color={colors.primary} />
+        </Pressable>
+      )}
 
       {useLocationSetting && (
       <Pressable

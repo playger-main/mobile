@@ -137,6 +137,8 @@ export {
   $themeMode,
   $mapType,
   setMapType,
+  $showMapStyleButton,
+  setShowMapStyleButton,
   toggleUseLocation,
   changeLanguage,
   changeThemeMode,

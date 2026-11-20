@@ -13,6 +13,8 @@ const settingsDomain = createDomain('settings');
 export type MapType = 'standard' | 'hybrid';
 
 export const setMapType = createEvent<MapType>();
+/** ✅ показывать ли кнопку переключения вида карты прямо на карте */
+export const setShowMapStyleButton = createEvent<boolean>();
 export const toggleUseLocation = createEvent<boolean>();
 export const changeLanguage = createEvent<Language>();
 
@@ -28,7 +30,8 @@ const STORAGE_KEYS = {
   LOCATION: 'settings_use_location',
   LANG: 'settings_language',
   THEME: 'settings_theme_mode',
-  MAP_TYPE: 'settings_map_type',   // ✅ НОВОЕ
+  MAP_TYPE: 'settings_map_type',
+  MAP_STYLE_BUTTON: 'settings_map_style_button',   // ✅ НОВОЕ
 };
 
 // ============================================================
@@ -75,13 +78,17 @@ export const hydrateSettingsFx = createEffect(async () => {
     const location = await AsyncStorage.getItem(STORAGE_KEYS.LOCATION);
     const lang = await AsyncStorage.getItem(STORAGE_KEYS.LANG);
     const theme = await AsyncStorage.getItem(STORAGE_KEYS.THEME);
-    const mapType = await AsyncStorage.getItem(STORAGE_KEYS.MAP_TYPE);   // ✅
+    const mapType = await AsyncStorage.getItem(STORAGE_KEYS.MAP_TYPE);
+    const mapStyleButton = await AsyncStorage.getItem(
+      STORAGE_KEYS.MAP_STYLE_BUTTON,
+    );   // ✅
 
     return {
       useLocation: location !== null ? location === 'true' : true,
       language: normalizeLanguage(lang),
       themeMode: normalizeTheme(theme),
-      mapType: normalizeMapType(mapType),                             // ✅
+      mapType: normalizeMapType(mapType),
+      showMapStyleButton: mapStyleButton !== null ? mapStyleButton === 'true' : true,                             // ✅
     };
   } catch {
     return {
@@ -89,6 +96,7 @@ export const hydrateSettingsFx = createEffect(async () => {
       language: 'en' as Language,
       themeMode: 'system' as ThemeMode,
       mapType: 'standard' as MapType,
+      showMapStyleButton: true,
     };
   }
 });
@@ -122,6 +130,14 @@ export const $mapType = settingsDomain
     return value;
   })
   .on(hydrateSettingsFx.doneData, (_, p) => p.mapType);
+
+export const $showMapStyleButton = settingsDomain
+  .createStore<boolean>(true)
+  .on(setShowMapStyleButton, (_, value) => {
+    AsyncStorage.setItem(STORAGE_KEYS.MAP_STYLE_BUTTON, String(value));
+    return value;
+  })
+  .on(hydrateSettingsFx.doneData, (_, p) => p.showMapStyleButton);
 
 export const $themeMode = settingsDomain
   .createStore<ThemeMode>('system')

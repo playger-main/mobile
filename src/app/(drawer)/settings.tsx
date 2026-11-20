@@ -25,6 +25,8 @@ import {
   $themeMode,
   $mapType,
   setMapType,
+  $showMapStyleButton,
+  setShowMapStyleButton,
   toggleUseLocation,
 } from '@/effector/store';
 // ✅ при отключении геолокации сбрасываем сохранённые координаты
@@ -40,12 +42,16 @@ export default function SettingsScreen() {
     useLocation,
     mapType,
     changeMapType,
+    showMapStyleButton,
+    changeShowMapStyleButton,
     language,
     themeMode,
     changeLocation,
   } = useUnit({
     useLocation: $useLocation,
     mapType: $mapType,
+    showMapStyleButton: $showMapStyleButton,
+    changeShowMapStyleButton: setShowMapStyleButton,
     changeMapType: setMapType,
     language: $appLanguage,
     themeMode: $themeMode,
@@ -254,6 +260,43 @@ export default function SettingsScreen() {
                 );
               })}
             </View>
+          </View>
+
+          <View
+            style={[
+              styles.rowItem,
+              { borderColor: colors.borderSubtle },
+            ]}
+          >
+            <View style={styles.rowLeft}>
+              <MaterialDesignIcons
+                name="layers-outline"
+                size={20}
+                color={colors.textSecondary}
+                style={styles.rowIcon}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.rowText, { color: colors.textPrimary }]}>
+                  {t('settings.mapStyleButton')}
+                </Text>
+                <Text
+                  style={[
+                    styles.rowValueText,
+                    { color: colors.textTertiary, marginTop: 2 },
+                  ]}
+                >
+                  {t('settings.mapStyleButtonHint')}
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={showMapStyleButton}
+              onValueChange={(value) => {
+                changeShowMapStyleButton(value);
+              }}
+              trackColor={{ false: colors.textTertiary, true: colors.accent }}
+              thumbColor="#FFFFFF"
+            />
           </View>
         </View>
 
