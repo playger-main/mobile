@@ -14,6 +14,7 @@ import { useUnit } from 'effector-react';
 
 import {
   $locationFilter,
+  $useLocation,
   $eventFilter,
   setLocationFilter,
   setEventFilter,
@@ -60,10 +61,18 @@ export default function LocationFilterSheet({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
+  const useLocation = useUnit($useLocation);
   const currentLocation = useUnit($locationFilter);
   const currentEvents = useUnit($eventFilter);
   const setLocation = useUnit(setLocationFilter);
   const setEvents = useUnit(setEventFilter);
+
+  // ✅ near/city считаются от координат пользователя — без них они бессмысленны
+  const locationOptions = useLocation
+    ? LOCATION_OPTIONS
+    : LOCATION_OPTIONS.filter(
+        (option) => option.code !== 'near' && option.code !== 'city',
+      );
 
   const handleSelectLocation = (code: LocationFilter) => {
     setLocation(code);
@@ -213,11 +222,11 @@ export default function LocationFilterSheet({
             showsVerticalScrollIndicator={false}
           >
             {/* ===== ЛОКАЦИЯ ===== */}
-            {LOCATION_OPTIONS.map((item, idx) =>
+            {locationOptions.map((item, idx) =>
               renderRow({
                 item,
                 isActive: item.code === currentLocation,
-                isLast: idx === LOCATION_OPTIONS.length - 1,
+                isLast: idx === locationOptions.length - 1,
                 onPress: handleSelectLocation,
               }),
             )}

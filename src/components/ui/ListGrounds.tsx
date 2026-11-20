@@ -28,6 +28,7 @@ import {
   $selectedCategory,
   $userSession,
   $events,
+  $useLocation,
   $userLocation,
   $cityCenter,
   $mapVisibleBounds,
@@ -69,6 +70,7 @@ export default function ListGrounds({
     changeCategory,
     user,
     events,
+    useLocation,
     userLocation,
     cityCenter,
     mapBounds,
@@ -83,6 +85,7 @@ export default function ListGrounds({
     changeCategory: setSelectedCategory,
     user: $userSession,
     events: $events,
+    useLocation: $useLocation,
     userLocation: $userLocation,
     cityCenter: $cityCenter,
     mapBounds: $mapVisibleBounds,
@@ -137,13 +140,13 @@ export default function ListGrounds({
         break;
       }
       case 'near': {
-        if (origin) {
+        if (origin && useLocation) {
           list = list.filter((g) => getDistanceToGround(g, origin) <= NEAR_RADIUS_METERS);
         }
         break;
       }
       case 'city': {
-        if (origin) {
+        if (origin && useLocation) {
           list = list.filter((g) => getDistanceToGround(g, origin) <= CITY_RADIUS_METERS);
         }
         break;
@@ -175,6 +178,7 @@ export default function ListGrounds({
     return list.slice(0, MAX_GROUNDS_RESULTS);
   }, [
     grounds,
+    useLocation,
     userLocation,
     cityCenter,
     mapBounds,
