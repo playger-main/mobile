@@ -135,6 +135,8 @@ export {
   $useLocation,
   $appLanguage,
   $themeMode,
+  $mapType,
+  setMapType,
   toggleUseLocation,
   changeLanguage,
   changeThemeMode,

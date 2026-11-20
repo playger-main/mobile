@@ -17,7 +17,7 @@ import MaterialDesignIcons from '@react-native-vector-icons/material-design-icon
 import * as Location from 'expo-location';
 import { useUnit } from 'effector-react';
 
-import { $grounds, $userLocation, $cityCenter } from '@/effector/store';
+import { $mapType, $grounds, $userLocation, $cityCenter } from '@/effector/store';
 import { ExtendedGroundItem } from './CardGround';
 import { DEFAULT_CITY_CENTER } from '@/constants/location';
 import { getSportIcon } from '@/constants/sports';
@@ -43,6 +43,7 @@ export default function GroundPickerModal({
   const mapRef = useRef<MapView | null>(null);
 
   const grounds = useUnit($grounds);
+  const mapType = useUnit($mapType);
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
 
@@ -163,6 +164,7 @@ export default function GroundPickerModal({
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <MapView
           ref={mapRef}
+          mapType={mapType}
           provider={PROVIDER_DEFAULT}
           style={StyleSheet.absoluteFill}
           initialRegion={initialRegion}

@@ -22,6 +22,8 @@ import {
   $useLocation,
   $appLanguage,
   $themeMode,
+  $mapType,
+  setMapType,
   toggleUseLocation,
 } from '@/effector/store';
 // ✅ при отключении геолокации сбрасываем сохранённые координаты
@@ -35,11 +37,15 @@ export default function SettingsScreen() {
 
   const {
     useLocation,
+    mapType,
+    changeMapType,
     language,
     themeMode,
     changeLocation,
   } = useUnit({
     useLocation: $useLocation,
+    mapType: $mapType,
+    changeMapType: setMapType,
     language: $appLanguage,
     themeMode: $themeMode,
     changeLocation: toggleUseLocation,
@@ -193,6 +199,60 @@ export default function SettingsScreen() {
               trackColor={{ false: colors.textTertiary, true: colors.accent }}
               thumbColor="#FFFFFF"
             />
+          </View>
+
+          <View
+            style={[
+              styles.rowItem,
+              { borderColor: colors.borderSubtle },
+            ]}
+          >
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="map-outline"
+                size={20}
+                color={colors.textSecondary}
+                style={styles.rowIcon}
+              />
+              <Text style={[styles.rowText, { color: colors.textPrimary }]}>
+                {t('settings.mapType')}
+              </Text>
+            </View>
+            <View style={styles.mapChips}>
+              {(['standard', 'hybrid'] as const).map((option) => {
+                const isActive = mapType === option;
+                return (
+                  <Pressable
+                    key={option}
+                    onPress={() => changeMapType(option)}
+                    style={[
+                      styles.mapChip,
+                      {
+                        borderColor: isActive ? colors.primary : colors.border,
+                        backgroundColor: isActive ? colors.primaryBg : 'transparent',
+                      },
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isActive }}
+                  >
+                    <Text
+                      style={[
+                        styles.mapChipText,
+                        {
+                          color: isActive ? colors.primary : colors.textSecondary,
+                        },
+                      ]}
+                    >
+                      {t(
+                        option === 'standard'
+                          ? 'settings.mapStandard'
+                          : 'settings.mapSatellite',
+                      )}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
         </View>
 
@@ -362,6 +422,20 @@ const styles = StyleSheet.create({
   rowLeft: { flexDirection: 'row', alignItems: 'center' },
   rowIcon: { marginRight: 12 },
   rowText: { fontSize: 14, fontWeight: '600' },
+  mapChips: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  mapChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  mapChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
   rowRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   rowValueText: { fontSize: 14, fontWeight: '500' },
   versionText: {

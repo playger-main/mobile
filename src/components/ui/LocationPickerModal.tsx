@@ -17,7 +17,7 @@ import Ionicons from "@react-native-vector-icons/ionicons";
 import * as Location from 'expo-location';
 import { useUnit } from 'effector-react';
 
-import { $userLocation, $cityCenter } from '@/effector/store';
+import { $mapType, $userLocation, $cityCenter } from '@/effector/store';
 import { DEFAULT_CITY_CENTER } from '@/constants/location';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/useTheme';
@@ -46,6 +46,7 @@ export default function LocationPickerModal({
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView | null>(null);
 
+  const mapType = useUnit($mapType);
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
 
@@ -189,6 +190,7 @@ export default function LocationPickerModal({
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <MapView
           ref={mapRef}
+          mapType={mapType}
           provider={PROVIDER_DEFAULT}
           style={StyleSheet.absoluteFill}
           initialRegion={initialRegion}

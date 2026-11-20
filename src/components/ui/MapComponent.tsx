@@ -24,6 +24,8 @@ import {
   $groundActivityLevels,
   $groundEventFlags,
   $useLocation as $useLocationSetting,
+  $mapType,
+  setMapType,
   $eventFilter,
   $userLocation,
   $cityCenter,
@@ -86,6 +88,9 @@ export default function MapComponent({
   const eventFilter = useUnit($eventFilter);
   // ✅ настройка «использовать геолокацию»: без неё карта не показывает точку и не просит GPS
   const useLocationSetting = useUnit($useLocationSetting);
+  // ✅ стиль карты: обычная / спутник
+  const mapType = useUnit($mapType);
+  const changeMapType = useUnit(setMapType);
   const userLocation = useUnit($userLocation);
   const cityCenter = useUnit($cityCenter);
   const mapFocusTarget = useUnit($mapFocusTarget);
@@ -207,6 +212,11 @@ export default function MapComponent({
 
     return () => clearTimeout(timer);
   }, [mapFocusTarget]);
+
+  // ✅ быстрое переключение стиля карты прямо с карты
+  const handleToggleMapType = useCallback(() => {
+    changeMapType(mapType === 'standard' ? 'hybrid' : 'standard');
+  }, [mapType, changeMapType]);
 
   const handleLocatePress = useCallback(async () => {
     // ✅ если геолокация выключена в настройках — не запрашиваем координаты
@@ -506,6 +516,7 @@ export default function MapComponent({
         style={styles.map}
         initialRegion={region}
         onRegionChangeComplete={handleRegionChangeComplete}
+        mapType={mapType}
         showsUserLocation={useLocationSetting}
         showsMyLocationButton={false}
         toolbarEnabled={false}
@@ -568,6 +579,23 @@ export default function MapComponent({
           );
         })}
       </MapView>
+
+      <Pressable
+        style={({ pressed }) => [
+          styles.locateButton,
+          {
+            top: useLocationSetting ? topOffset + 56 : topOffset,
+            opacity: pressed ? 0.7 : 1,
+            backgroundColor: colors.surface,
+            shadowColor: colors.shadow,
+          },
+        ]}
+        onPress={handleToggleMapType}
+        accessibilityRole="button"
+        accessibilityLabel={t('settings.mapType')}
+      >
+        <Ionicons name="layers-outline" size={22} color={colors.primary} />
+      </Pressable>
 
       {useLocationSetting && (
       <Pressable

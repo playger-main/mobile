@@ -81,4 +81,29 @@ export const settings: TranslationDict = {
     pl: 'Wybierz motyw',
     uk: 'Виберіть тему',
   },
+  // ✅ тип карты
+  'settings.mapType': {
+    en: 'Map style',
+    ru: 'Вид карты',
+    be: 'Выгляд карты',
+    lt: 'Žemėlapio vaizdas',
+    pl: 'Wygląd mapy',
+    uk: 'Вигляд карти',
+  },
+  'settings.mapStandard': {
+    en: 'Standard',
+    ru: 'Обычная',
+    be: 'Звычайная',
+    lt: 'Įprastas',
+    pl: 'Standardowa',
+    uk: 'Звичайна',
+  },
+  'settings.mapSatellite': {
+    en: 'Satellite',
+    ru: 'Спутник',
+    be: 'Спадарожнік',
+    lt: 'Palydovas',
+    pl: 'Satelita',
+    uk: 'Супутник',
+  },
 };

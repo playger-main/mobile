@@ -9,6 +9,10 @@ const settingsDomain = createDomain('settings');
 // EVENTS
 // ============================================================
 
+/** ✅ тип карты: обычная или спутник (hybrid — со спутника видны улицы) */
+export type MapType = 'standard' | 'hybrid';
+
+export const setMapType = createEvent<MapType>();
 export const toggleUseLocation = createEvent<boolean>();
 export const changeLanguage = createEvent<Language>();
 
@@ -23,7 +27,8 @@ export const changeThemeMode = createEvent<ThemeMode>();
 const STORAGE_KEYS = {
   LOCATION: 'settings_use_location',
   LANG: 'settings_language',
-  THEME: 'settings_theme_mode',   // ✅ НОВОЕ
+  THEME: 'settings_theme_mode',
+  MAP_TYPE: 'settings_map_type',   // ✅ НОВОЕ
 };
 
 // ============================================================
@@ -56,6 +61,11 @@ function normalizeTheme(raw: string | null): ThemeMode {
   return 'system';
 }
 
+/** ✅ неизвестное значение → обычная карта */
+function normalizeMapType(raw: string | null): MapType {
+  return raw === 'hybrid' ? 'hybrid' : 'standard';
+}
+
 // ============================================================
 // HYDRATE
 // ============================================================
@@ -64,18 +74,21 @@ export const hydrateSettingsFx = createEffect(async () => {
   try {
     const location = await AsyncStorage.getItem(STORAGE_KEYS.LOCATION);
     const lang = await AsyncStorage.getItem(STORAGE_KEYS.LANG);
-    const theme = await AsyncStorage.getItem(STORAGE_KEYS.THEME);   // ✅
+    const theme = await AsyncStorage.getItem(STORAGE_KEYS.THEME);
+    const mapType = await AsyncStorage.getItem(STORAGE_KEYS.MAP_TYPE);   // ✅
 
     return {
       useLocation: location !== null ? location === 'true' : true,
       language: normalizeLanguage(lang),
-      themeMode: normalizeTheme(theme),                             // ✅
+      themeMode: normalizeTheme(theme),
+      mapType: normalizeMapType(mapType),                             // ✅
     };
   } catch {
     return {
       useLocation: true,
       language: 'en' as Language,
       themeMode: 'system' as ThemeMode,
+      mapType: 'standard' as MapType,
     };
   }
 });
@@ -102,6 +115,14 @@ export const $appLanguage = settingsDomain
   .on(hydrateSettingsFx.doneData, (_, p) => p.language);
 
 // ✅ НОВЫЙ СТОР
+export const $mapType = settingsDomain
+  .createStore<MapType>('standard')
+  .on(setMapType, (_, value) => {
+    AsyncStorage.setItem(STORAGE_KEYS.MAP_TYPE, value);
+    return value;
+  })
+  .on(hydrateSettingsFx.doneData, (_, p) => p.mapType);
+
 export const $themeMode = settingsDomain
   .createStore<ThemeMode>('system')
   .on(changeThemeMode, (_, value) => {
