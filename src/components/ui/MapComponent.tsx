@@ -14,6 +14,7 @@ import Supercluster from 'supercluster';
 import { useRouter } from 'expo-router';
 import { useUnit } from 'effector-react';
 import Ionicons from "@react-native-vector-icons/ionicons";
+import MaterialDesignIcons from "@react-native-vector-icons/material-design-icons";
 
 import { ExtendedGroundItem } from './CardGround';
 import GroundMarker from './GroundMarker';
@@ -594,7 +595,7 @@ export default function MapComponent({
         accessibilityRole="button"
         accessibilityLabel={t('settings.mapType')}
       >
-        <Ionicons name="layers-outline" size={22} color={colors.primary} />
+        <MaterialDesignIcons name="layers-outline" size={22} color={colors.primary} />
       </Pressable>
 
       {useLocationSetting && (

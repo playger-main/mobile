@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Ionicons from "@react-native-vector-icons/ionicons";
+import MaterialDesignIcons from "@react-native-vector-icons/material-design-icons";
 import { useUnit } from 'effector-react';
 
 import LanguagePickerModal from '@/components/ui/LanguagePickerModal';
@@ -208,8 +209,8 @@ export default function SettingsScreen() {
             ]}
           >
             <View style={styles.rowLeft}>
-              <Ionicons
-                name="map-outline"
+              <MaterialDesignIcons
+                name="layers-outline"
                 size={20}
                 color={colors.textSecondary}
                 style={styles.rowIcon}
