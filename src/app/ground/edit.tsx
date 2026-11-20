@@ -122,8 +122,9 @@ export default function EditGroundScreen() {
       );
       return;
     }
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
+    // ✅ granted === true и при «доступе к выбранным фото» (iOS limited)
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
       Alert.alert(t('photos.permissionNeeded'), t('photos.accessHint'));
       return;
     }

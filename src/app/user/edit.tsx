@@ -97,9 +97,10 @@ export default function EditProfileScreen() {
 
   const handlePickAvatar = async () => {
     try {
-      const { status } =
+      // ✅ granted === true и при «доступе к выбранным фото» (iOS limited)
+      const permission =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
+      if (!permission.granted) {
         Alert.alert(t('photos.permissionNeeded'), t('photos.accessHint'));
         return;
       }

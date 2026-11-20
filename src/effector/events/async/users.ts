@@ -101,6 +101,8 @@ const userApi = {
     formData.append('setAsMain', payload.setAsMain ? 'true' : 'false');
 
     const res = await apiInstance.post('/photo', formData, {
+      // ✅ иначе Content-Type остаётся application/json и boundary не ставится
+      headers: { 'Content-Type': 'multipart/form-data' },
       transformRequest: [(data) => data],
     });
     return res.data;

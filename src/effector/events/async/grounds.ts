@@ -109,6 +109,9 @@ const uploadOnePhoto = async (
   formData.append('setAsMain', setAsMain ? 'true' : 'false');
 
   const response = await apiInstance.post('/photo', formData, {
+    // ✅ у apiInstance по умолчанию Content-Type: application/json —
+    // с ним FormData уходит без boundary и сервер отвечает «Empty file»
+    headers: { 'Content-Type': 'multipart/form-data' },
     transformRequest: [(data) => data],
   });
 

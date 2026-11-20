@@ -497,8 +497,8 @@ export default function ModerateGroundScreen() {
           max={5}
           onAdd={async () => {
             const ImagePicker = await import('expo-image-picker');
-            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-            if (status !== 'granted') {
+            const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (!permission.granted) {
               Alert.alert(t('photos.permissionNeeded'), t('photos.accessHint'));
               return;
             }
